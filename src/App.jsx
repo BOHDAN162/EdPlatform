@@ -288,6 +288,9 @@ const Quotes = () => {
     { author: "Рей Далио", text: "Боль плюс размышление равняется прогресс." },
     { author: "Сара Блейкли", text: "Ошибки — это не провалы, а топливо для роста." },
     { author: "Джек Ма", text: "Никогда не сдавайся. Сегодня тяжело, завтра будет хуже, но послезавтра — солнце." },
+    { author: "Илонка Туск", text: "Дисциплина — мост между намерением и результатом." },
+    { author: "Питер Тиль", text: "Секрет успеха — строить то, что ещё никто не осмелился представить." },
+    { author: "Навал Равикант", text: "Люби науку. Она превращает удачу в стратегию." },
   ];
   const [index, setIndex] = useState(0);
   useEffect(() => {
@@ -331,7 +334,7 @@ const TrackTest = ({ onComplete, savedTrack }) => {
   };
 
   return (
-    <div className="card">
+    <div className="card track-test-card" id="track-test">
       <div className="card-header">Быстрый тест на трек развития</div>
       {savedTrack && <div className="success">Твой трек: {savedTrack}</div>}
       <div className="test-grid">
@@ -358,6 +361,10 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
   const merged = leaderboard.map((u) => (u.id === "you" ? { ...u, points: profile.points } : u));
   const top = [...merged].sort((a, b) => b.points - a.points).slice(0, 3);
   const [form, setForm] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone });
+  const scrollToTrack = () => {
+    const el = document.getElementById("track-test");
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
   return (
     <div className="grid home-grid">
       <div className="card hero">
@@ -379,10 +386,17 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
           </div>
         </div>
       </div>
+      <div className="card mini-track">
+        <div className="card-header">Сформировать персональный трек развития</div>
+        <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: создатель, мыслитель или командный игрок.</p>
+        <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
+        <button className="primary" onClick={scrollToTrack}>Пройти мини-тест</button>
+        {track && <div className="success">Текущий трек: {track}</div>}
+      </div>
       <div className="card quotes-card">
         <Quotes />
       </div>
-      <TrackTest onTrackComplete={onTrackComplete} savedTrack={track} />
+      <TrackTest onComplete={onTrackComplete} savedTrack={track} />
       <div className="card">
         <div className="card-header">Регистрация / анкета</div>
         <div className="form">
@@ -754,6 +768,20 @@ const HelpPage = ({ onIdea }) => {
           ))}
         </ul>
         <a href="https://t.me/yourproject" target="_blank" rel="noreferrer" className="primary outline">Нужна помощь? Telegram</a>
+      </div>
+      <div className="card">
+        <div className="card-header">Поддержка и контакты</div>
+        <p>Если нужен живой ответ — пиши основателям прямо в Telegram. Мы отвечаем быстро и ценим каждое сообщение.</p>
+        <ul className="contact-list">
+          <li><a href="https://t.me/bohdan162" target="_blank" rel="noreferrer">@bohdan162</a> — отвечает за продукты и комьюнити.</li>
+          <li><a href="https://t.me/whohatesme" target="_blank" rel="noreferrer">@whohatesme</a> — поможет с запуском, идеями и партнёрствами.</li>
+        </ul>
+      </div>
+      <div className="card">
+        <div className="card-header">О нас</div>
+        <p>Мы — команда долларовых триллионеров из Силиконовой долины, которые решили сделать доступный тренажёр предпринимательского мышления для подростков.</p>
+        <p>Запускаем продукты, собираем комьюнити и верим в силу любопытства. Ставим эксперименты, находим инсайты и делимся ими с тобой без paywall.</p>
+        <p>Наша цель — чтобы каждый смог выбрать собственный путь: строить бизнес, создавать технологии или формировать команды мечты.</p>
       </div>
       <div className="card">
         <div className="card-header">Предложить идею</div>
