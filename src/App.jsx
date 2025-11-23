@@ -21,13 +21,306 @@ const STATUS_TITLES = [
   { min: 1800, name: "Архитектор" },
 ];
 
+const LESSON_MODULES = [
+  {
+    id: "causal-logic",
+    title: "Базовая логика: как строить причинно-следственные связи",
+    category: "thinking",
+    type: "article",
+    durationMinutes: 10,
+    content: `
+1. Зачем тебе причинно-следственные связи
+
+Каждый день ты что-то объясняешь:
+«Упал продаж», «Я устал», «Проект выстрелил», «Учёба не идёт».
+За каждым таким объяснением стоит модель причин и следствий. Если модель кривая — решения тоже будут кривые.
+
+Логика причинно-следственных связей нужна, чтобы:
+— понимать, что действительно влияет на результат;
+— отличать реальную причину от совпадения;
+— осознанно менять поведение и систему вокруг себя;
+— не становиться жертвой манипуляций («это всё из-за…»).
+
+2. Что такое причина и следствие на человеческом языке
+
+Причина — фактор, который запускает или сильно влияет на событие.
+Следствие — то, что произошло.
+
+Примеры:
+— Ты лег спать в 3 ночи → утром разбит и не сконцентрирован.
+— Команда не договорилась о правилах → проект постоянно тормозит на мелочах.
+
+Важно:
+— Одна ситуация часто имеет несколько причин, а не одну магическую.
+— Причины могут быть прямые и косвенные.
+
+3. Прямые и косвенные причины
+
+Прямая причина — без неё событие почти точно не произошло бы.
+Пример: рекламный бюджет урезали до нуля → поток заявок резко упал.
+
+Косвенная причина — усиливает или ослабляет влияние, но сама по себе не всегда запускает событие.
+Пример: сайт неудобный → при том же трафике конверсия ниже.
+
+Жизнь — это всегда система факторов, а не один «виноватый».
+
+4. Частые ошибки в причинно-следственном мышлении
+
+1) «После» ≠ «из-за».
+То, что событие А произошло раньше события Б, не значит, что А вызвало Б.
+
+2) Корреляция ≠ причинность.
+Летом растут продажи мороженого и количество утоплений. Это не значит, что мороженое вызывает утопления. Есть третий фактор — жара.
+
+3) Поиск одной «главной» причины.
+Реальность почти всегда: несколько причин, несколько участников, несколько решений, которые могли всё поменять.
+
+4) Игнорирование собственных действий.
+Удобно всё объяснять внешними факторами, но логика причинно-следственных связей всегда спрашивает:
+«А что я сделал / не сделал, что тоже стало частью причины?»
+
+5. Простая модель: как разложить ситуацию по полочкам
+
+Шаг 1. Описать событие конкретно, без «всё плохо».
+Шаг 2. Собрать возможные причины (что изменилось, что я начал/перестал делать, какие внешние факторы).
+Шаг 3. Проверить причины фактами: есть ли примеры, где причина есть, а следствия нет; и наоборот.
+Шаг 4. Сложить рабочую модель:
+[Фактор 1] + [Фактор 2] + [Моё действие] → [Результат].
+
+6. Типы причин: необходимые, достаточные и триггеры
+
+Необходимая причина — без неё событие не происходит.
+Достаточная причина — сама по себе почти гарантирует событие.
+Триггер — момент, который включает уже накопленные причины.
+
+Важно отличать фон, обязательное условие и спусковой крючок.
+
+7. Мини-чек-лист
+
+При любом событии:
+— Что произошло конкретно?
+— Какие факторы явно вовлечены?
+— Какие факторы могли влиять скрыто?
+— Что я сам сделал или не сделал?
+— Что подтверждается фактами, а что — догадки?
+— Какую новую привычку/решение можно ввести, чтобы в следующий раз цепочка причин была другой?
+
+8. Почему это важно для будущего предпринимателя
+
+В бизнесе причинно-следственные связи — основа:
+— почему клиенты не возвращаются;
+— почему продукт заходит в одном сегменте и умирает в другом;
+— почему команда выгорает;
+— почему деньги есть на бумаге, но нет на счёте.
+
+Чем точнее ты видишь причинно-следственные цепочки, тем лучше решения и результаты.
+Логика причин — это навык, который можно спокойно тренировать.
+`
+  },
+  {
+    id: "business-models",
+    title: "Как устроены бизнес-модели: подписка, разовая оплата, freemium",
+    category: "business",
+    type: "article",
+    durationMinutes: 11,
+    content: `
+1. Что такое бизнес-модель
+
+Бизнес-модель отвечает на вопросы:
+— Кому мы создаём ценность?
+— Что именно даём?
+— Как и за счёт чего зарабатываем?
+
+Способ, как платит клиент, — важная часть бизнес-модели. Он влияет на стабильность дохода, окупаемость и то, как ты строишь продукт.
+
+2. Разовая оплата: заплатил и забыл
+
+Суть: клиент платит один раз за продукт или услугу.
+
+Примеры:
+— купил книгу;
+— разовый мастер-класс;
+— разовый дизайн логотипа.
+
+Плюсы:
+— деньги приходят сразу;
+— понятно, за что платит клиент;
+— нет длинных обязательств.
+
+Минусы:
+— нужно постоянно искать новых клиентов;
+— выручка скачет;
+— сложнее планировать долгосрочно.
+
+3. Подписка: регулярные платежи
+
+Суть: клиент платит регулярно за доступ к сервису.
+
+Примеры:
+— Netflix, YouTube Premium;
+— подписка на онлайн-платформу;
+— SaaS-сервисы для бизнеса.
+
+Плюсы:
+— предсказуемый доход;
+— можно планировать развитие;
+— фокус на удержании клиента.
+
+Минусы:
+— нужно постоянно поддерживать ценность;
+— есть отток (churn), с которым нужно работать;
+— сложнее продать, если не очевидна долгосрочная ценность.
+
+Ключевые метрики подписки:
+LTV, churn, MRR.
+
+4. Freemium: бесплатно + премиум
+
+Суть:
+— базовый функционал бесплатен;
+— продвинутые функции — платные (подписка или разовый платёж).
+
+Примеры:
+— Zoom;
+— Spotify;
+— многие мобильные приложения.
+
+Логика:
+1) Дать попробовать без барьеров.
+2) Показать ценность.
+3) Конвертировать часть пользователей в платящих.
+
+Плюсы:
+— проще привлекать много пользователей;
+— растёт аудитория вокруг продукта;
+— можно наблюдать поведение и улучшать продукт.
+
+Минусы:
+— нужно тянуть инфраструктуру для бесплатных пользователей;
+— если нет яркой ценности, конверсия в оплату слабая;
+— важно не «отдать всё бесплатно».
+
+5. Как выбирать модель
+
+Спрашивай себя:
+— Как часто человек будет пользоваться продуктом?
+— Где создаётся основная ценность: в моменте или по пути?
+— Можно ли честно дать полезный бесплатный уровень?
+— Какова себестоимость обслуживания одного клиента?
+
+6. Комбинации моделей
+
+На практике часто комбинируют:
+— бесплатный контент → недорогие разовые продукты → длинные программы по подписке;
+— бесплатная часть курса → платная подписка на полный доступ + комьюнити.
+
+Важно понимать:
+— где вход в воронку,
+— а где основная выручка.
+
+7. Мини-упражнение
+
+Представь онлайн-платформу для подростков.
+Ответь:
+— Что пользователь делает регулярно?
+— Что он получает сразу, а что накапливает?
+— Что может быть бесплатной зоной?
+— За что готовы платить ежемесячно?
+
+Набросай два сценария:
+— модель с подпиской;
+— модель с freemium.
+
+Это первый шаг к взрослому мышлению о деньгах в продукте.
+`
+  },
+  {
+    id: "fact-checking",
+    title: "Критическое мышление: проверка фактов",
+    category: "thinking",
+    type: "quiz",
+    durationMinutes: 6,
+    infoCards: [
+      {
+        id: 1,
+        title: "Факт vs мнение",
+        text: "Факт — это утверждение, которое можно проверить и подтвердить или опровергнуть. Мнение — это интерпретация, оценка или эмоция.\n\nПримеры:\n— «В этом классе 24 ученика» — факт (можно пересчитать).\n— «Этот класс самый дружный» — мнение.\n\nКогда видишь информацию, сначала спроси: «Это факт или чья-то интерпретация факта?»"
+      },
+      {
+        id: 2,
+        title: "Источники: первичные и вторичные",
+        text: "Первичный источник — место, где информация появилась впервые: официальные документы, исследования, статистика, оригинальное интервью.\nВторичный источник — пересказ: новости, блогеры, посты.\n\nЧем ближе к первоисточнику, тем легче проверить факты. Увидел громкую новость — попробуй найти оригинальный документ или исследование."
+      },
+      {
+        id: 3,
+        title: "Три вопроса к источнику",
+        text: "При любой информации задай три вопроса:\n1) Кто говорит? (автор, медиа, организация)\n2) Откуда у него данные? (есть ли ссылка на исследования, статистику, документы)\n3) Какой у него интерес? (выгода от того, что ты поверишь)\n\nЕсли источник нечёткий, данных нет, а интерес очевиден — относись осторожно."
+      },
+      {
+        id: 4,
+        title: "Базовые шаги факт-чекинга",
+        text: "Алгоритм:\n1) Найди первичный источник (оригинальную новость, отчёт, исследование).\n2) Проверь дату (часто старое подают как новое).\n3) Сравни информацию в нескольких независимых источниках.\n4) Обрати внимание на формулировки: «учёные доказали», «эксперты считают» без конкретики — красный флаг."
+      },
+      {
+        id: 5,
+        title: "Типичные манипуляции",
+        text: "Часто используют:\n— цитаты, вырванные из контекста;\n— неполные цифры («рост на 300 %», но не говорят, с какого уровня);\n— заголовки, искажающие смысл.\n\nЕсли заголовок вызывает сильный страх или агрессию — это повод остановиться и проверить, а не репостить."
+      },
+      {
+        id: 6,
+        title: "Критическое мышление в жизни",
+        text: "Критическое мышление — не про «не верить никому», а про привычку:\n— задавать уточняющие вопросы;\n— проверять источники;\n— держать в голове несколько объяснений;\n— менять мнение, когда появляются новые факты.\n\nЭтот навык защищает от фейков, слива денег и плохих решений."
+      }
+    ],
+    questions: [
+      {
+        id: 1,
+        text: "Что из перечисленного ближе всего к факту?",
+        options: [
+          "Этот курс — лучший для подростков",
+          "90 % участников курса прошли все модули за 3 месяца",
+          "Наши ученики стали увереннее в себе",
+          "Преподаватели у нас — профессионалы"
+        ],
+        correctIndex: 1
+      },
+      {
+        id: 2,
+        text: "Ты видишь новость: «Учёные доказали, что соцсети разрушают мозг подростков». Что стоит сделать в первую очередь?",
+        options: [
+          "Сразу перестать пользоваться соцсетями",
+          "Посмотреть мемы по теме",
+          "Найти ссылку на оригинальное исследование или серьёзный отчёт",
+          "Написать пост с возмущением"
+        ],
+        correctIndex: 2
+      },
+      {
+        id: 3,
+        text: "Какой из шагов НЕ относится к базовому факт-чекингу?",
+        options: [
+          "Проверить дату новости или исследования",
+          "Сравнить информацию в нескольких независимых источниках",
+          "Обратить внимание на автора и его возможные интересы",
+          "Поверить новости, если её переслало много знакомых"
+        ],
+        correctIndex: 3
+      }
+    ]
+  }
+];
+
 const INITIAL_LIBRARY = [
-  { id: "t1", category: "thinking", kind: "article", title: "Базовая логика: как строить причинно‑следственные связи", duration: 10 },
+  ...LESSON_MODULES.map(m => ({
+    id: m.id,
+    category: m.category,
+    kind: m.type,
+    title: m.title,
+    duration: m.durationMinutes,
+  })),
   { id: "b1", category: "business", kind: "video", title: "Что такое ценность и почему люди платят", duration: 8 },
   { id: "f1", category: "finance", kind: "game", title: "Бюджет на месяц: квест о приоритетах", duration: 12 },
   { id: "p1", category: "psychology", kind: "podcast", title: "Воля и дисциплина: как держать курс", duration: 9 },
-  { id: "b2", category: "business", kind: "article", title: "Как устроены бизнес‑модели: подписка, разовая оплата, freemium", duration: 11 },
-  { id: "t2", category: "thinking", kind: "quiz", title: "Критическое мышление: проверка фактов", duration: 6 },
 ];
 
 const INITIAL_QUIZZES = [
@@ -224,6 +517,132 @@ function Library({ lessons, filter, setFilter, onStart, isCompleted }) {
         ))}
       </div>
       <div className="mt-6 text-zinc-500 text-sm">*В релизе: карточка источника, конспект, дискуссия, ссылки на открытые материалы и наш контент.</div>
+    </Page>
+  );
+}
+
+function LessonArticle({ lesson, onComplete, isCompleted }) {
+  const paragraphs = lesson.content.trim().split(/\n\s*\n/);
+  return (
+    <Card>
+      <div className="text-2xl font-semibold mb-2">{lesson.title}</div>
+      <div className="text-xs text-zinc-400 mb-4">{CATEGORIES.find(c=>c.id===lesson.category)?.title} • {lesson.durationMinutes} мин • Лонгрид</div>
+      <div className="space-y-4 text-zinc-100 leading-relaxed">
+        {paragraphs.map((p, idx) => (
+          <p key={idx} className="whitespace-pre-line text-sm text-zinc-200">{p.trim()}</p>
+        ))}
+      </div>
+      <div className="mt-6 flex items-center gap-3">
+        {isCompleted ? <div className="text-emerald-400 text-sm">Модуль завершён</div> : <Button onClick={onComplete}>Отметить как изученный</Button>}
+      </div>
+    </Card>
+  );
+}
+
+function LessonQuiz({ lesson, onSubmit, onComplete, previousResult, isCompleted }) {
+  const [stage, setStage] = useState("cards");
+  const [cardIndex, setCardIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(previousResult || null);
+
+  useEffect(() => {
+    setStage("cards");
+    setCardIndex(0);
+    setAnswers({});
+    setResult(previousResult || null);
+  }, [lesson.id, previousResult]);
+
+  const handleSubmit = () => {
+    const arr = lesson.questions.map((_, i) => answers[i]);
+    if (arr.some(v => v === undefined)) {
+      alert("Ответь на все вопросы, чтобы увидеть результат.");
+      return;
+    }
+    const adaptedQuiz = {
+      id: lesson.id,
+      category: lesson.category,
+      title: lesson.title,
+      questions: lesson.questions.map(q => ({ q: q.text, options: q.options, a: q.correctIndex })),
+    };
+    const res = onSubmit(adaptedQuiz, arr);
+    onComplete();
+    setResult(res);
+  };
+
+  return (
+    <Card>
+      <div className="text-2xl font-semibold mb-2">{lesson.title}</div>
+      <div className="text-xs text-zinc-400 mb-4">{CATEGORIES.find(c=>c.id===lesson.category)?.title} • {lesson.durationMinutes} мин • Квиз</div>
+
+      {stage === "cards" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-zinc-400">Карточка {cardIndex + 1} из {lesson.infoCards.length}</div>
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => setCardIndex(Math.max(0, cardIndex - 1))}>Назад</Button>
+              <Button onClick={() => setCardIndex(Math.min(lesson.infoCards.length - 1, cardIndex + 1))}>Дальше</Button>
+            </div>
+          </div>
+          <div className="border border-zinc-800 rounded-2xl p-4 bg-zinc-950/80">
+            <div className="text-lg mb-2">{lesson.infoCards[cardIndex].title}</div>
+            <p className="text-sm text-zinc-200 whitespace-pre-line">{lesson.infoCards[cardIndex].text}</p>
+          </div>
+          <div className="flex items-center justify-between text-sm text-zinc-400">
+            <span>Пролистай все карточки перед тестом.</span>
+            <Button onClick={() => setStage("quiz")}>Перейти к тесту</Button>
+          </div>
+        </div>
+      )}
+
+      {stage === "quiz" && (
+        <div className="space-y-4">
+          {lesson.questions.map((q, idx) => (
+            <div key={q.id} className="border border-zinc-800 rounded-2xl p-3 bg-zinc-950/80">
+              <div className="mb-2 font-medium">{idx + 1}. {q.text}</div>
+              <div className="grid gap-2">
+                {q.options.map((opt, i) => (
+                  <label key={i} className={`flex items-center gap-2 p-2 rounded-xl border ${answers[idx]===i?"border-zinc-500 bg-zinc-900":"border-zinc-800 bg-zinc-950"}`}>
+                    <input type="radio" name={`quiz-${lesson.id}-${idx}`} className="accent-white" checked={answers[idx]===i} onChange={() => setAnswers(a => ({ ...a, [idx]: i }))} />
+                    <span>{opt}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSubmit}>Показать результат</Button>
+            <Button variant="ghost" onClick={() => setStage("cards")}>Назад к карточкам</Button>
+          </div>
+        </div>
+      )}
+
+      {result && (
+        <div className="mt-4 text-emerald-400 text-sm">+{result.delta} очков • Верно {result.correct}/{result.total} {isCompleted ? "(прогресс сохранён)" : ""}</div>
+      )}
+    </Card>
+  );
+}
+
+function LessonView({ lesson, onBack, onComplete, onSubmitQuiz, quizProgress, isCompleted }) {
+  if (!lesson) return null;
+  return (
+    <Page>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-2xl">Модуль: {lesson.title}</div>
+        <Button variant="ghost" onClick={onBack}>← Назад</Button>
+      </div>
+      {lesson.type === "article" && (
+        <LessonArticle lesson={lesson} onComplete={() => onComplete(lesson)} isCompleted={isCompleted} />
+      )}
+      {lesson.type === "quiz" && (
+        <LessonQuiz
+          lesson={lesson}
+          onSubmit={onSubmitQuiz}
+          onComplete={() => onComplete(lesson)}
+          previousResult={quizProgress}
+          isCompleted={isCompleted}
+        />
+      )}
     </Page>
   );
 }
@@ -486,9 +905,21 @@ function Admin({ libraryExtra, setLibraryExtra, quizzesExtra, setQuizzesExtra })
 export default function App() {
   const m = useModel();
   const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [activeLessonId, setActiveLessonId] = useState(null);
 
   const libraryAll = [...INITIAL_LIBRARY, ...m.libraryExtra];
   const quizzesAll = [...INITIAL_QUIZZES, ...m.quizzesExtra];
+  const lessonMap = useMemo(() => {
+    const extraLessons = m.libraryExtra.filter(x => x.content).map(x => ({
+      ...x,
+      type: x.kind || x.type,
+      durationMinutes: x.duration,
+    }));
+    const base = LESSON_MODULES.map(l => ({ ...l }));
+    return [...base, ...extraLessons].reduce((acc, l) => ({ ...acc, [l.id]: l }), {});
+  }, [m.libraryExtra]);
+
+  const activeLesson = activeLessonId ? lessonMap[activeLessonId] : null;
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
@@ -496,9 +927,33 @@ export default function App() {
         <Nav tab={m.tab} setTab={m.setTab} points={m.profile.points} status={m.status} isAdmin={m.isAdmin} />
         {m.tab === "home" && <Home setTab={m.setTab} />}
         {m.tab === "library" && (
-          <Library lessons={libraryAll} filter={m.filter} setFilter={m.setFilter} onStart={(l)=>{ m.completeLesson(l); alert("Урок отмечен как изученный. +20 очков и рост навыка."); }} isCompleted={(id)=>!!m.profile.completed[id]} />
+          <Library
+            lessons={libraryAll}
+            filter={m.filter}
+            setFilter={m.setFilter}
+            onStart={(l)=>{
+              if (lessonMap[l.id]) {
+                setActiveLessonId(l.id);
+                m.setTab('lesson');
+              } else {
+                m.completeLesson(l);
+                alert("Урок отмечен как изученный. +20 очков и рост навыка.");
+              }
+            }}
+            isCompleted={(id)=>!!m.profile.completed[id]}
+          />
         )}
         {m.tab === "quests" && (<Quests quizzes={quizzesAll} onSubmit={m.submitQuiz} profile={m.profile} selected={selectedQuiz} />)}
+        {m.tab === "lesson" && activeLesson && (
+          <LessonView
+            lesson={activeLesson}
+            onBack={() => { setActiveLessonId(null); m.setTab('library'); }}
+            onComplete={(lesson) => m.completeLesson(lesson)}
+            onSubmitQuiz={m.submitQuiz}
+            quizProgress={m.profile.quizzes[activeLesson.id]}
+            isCompleted={!!m.profile.completed[activeLesson.id]}
+          />
+        )}
         {m.tab === "profile" && (<Profile profile={m.profile} status={m.status} setTab={m.setTab} setFilter={m.setFilter} setSelectedQuiz={setSelectedQuiz} />)}
         {m.tab === "leaderboard" && (<Leaderboard mePoints={m.profile.points} />)}
         {m.tab === "admin" && (<Admin libraryExtra={m.libraryExtra} setLibraryExtra={m.setLibraryExtra} quizzesExtra={m.quizzesExtra} setQuizzesExtra={m.setQuizzesExtra} />)}
