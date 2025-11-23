@@ -1,971 +1,966 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
 
-// Storage helpers
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || "null"); return v ?? d; } catch { return d; } };
+const load = (k, d) => {
+  try {
+    const raw = localStorage.getItem(k);
+    if (!raw) return d;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("restore", e);
+    return d;
+  }
+};
 
-const CATEGORIES = [
-  { id: "thinking", title: "Мышление", desc: "Структура, логика, причинно‑следственные связи." },
-  { id: "business", title: "Бизнес", desc: "Как устроены компании, модели дохода, ценность." },
-  { id: "finance", title: "Финансы", desc: "Деньги, бюджеты, инвестиции, ответственность." },
-  { id: "psychology", title: "Психология", desc: "Поведение, мотивация, коммуникация, воля." },
+const STATUSES = [
+  { min: 800, title: "Визионер" },
+  { min: 500, title: "Создатель" },
+  { min: 250, title: "Мыслитель" },
+  { min: 100, title: "Искатель" },
+  { min: 0, title: "Новичок" },
 ];
 
-const STATUS_TITLES = [
-  { min: 0, name: "Новичок" },
-  { min: 100, name: "Наблюдатель" },
-  { min: 300, name: "Аналитик" },
-  { min: 600, name: "Мыслитель" },
-  { min: 900, name: "Практик" },
-  { min: 1300, name: "Предприниматель" },
-  { min: 1800, name: "Архитектор" },
+const categories = [
+  { id: "thinking", name: "Мышление" },
+  { id: "business", name: "Бизнес" },
+  { id: "finance", name: "Финансы" },
+  { id: "psychology", name: "Психология" },
 ];
 
-const LESSON_MODULES = [
+const entrepreneurArticle = `Предпринимательское мышление – это способ видеть возможности там, где другие замечают только препятствия. Оно строится на нескольких фундаментальных привычках: инициативности, ответственности, готовности работать с риском, уважении к ошибкам и умении мыслить на длинной дистанции. Следующие страницы помогают собрать эти элементы в целостную картину.
+
+Инициативность. Предприниматель не ждёт, пока внешние обстоятельства станут идеальными. Он начинает с того, что есть, запускает маленький эксперимент и наблюдает за результатами. Инициативность проявляется в вопросе «Что могу сделать уже сегодня?». Например, если хочется открыть школьный кружок по дизайну, можно не искать идеального помещения, а собрать ребят онлайн и протестировать интерес. Малые шаги дают данные и уверенность, которые невозможно получить в теории.
+
+Ответственность. В предпринимательстве нет удобной фигуры, на которую можно переложить последствия. Даже когда команда большая, ответственность за решение остаётся. Ответственность – это честный разбор: «Что я контролировал? Что не учёл? Что могу изменить в следующий раз?». Такой подход снимает беспомощность и переводит фокус на действия. Он же удерживает от обвинений окружающих и учит договариваться.
+
+Работа с рисками. Риск неизбежен: можно ошибиться с продуктом, партнёром, рынком. Зрелый предприниматель не игнорирует риски и не драматизирует их. Он выписывает возможные сценарии, прикидывает вероятность и влияние, готовит план Б. Например, если вы продаёте мерч, заранее подумайте, что делать, если поставщик задержит ткань: есть ли альтернативы, нужно ли собирать предоплату или держать резерв. Риск, разложенный на элементы, перестаёт пугать и превращается в управляемую задачу.
+
+Отношение к ошибкам. Ошибки неизбежны, и именно через них учатся быстрее всего. Критично разделять ошибку и личную ценность: «я допустил ошибку» ≠ «я плохой». Предприниматель задаёт себе вопрос: «Какой новый факт я узнал? Как перестроить систему, чтобы это не повторилось?». Ошибки становятся топливом для улучшений, а не поводом остановиться. Важный навык – делиться ошибками с командой, чтобы учились все.
+
+Долгосрочное мышление. Мгновенная выгода редко создаёт прочный бизнес. Предприниматель смотрит на горизонт: что будет с продуктом через год, как клиенты будут меняться, какую репутацию мы формируем. Долгосрочное мышление помогает принимать решения, которые сегодня могут казаться сложнее: например, отказаться от быстрых продаж ради времени на качественный продукт. Оно же помогает выдерживать стресс и строить устойчивые привычки.
+
+Как развивать эти качества? Начать с малого: вести журнал решений и их последствий, раз в неделю планировать эксперименты, искать наставника или сообщество, где обсуждают не только успехи, но и провалы. Чтение биографий предпринимателей даёт примеры того, как они справлялись с неопределённостью. Практика благодарности помогает замечать ресурсы, которые уже есть.
+
+Предпринимательское мышление – не врождённый талант, а набор навыков. Любой подросток может их тренировать: выходить за пределы привычного, брать ответственность за выбор, спокойно анализировать ошибки и держать в голове длинную траекторию. Главное – помнить, что путь состоит из сотен маленьких шагов и каждый из них делает вас сильнее.`;
+
+const initialMaterials = [
   {
-    id: "causal-logic",
-    title: "Базовая логика: как строить причинно-следственные связи",
+    id: "entrepreneur-mind",
+    title: "Как мыслит предприниматель",
     category: "thinking",
     type: "article",
-    durationMinutes: 10,
-    content: `
-1. Зачем тебе причинно-следственные связи
-
-Каждый день ты что-то объясняешь:
-«Упал продаж», «Я устал», «Проект выстрелил», «Учёба не идёт».
-За каждым таким объяснением стоит модель причин и следствий. Если модель кривая — решения тоже будут кривые.
-
-Логика причинно-следственных связей нужна, чтобы:
-— понимать, что действительно влияет на результат;
-— отличать реальную причину от совпадения;
-— осознанно менять поведение и систему вокруг себя;
-— не становиться жертвой манипуляций («это всё из-за…»).
-
-2. Что такое причина и следствие на человеческом языке
-
-Причина — фактор, который запускает или сильно влияет на событие.
-Следствие — то, что произошло.
-
-Примеры:
-— Ты лег спать в 3 ночи → утром разбит и не сконцентрирован.
-— Команда не договорилась о правилах → проект постоянно тормозит на мелочах.
-
-Важно:
-— Одна ситуация часто имеет несколько причин, а не одну магическую.
-— Причины могут быть прямые и косвенные.
-
-3. Прямые и косвенные причины
-
-Прямая причина — без неё событие почти точно не произошло бы.
-Пример: рекламный бюджет урезали до нуля → поток заявок резко упал.
-
-Косвенная причина — усиливает или ослабляет влияние, но сама по себе не всегда запускает событие.
-Пример: сайт неудобный → при том же трафике конверсия ниже.
-
-Жизнь — это всегда система факторов, а не один «виноватый».
-
-4. Частые ошибки в причинно-следственном мышлении
-
-1) «После» ≠ «из-за».
-То, что событие А произошло раньше события Б, не значит, что А вызвало Б.
-
-2) Корреляция ≠ причинность.
-Летом растут продажи мороженого и количество утоплений. Это не значит, что мороженое вызывает утопления. Есть третий фактор — жара.
-
-3) Поиск одной «главной» причины.
-Реальность почти всегда: несколько причин, несколько участников, несколько решений, которые могли всё поменять.
-
-4) Игнорирование собственных действий.
-Удобно всё объяснять внешними факторами, но логика причинно-следственных связей всегда спрашивает:
-«А что я сделал / не сделал, что тоже стало частью причины?»
-
-5. Простая модель: как разложить ситуацию по полочкам
-
-Шаг 1. Описать событие конкретно, без «всё плохо».
-Шаг 2. Собрать возможные причины (что изменилось, что я начал/перестал делать, какие внешние факторы).
-Шаг 3. Проверить причины фактами: есть ли примеры, где причина есть, а следствия нет; и наоборот.
-Шаг 4. Сложить рабочую модель:
-[Фактор 1] + [Фактор 2] + [Моё действие] → [Результат].
-
-6. Типы причин: необходимые, достаточные и триггеры
-
-Необходимая причина — без неё событие не происходит.
-Достаточная причина — сама по себе почти гарантирует событие.
-Триггер — момент, который включает уже накопленные причины.
-
-Важно отличать фон, обязательное условие и спусковой крючок.
-
-7. Мини-чек-лист
-
-При любом событии:
-— Что произошло конкретно?
-— Какие факторы явно вовлечены?
-— Какие факторы могли влиять скрыто?
-— Что я сам сделал или не сделал?
-— Что подтверждается фактами, а что — догадки?
-— Какую новую привычку/решение можно ввести, чтобы в следующий раз цепочка причин была другой?
-
-8. Почему это важно для будущего предпринимателя
-
-В бизнесе причинно-следственные связи — основа:
-— почему клиенты не возвращаются;
-— почему продукт заходит в одном сегменте и умирает в другом;
-— почему команда выгорает;
-— почему деньги есть на бумаге, но нет на счёте.
-
-Чем точнее ты видишь причинно-следственные цепочки, тем лучше решения и результаты.
-Логика причин — это навык, который можно спокойно тренировать.
-`
+    description: "500+ слов о том, как инициативность и ответственность превращают идеи в проекты.",
+    content: entrepreneurArticle,
   },
   {
-    id: "business-models",
-    title: "Как устроены бизнес-модели: подписка, разовая оплата, freemium",
+    id: "business-video",
+    title: "Видео о ценности продукта",
     category: "business",
-    type: "article",
-    durationMinutes: 11,
-    content: `
-1. Что такое бизнес-модель
-
-Бизнес-модель отвечает на вопросы:
-— Кому мы создаём ценность?
-— Что именно даём?
-— Как и за счёт чего зарабатываем?
-
-Способ, как платит клиент, — важная часть бизнес-модели. Он влияет на стабильность дохода, окупаемость и то, как ты строишь продукт.
-
-2. Разовая оплата: заплатил и забыл
-
-Суть: клиент платит один раз за продукт или услугу.
-
-Примеры:
-— купил книгу;
-— разовый мастер-класс;
-— разовый дизайн логотипа.
-
-Плюсы:
-— деньги приходят сразу;
-— понятно, за что платит клиент;
-— нет длинных обязательств.
-
-Минусы:
-— нужно постоянно искать новых клиентов;
-— выручка скачет;
-— сложнее планировать долгосрочно.
-
-3. Подписка: регулярные платежи
-
-Суть: клиент платит регулярно за доступ к сервису.
-
-Примеры:
-— Netflix, YouTube Premium;
-— подписка на онлайн-платформу;
-— SaaS-сервисы для бизнеса.
-
-Плюсы:
-— предсказуемый доход;
-— можно планировать развитие;
-— фокус на удержании клиента.
-
-Минусы:
-— нужно постоянно поддерживать ценность;
-— есть отток (churn), с которым нужно работать;
-— сложнее продать, если не очевидна долгосрочная ценность.
-
-Ключевые метрики подписки:
-LTV, churn, MRR.
-
-4. Freemium: бесплатно + премиум
-
-Суть:
-— базовый функционал бесплатен;
-— продвинутые функции — платные (подписка или разовый платёж).
-
-Примеры:
-— Zoom;
-— Spotify;
-— многие мобильные приложения.
-
-Логика:
-1) Дать попробовать без барьеров.
-2) Показать ценность.
-3) Конвертировать часть пользователей в платящих.
-
-Плюсы:
-— проще привлекать много пользователей;
-— растёт аудитория вокруг продукта;
-— можно наблюдать поведение и улучшать продукт.
-
-Минусы:
-— нужно тянуть инфраструктуру для бесплатных пользователей;
-— если нет яркой ценности, конверсия в оплату слабая;
-— важно не «отдать всё бесплатно».
-
-5. Как выбирать модель
-
-Спрашивай себя:
-— Как часто человек будет пользоваться продуктом?
-— Где создаётся основная ценность: в моменте или по пути?
-— Можно ли честно дать полезный бесплатный уровень?
-— Какова себестоимость обслуживания одного клиента?
-
-6. Комбинации моделей
-
-На практике часто комбинируют:
-— бесплатный контент → недорогие разовые продукты → длинные программы по подписке;
-— бесплатная часть курса → платная подписка на полный доступ + комьюнити.
-
-Важно понимать:
-— где вход в воронку,
-— а где основная выручка.
-
-7. Мини-упражнение
-
-Представь онлайн-платформу для подростков.
-Ответь:
-— Что пользователь делает регулярно?
-— Что он получает сразу, а что накапливает?
-— Что может быть бесплатной зоной?
-— За что готовы платить ежемесячно?
-
-Набросай два сценария:
-— модель с подпиской;
-— модель с freemium.
-
-Это первый шаг к взрослому мышлению о деньгах в продукте.
-`
+    type: "video",
+    description: "Плейсхолдер видео о том, за что готовы платить клиенты.",
+    content: "Видео будет доступно позже.",
   },
   {
-    id: "fact-checking",
-    title: "Критическое мышление: проверка фактов",
+    id: "thinking-quiz",
+    title: "Тест: критическое мышление",
     category: "thinking",
     type: "quiz",
-    durationMinutes: 6,
-    infoCards: [
-      {
-        id: 1,
-        title: "Факт vs мнение",
-        text: "Факт — это утверждение, которое можно проверить и подтвердить или опровергнуть. Мнение — это интерпретация, оценка или эмоция.\n\nПримеры:\n— «В этом классе 24 ученика» — факт (можно пересчитать).\n— «Этот класс самый дружный» — мнение.\n\nКогда видишь информацию, сначала спроси: «Это факт или чья-то интерпретация факта?»"
-      },
-      {
-        id: 2,
-        title: "Источники: первичные и вторичные",
-        text: "Первичный источник — место, где информация появилась впервые: официальные документы, исследования, статистика, оригинальное интервью.\nВторичный источник — пересказ: новости, блогеры, посты.\n\nЧем ближе к первоисточнику, тем легче проверить факты. Увидел громкую новость — попробуй найти оригинальный документ или исследование."
-      },
-      {
-        id: 3,
-        title: "Три вопроса к источнику",
-        text: "При любой информации задай три вопроса:\n1) Кто говорит? (автор, медиа, организация)\n2) Откуда у него данные? (есть ли ссылка на исследования, статистику, документы)\n3) Какой у него интерес? (выгода от того, что ты поверишь)\n\nЕсли источник нечёткий, данных нет, а интерес очевиден — относись осторожно."
-      },
-      {
-        id: 4,
-        title: "Базовые шаги факт-чекинга",
-        text: "Алгоритм:\n1) Найди первичный источник (оригинальную новость, отчёт, исследование).\n2) Проверь дату (часто старое подают как новое).\n3) Сравни информацию в нескольких независимых источниках.\n4) Обрати внимание на формулировки: «учёные доказали», «эксперты считают» без конкретики — красный флаг."
-      },
-      {
-        id: 5,
-        title: "Типичные манипуляции",
-        text: "Часто используют:\n— цитаты, вырванные из контекста;\n— неполные цифры («рост на 300 %», но не говорят, с какого уровня);\n— заголовки, искажающие смысл.\n\nЕсли заголовок вызывает сильный страх или агрессию — это повод остановиться и проверить, а не репостить."
-      },
-      {
-        id: 6,
-        title: "Критическое мышление в жизни",
-        text: "Критическое мышление — не про «не верить никому», а про привычку:\n— задавать уточняющие вопросы;\n— проверять источники;\n— держать в голове несколько объяснений;\n— менять мнение, когда появляются новые факты.\n\nЭтот навык защищает от фейков, слива денег и плохих решений."
-      }
-    ],
+    description: "5 вопросов о проверке фактов и источников.",
     questions: [
       {
-        id: 1,
-        text: "Что из перечисленного ближе всего к факту?",
-        options: [
-          "Этот курс — лучший для подростков",
-          "90 % участников курса прошли все модули за 3 месяца",
-          "Наши ученики стали увереннее в себе",
-          "Преподаватели у нас — профессионалы"
-        ],
-        correctIndex: 1
+        text: "Что такое первичный источник?",
+        options: ["Новостной заголовок", "Оригинальный документ или исследование", "Комментарий в соцсетях"],
+        answer: 1,
       },
       {
-        id: 2,
-        text: "Ты видишь новость: «Учёные доказали, что соцсети разрушают мозг подростков». Что стоит сделать в первую очередь?",
-        options: [
-          "Сразу перестать пользоваться соцсетями",
-          "Посмотреть мемы по теме",
-          "Найти ссылку на оригинальное исследование или серьёзный отчёт",
-          "Написать пост с возмущением"
-        ],
-        correctIndex: 2
+        text: "Что делает корреляция?",
+        options: ["Доказывает причинность", "Показывает совместное движение факторов", "Убирает риски"],
+        answer: 1,
       },
       {
-        id: 3,
-        text: "Какой из шагов НЕ относится к базовому факт-чекингу?",
-        options: [
-          "Проверить дату новости или исследования",
-          "Сравнить информацию в нескольких независимых источниках",
-          "Обратить внимание на автора и его возможные интересы",
-          "Поверить новости, если её переслало много знакомых"
-        ],
-        correctIndex: 3
-      }
-    ]
-  }
-];
-
-const INITIAL_LIBRARY = [
-  ...LESSON_MODULES.map(m => ({
-    id: m.id,
-    category: m.category,
-    kind: m.type,
-    title: m.title,
-    duration: m.durationMinutes,
-  })),
-  { id: "b1", category: "business", kind: "video", title: "Что такое ценность и почему люди платят", duration: 8 },
-  { id: "f1", category: "finance", kind: "game", title: "Бюджет на месяц: квест о приоритетах", duration: 12 },
-  { id: "p1", category: "psychology", kind: "podcast", title: "Воля и дисциплина: как держать курс", duration: 9 },
-];
-
-const INITIAL_QUIZZES = [
-  {
-    id: "q_thinking_1",
-    category: "thinking",
-    title: "Причинно‑следственные связи",
-    questions: [
-      { q: "Что сначала: корреляция или причинность?", options: ["Корреляция доказывает причинность", "Причинность предполагает механизм", "Это одно и то же"], a: 1, explain: "Причинность — наличие механизма A→B. Корреляция — совместное изменение." },
-      { q: "Какой вопрос сильнее выявляет причину?", options: ["Кому это выгодно?", "Что было бы, если убрать фактор X?", "Насколько это популярно?"], a: 1, explain: "Контрфактический подход (убрать X) оценивает вклад фактора." },
-    ],
-  },
-  {
-    id: "q_finance_1",
-    category: "finance",
-    title: "Финансовая грамотность: базовый квест",
-    questions: [
-      { q: "Доход 30 000₽, расходы 20 000₽. Что сначала?", options: ["Купить гаджет в рассрочку", "Сформировать подушку 3–6 месяцев", "Взять микрокредит"], a: 1, explain: "Подушка — фундамент безопасности и свободы решений." },
-      { q: "Что такое сложный процент?", options: ["Процент на вклад", "Процент на вклад и ранее начисленные проценты", "Комиссия банка"], a: 1, explain: "Проценты начисляются на проценты — рост ускоряется." },
-    ],
-  },
-  {
-    id: "q_business_1",
-    category: "business",
-    title: "Ценность и клиенты",
-    questions: [
-      { q: "Что покупает клиент на самом деле?", options: ["Функции", "Решение своей задачи/боли", "Рекламу"], a: 1, explain: "Платят за решённую задачу и результат." },
-      { q: "MVP — это…", options: ["Сырой продукт", "Минимальная версия для проверки гипотезы", "Скидка 50%"], a: 1, explain: "Быстрый тест ценности до больших затрат." },
+        text: "Как лучше реагировать на громкую новость?",
+        options: ["Сразу репостнуть", "Проверить дату и источник", "Игнорировать любую информацию"],
+        answer: 1,
+      },
+      {
+        text: "Что спросить у автора материала?",
+        options: ["Какой у него интерес и откуда данные", "Где он живёт", "Какой у него любимый цвет"],
+        answer: 0,
+      },
+      {
+        text: "Что поможет отличить факт от мнения?",
+        options: ["Наличие проверки и доказательств", "Количества лайков", "Длина текста"],
+        answer: 0,
+      },
     ],
   },
 ];
 
-const SKILL_WEIGHTS = { thinking: 1, business: 1, finance: 1, psychology: 1 };
+const initialQuest = {
+  id: "main-quest",
+  title: "Интеллектуальный квест",
+  steps: [
+    {
+      id: "quest-step-1",
+      title: "Шаг 1: ответственность",
+      questions: [
+        {
+          text: "Что такое ответственность предпринимателя?",
+          options: ["Перекладывать вину", "Честно разбирать решения и менять действия", "Ждать идеальных условий"],
+          answer: 1,
+        },
+        {
+          text: "Что делать после ошибки?",
+          options: ["Скрыть её", "Искать виноватых", "Извлечь факт и поменять процесс"],
+          answer: 2,
+        },
+      ],
+    },
+    {
+      id: "quest-step-2",
+      title: "Шаг 2: риск и деньги",
+      questions: [
+        {
+          text: "Как управлять риском?",
+          options: ["Игнорировать", "Разложить сценарии и подготовить план Б", "Отказаться от идей"],
+          answer: 1,
+        },
+        {
+          text: "С чего начать личные финансы?",
+          options: ["Подушки безопасности", "Кредитных карт", "Случайных трат"],
+          answer: 0,
+        },
+        {
+          text: "Что такое ценность продукта?",
+          options: ["Количество функций", "Решение задачи клиента", "Цвет упаковки"],
+          answer: 1,
+        },
+      ],
+    },
+    {
+      id: "quest-step-3",
+      title: "Шаг 3: мышление",
+      questions: [
+        {
+          text: "Что помогает держать долгосрочный фокус?",
+          options: ["Только эмоции", "Понимание горизонта и репутации", "Отсутствие планов"],
+          answer: 1,
+        },
+        {
+          text: "Что отличает факт от мнения?",
+          options: ["Лайки", "Проверяемость", "Длина текста"],
+          answer: 1,
+        },
+      ],
+    },
+  ],
+};
 
-const Page = ({ children }) => (
-  <div className="min-h-screen bg-black text-zinc-100">
-    <div className="max-w-6xl mx-auto px-4 py-6">{children}</div>
+const initialUsers = [
+  { id: "you", name: "Ты", points: 20 },
+  { id: "arsen", name: "Arsen", points: 880 },
+  { id: "mira", name: "Mira", points: 760 },
+  { id: "leo", name: "Leo", points: 640 },
+];
+
+const faqItems = [
+  { q: "Как начать обучение?", a: "Нажмите «Начать обучение» на главной и пройдите регистрацию." },
+  { q: "Нужна ли реальная оплата?", a: "Нет, подписка — фронтовый флаг, который активируется кнопкой." },
+  { q: "Что дают очки?", a: "Они повышают статус, открывают достижения и мотивируют проходить материалы." },
+  { q: "Можно ли пройти квесты повторно?", a: "После завершения основного квеста повтор ограничен, чтобы сохранить ценность." },
+  { q: "Как считается прогресс?", a: "Процент завершённых уроков и квестов." },
+  { q: "Где увидеть таблицу лидеров?", a: "В разделе Сообщество есть полная таблица и профили участников." },
+  { q: "Как сменить тему?", a: "Используйте переключатель в шапке или в настройках профиля." },
+  { q: "Куда писать идеи?", a: "Оставьте идею в форме на странице помощи — мы всё читаем." },
+  { q: "Что за ежедневный стрик?", a: "За вход в разные дни даём очки и достижение «Серия 3 дня»." },
+  { q: "Можно ли менять персональные данные?", a: "Да, в профиле в разделе «Настройки»." },
+  { q: "Как активировать подписку?", a: "Перейдите на страницу «Подписка» и нажмите кнопку активации." },
+  { q: "Есть ли помощь?", a: "На странице /help размещены ответы и ссылка на Telegram." },
+];
+
+const practicalTasks = [
+  { id: "book", title: "Прочитать книгу", desc: "Выбери бизнес-книгу и закончи её за неделю." },
+  { id: "movie", title: "Посмотреть фильм", desc: "Мотивационный фильм или история компании." },
+  { id: "network", title: "Познакомиться с 10 новыми людьми", desc: "Потренируйся задавать вопросы и слушать." },
+];
+
+const defaultState = {
+  profile: {
+    firstName: "Ты",
+    lastName: "User",
+    phone: "",
+    points: 20,
+    subscriptionActive: false,
+    lastLessonId: null,
+    completedLessons: {},
+    testResults: {},
+    achievements: {
+      firstLesson: false,
+      firstTest: false,
+      questMaster: false,
+      streak3: false,
+    },
+    streak: { count: 1, lastVisit: new Date().toISOString().slice(0, 10) },
+    practical: {},
+    password: "",
+    track: null,
+  },
+  materials: initialMaterials,
+  quest: { ...initialQuest, progress: { currentStep: 0, completed: false, answers: {} } },
+  users: initialUsers,
+  ideas: [],
+  theme: "dark",
+};
+
+const statusFromPoints = (pts) => STATUSES.find((s) => pts >= s.min)?.title || "Новичок";
+
+const usePersistedState = () => {
+  const [state, setState] = useState(() => load("ep_state", defaultState));
+
+  useEffect(() => {
+    save("ep_state", state);
+  }, [state]);
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    setState((prev) => {
+      const last = prev.profile.streak.lastVisit;
+      if (last === today) return prev;
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const prevDate = yesterday.toISOString().slice(0, 10);
+      const consecutive = last === prevDate ? prev.profile.streak.count + 1 : 1;
+      const newPoints = prev.profile.points + 5;
+      const achieved = consecutive >= 3 ? true : prev.profile.achievements.streak3;
+      return {
+        ...prev,
+        profile: {
+          ...prev.profile,
+          points: newPoints,
+          streak: { count: consecutive, lastVisit: today },
+          achievements: { ...prev.profile.achievements, streak3: achieved },
+        },
+      };
+    });
+  }, []);
+
+  return [state, setState];
+};
+
+const Header = ({ theme, toggleTheme, subscriptionActive }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <header className="header">
+      <div className="logo">EdPlatform</div>
+      <button className="burger" onClick={() => setOpen(!open)} aria-label="menu">☰</button>
+      <nav className={`nav ${open ? "open" : ""}`}>
+        <Link to="/">Главная</Link>
+        <Link to="/library">Библиотека</Link>
+        <Link to="/quests">Квесты</Link>
+        <Link to="/community">Сообщество</Link>
+        <Link to="/profile">Профиль</Link>
+        <Link to="/subscription" className={subscriptionActive ? "active-sub" : ""}>Подписка</Link>
+        <Link to="/help">Помощь</Link>
+        <Link to="/admin">Админ</Link>
+      </nav>
+      <div className="header-actions">
+        <button onClick={toggleTheme} className="ghost">
+          {theme === "dark" ? "Темная" : "Светлая"}
+        </button>
+        <Link to="/profile" className="avatar">Ты</Link>
+      </div>
+    </header>
+  );
+};
+
+const Layout = ({ children, theme, toggleTheme, subscriptionActive }) => (
+  <div className={`app ${theme}`}>
+    <Header theme={theme} toggleTheme={toggleTheme} subscriptionActive={subscriptionActive} />
+    <main className="container">{children}</main>
   </div>
 );
 
-const Card = ({ children }) => (
-  <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-6">{children}</div>
-);
-
-const Button = ({ children, onClick, variant = "primary" }) => (
-  <button onClick={onClick} className={`px-4 py-2 rounded-xl text-sm font-medium transition border ${variant === "ghost" ? "border-zinc-800 bg-transparent hover:bg-zinc-900" : "border-zinc-700 bg-zinc-900 hover:bg-zinc-800"}`}>{children}</button>
-);
-
-const Progress = ({ value }) => (
-  <div className="w-full h-2 rounded-full bg-zinc-900 border border-zinc-800"><div className="h-2 rounded-full bg-zinc-100" style={{width: `${Math.min(100, Math.max(0, value))}%`}}/></div>
-);
-
-function useModel() {
-  const [profile, setProfile] = useState(load("profile", { name: "Ученик", points: 0, skills: { thinking: 0, business: 0, finance: 0, psychology: 0 }, completed: {}, quizzes: {} }));
-  const [tab, setTab] = useState(load("tab", "home"));
-  const [filter, setFilter] = useState("all");
-
-  const url = typeof window !== 'undefined' ? new URL(window.location.href) : null;
-  const queryAdmin = url?.searchParams.get('admin') === '1';
-  const [isAdmin, setIsAdmin] = useState(load('adminFlag', false) || queryAdmin);
-
-  const [libraryExtra, setLibraryExtra] = useState(load('libraryExtra', []));
-  const [quizzesExtra, setQuizzesExtra] = useState(load('quizzesExtra', []));
-
-  useEffect(() => save("profile", profile), [profile]);
-  useEffect(() => save("tab", tab), [tab]);
-  useEffect(() => save('adminFlag', isAdmin), [isAdmin]);
-  useEffect(() => save('libraryExtra', libraryExtra), [libraryExtra]);
-  useEffect(() => save('quizzesExtra', quizzesExtra), [quizzesExtra]);
-
-  const status = useMemo(() => (STATUS_TITLES.filter(x => profile.points >= x.min).pop()?.name || STATUS_TITLES[0].name), [profile.points]);
-
-  const completeLesson = (lesson) => {
-    if (profile.completed[lesson.id]) return;
-    const delta = 20;
-    setProfile(p => ({ ...p, points: p.points + delta, skills: { ...p.skills, [lesson.category]: p.skills[lesson.category] + delta * SKILL_WEIGHTS[lesson.category] }, completed: { ...p.completed, [lesson.id]: true }, }));
-  };
-
-  const submitQuiz = (quiz, answers) => {
-    const correct = quiz.questions.reduce((acc, q, i) => acc + (answers[i] === q.a ? 1 : 0), 0);
-    const total = quiz.questions.length;
-    const delta = correct * 30;
-    setProfile(p => ({ ...p, points: p.points + delta, skills: { ...p.skills, [quiz.category]: p.skills[quiz.category] + delta }, quizzes: { ...p.quizzes, [quiz.id]: { correct, total } }, }));
-    return { correct, total, delta };
-  };
-
-  const resetAll = () => { localStorage.clear(); window.location.reload(); };
-
-  return { profile, status, tab, setTab, filter, setFilter, completeLesson, submitQuiz, resetAll, isAdmin, setIsAdmin, libraryExtra, setLibraryExtra, quizzesExtra, setQuizzesExtra };
-}
-
-function Nav({ tab, setTab, points, status, isAdmin }) {
+const Quotes = () => {
   const items = [
-    { id: "home", label: "Главная" },
-    { id: "library", label: "Библиотека" },
-    { id: "quests", label: "Квесты" },
-    { id: "profile", label: "Профиль" },
-    { id: "leaderboard", label: "Сообщество" },
+    { author: "Стив Джобс", text: "Единственный способ сделать великую работу — любить то, что ты делаешь." },
+    { author: "Элон Маск", text: "Если что-то достаточно важно, стоит попробовать, даже если исход неясен." },
+    { author: "Рей Далио", text: "Боль плюс размышление равняется прогресс." },
+    { author: "Сара Блейкли", text: "Ошибки — это не провалы, а топливо для роста." },
+    { author: "Джек Ма", text: "Никогда не сдавайся. Сегодня тяжело, завтра будет хуже, но послезавтра — солнце." },
   ];
-  if (isAdmin) items.push({ id: 'admin', label: 'Админ' });
-  return (
-    <div className="flex items-center justify-between mb-8 border-b border-zinc-800 pb-4">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-white"/>
-        <div className="text-lg tracking-tight font-semibold">NOESIS</div>
-      </div>
-      <div className="flex items-center gap-2">
-        {items.map(i => (
-          <Button key={i.id} onClick={() => setTab(i.id)} variant={tab===i.id?"":"ghost"}>{i.label}</Button>
-        ))}
-      </div>
-      <div className="flex items-center gap-4 text-sm text-zinc-400">
-        <div className="hidden sm:block">Статус: <span className="text-zinc-100">{status}</span></div>
-        <div>Очки: <span className="text-zinc-100">{points}</span></div>
-      </div>
-    </div>
-  );
-}
-
-function QuoteOfDay() {
-  const quotes = [
-    { author: "Альберт Эйнштейн", text: "Тот, кто никогда не совершал ошибок, никогда не пробовал ничего нового." },
-    { author: "Стив Джобс", text: "Единственный способ делать великую работу — любить то, что ты делаешь." },
-    { author: "Рей Далио", text: "Боль + Размышление = Прогресс." },
-    { author: "Питер Тиль", text: "Лучше рискнуть и создать что-то великое, чем всю жизнь делать посредственное." },
-  ];
-  const [q, setQ] = useState(quotes[Math.floor(Math.random()*quotes.length)]);
-  useEffect(() => { const t = setInterval(()=> setQ(quotes[Math.floor(Math.random()*quotes.length)]), 1000*60*60*6); return ()=>clearInterval(t); }, []);
-  return (
-    <div className="text-center mb-10">
-      <p className="text-zinc-300 italic text-lg mb-2">“{q.text}”</p>
-      <p className="text-zinc-500 text-sm">— {q.author}</p>
-    </div>
-  );
-}
-
-function Home({ setTab }) {
-  return (
-    <Page>
-      <div className="text-center mb-12">
-        <div className="text-5xl font-semibold mb-4">Будь лучше вчерашнего себя</div>
-        <p className="text-zinc-400 text-lg max-w-2xl mx-auto mb-10">Платформа для развития интеллекта и мышления. Здесь ты узнаёшь, как устроены бизнес, деньги, психология и логика мира. Каждый шаг делает тебя взрослее, осознаннее и точнее.</p>
-        <QuoteOfDay />
-      </div>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <div className="text-2xl mb-2">Библиотека знаний</div>
-          <p className="text-zinc-400 mb-4">Статьи, видео, подкасты, курсы и игры. Всё, чтобы системно понимать, как устроен мир и бизнес.</p>
-          <Button onClick={() => setTab("library")}>Перейти</Button>
-        </Card>
-        <Card>
-          <div className="text-2xl mb-2">Интеллектуальные квесты</div>
-          <p className="text-zинк-400 mb-4">Задачи и вопросы, которые проверяют мышление и дают мгновенную обратную связь.</p>
-          <Button onClick={() => setTab("quests")}>Начать квест</Button>
-        </Card>
-        <Card>
-          <div className="text-2xl mb-2">Профиль развития</div>
-          <p className="text-zinc-400 mb-4">Следи за ростом навыков и статусом. Видно, как ты становишься лучше вчерашнего себя.</p>
-          <Button onClick={() => setTab("profile")}>Мой прогресс</Button>
-        </Card>
-        <Card>
-          <div className="text-2xl mb-2">Сообщество</div>
-          <p className="text-zinc-400 mb-4">Умная среда единомышленников. Без шума и показухи — только развитие и идеи.</p>
-          <Button onClick={() => setTab("leaderboard")}>Посмотреть участников</Button>
-        </Card>
-      </div>
-    </Page>
-  );
-}
-
-function Library({ lessons, filter, setFilter, onStart, isCompleted }) {
-  const filtered = lessons.filter(l => filter === "all" || l.category === filter);
-  return (
-    <Page>
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-2xl">Библиотека</div>
-        <div className="flex gap-2">
-          <Button onClick={() => setFilter("all")} variant={filter==="all"?"":"ghost"}>Все</Button>
-          {CATEGORIES.map(c => (<Button key={c.id} onClick={() => setFilter(c.id)} variant={filter===c.id?"":"ghost"}>{c.title}</Button>))}
-        </div>
-      </div>
-      <div className="grid md:grid-cols-2 gap-4">
-        {filtered.map(l => (
-          <Card key={l.id}>
-            <div className="text-lg font-medium mb-1">{l.title}</div>
-            <div className="text-xs text-zinc-400 mb-3">{CATEGORIES.find(c=>c.id===l.category)?.title} • {l.kind} • {l.duration} мин</div>
-            {l.description && <div className="text-sm text-zinc-400 mb-3">{l.description}</div>}
-            {l.source_url && <a href={l.source_url} target="_blank" className="underline text-zinc-300 mb-3 inline-block" rel="noreferrer">Источник</a>}
-            <div className="flex items-center gap-2">
-              {isCompleted(l.id) ? (<div className="text-emerald-400 text-sm">Завершено</div>) : (<Button onClick={() => onStart(l)}>Пройти</Button>)}
-              <Button variant="ghost">В избранное</Button>
-            </div>
-          </Card>
-        ))}
-      </div>
-      <div className="mt-6 text-zinc-500 text-sm">*В релизе: карточка источника, конспект, дискуссия, ссылки на открытые материалы и наш контент.</div>
-    </Page>
-  );
-}
-
-function LessonArticle({ lesson, onComplete, isCompleted }) {
-  const paragraphs = lesson.content.trim().split(/\n\s*\n/);
-  return (
-    <Card>
-      <div className="text-2xl font-semibold mb-2">{lesson.title}</div>
-      <div className="text-xs text-zinc-400 mb-4">{CATEGORIES.find(c=>c.id===lesson.category)?.title} • {lesson.durationMinutes} мин • Лонгрид</div>
-      <div className="space-y-4 text-zinc-100 leading-relaxed">
-        {paragraphs.map((p, idx) => (
-          <p key={idx} className="whitespace-pre-line text-sm text-zinc-200">{p.trim()}</p>
-        ))}
-      </div>
-      <div className="mt-6 flex items-center gap-3">
-        {isCompleted ? <div className="text-emerald-400 text-sm">Модуль завершён</div> : <Button onClick={onComplete}>Отметить как изученный</Button>}
-      </div>
-    </Card>
-  );
-}
-
-function LessonQuiz({ lesson, onSubmit, onComplete, previousResult, isCompleted }) {
-  const [stage, setStage] = useState("cards");
-  const [cardIndex, setCardIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(previousResult || null);
-
+  const [index, setIndex] = useState(0);
   useEffect(() => {
-    setStage("cards");
-    setCardIndex(0);
-    setAnswers({});
-    setResult(previousResult || null);
-  }, [lesson.id, previousResult]);
+    const t = setInterval(() => setIndex((i) => (i + 1) % items.length), 5000);
+    return () => clearInterval(t);
+  }, [items.length]);
+  const q = items[index];
+  return (
+    <div className="quote">
+      <p>“{q.text}”</p>
+      <span>— {q.author}</span>
+      <div className="quote-controls">
+        {items.map((_, i) => (
+          <button key={i} className={i === index ? "dot active" : "dot"} onClick={() => setIndex(i)} aria-label="quote" />
+        ))}
+      </div>
+    </div>
+  );
+};
 
-  const handleSubmit = () => {
-    const arr = lesson.questions.map((_, i) => answers[i]);
-    if (arr.some(v => v === undefined)) {
-      alert("Ответь на все вопросы, чтобы увидеть результат.");
-      return;
-    }
-    const adaptedQuiz = {
-      id: lesson.id,
-      category: lesson.category,
-      title: lesson.title,
-      questions: lesson.questions.map(q => ({ q: q.text, options: q.options, a: q.correctIndex })),
-    };
-    const res = onSubmit(adaptedQuiz, arr);
-    onComplete();
-    setResult(res);
+const TrackTest = ({ onComplete, savedTrack }) => {
+  const questions = [
+    { text: "Как ты относишься к риску?", options: ["Избегаю", "Готов пробовать", "Люблю экспериментировать"], scores: [0, 1, 2] },
+    { text: "Что делаешь при ошибке?", options: ["Расстраиваюсь", "Ищу вывод", "Делаю новую попытку"], scores: [0, 1, 2] },
+    { text: "Как ты работаешь с идеями?", options: ["Думаю, но не делаю", "Делаю мини-тест", "Собираю команду"], scores: [0, 1, 2] },
+    { text: "Как относишься к ответственности?", options: ["Это страшно", "Можно научиться", "Нравится брать на себя"], scores: [0, 1, 2] },
+    { text: "Как планируешь время?", options: ["Спонтанно", "Списки и дедлайны", "Долгосрочные цели"], scores: [0, 1, 2] },
+  ];
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
+  const totalScore = answers.reduce((acc, val, i) => acc + (questions[i].scores[val] || 0), 0);
+  const tracks = [
+    { max: 4, title: "Командный игрок" },
+    { max: 7, title: "Мыслитель" },
+    { max: 10, title: "Создатель" },
+  ];
+  const result = tracks.find((t) => totalScore <= t.max) || tracks[tracks.length - 1];
+
+  const submit = () => {
+    if (answers.some((a) => a === null)) return alert("Ответь на все вопросы");
+    onComplete(result.title);
   };
 
   return (
-    <Card>
-      <div className="text-2xl font-semibold mb-2">{lesson.title}</div>
-      <div className="text-xs text-zinc-400 mb-4">{CATEGORIES.find(c=>c.id===lesson.category)?.title} • {lesson.durationMinutes} мин • Квиз</div>
-
-      {stage === "cards" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-zinc-400">Карточка {cardIndex + 1} из {lesson.infoCards.length}</div>
-            <div className="flex gap-2">
-              <Button variant="ghost" onClick={() => setCardIndex(Math.max(0, cardIndex - 1))}>Назад</Button>
-              <Button onClick={() => setCardIndex(Math.min(lesson.infoCards.length - 1, cardIndex + 1))}>Дальше</Button>
+    <div className="card">
+      <div className="card-header">Быстрый тест на трек развития</div>
+      {savedTrack && <div className="success">Твой трек: {savedTrack}</div>}
+      <div className="test-grid">
+        {questions.map((q, qi) => (
+          <div key={qi} className="question">
+            <div className="q-title">{qi + 1}. {q.text}</div>
+            <div className="options">
+              {q.options.map((opt, oi) => (
+                <label key={oi} className={`option ${answers[qi] === oi ? "selected" : ""}`}>
+                  <input type="radio" name={`q-${qi}`} onChange={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))} />
+                  {opt}
+                </label>
+              ))}
             </div>
           </div>
-          <div className="border border-zinc-800 rounded-2xl p-4 bg-zinc-950/80">
-            <div className="text-lg mb-2">{lesson.infoCards[cardIndex].title}</div>
-            <p className="text-sm text-zinc-200 whitespace-pre-line">{lesson.infoCards[cardIndex].text}</p>
+        ))}
+      </div>
+      <button className="primary" onClick={submit}>Узнать трек</button>
+    </div>
+  );
+};
+
+const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, profile, onSaveProfile }) => {
+  const merged = leaderboard.map((u) => (u.id === "you" ? { ...u, points: profile.points } : u));
+  const top = [...merged].sort((a, b) => b.points - a.points).slice(0, 3);
+  const [form, setForm] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone });
+  return (
+    <div className="grid home-grid">
+      <div className="card hero">
+        <h1>Будь лучше вчерашнего себя</h1>
+        <p>Платформа для подростков про предпринимательство, мышление и психологию. Уроки, квесты, очки, достижения и поддержка сообщества.</p>
+        <button className="primary" onClick={onCTA}>{subscriptionActive ? "Перейти в библиотеку" : "Начать обучение"}</button>
+        <div className="how-it-works">
+          <div>
+            <strong>1.</strong>
+            <span>Пройди короткую регистрацию</span>
           </div>
-          <div className="flex items-center justify-between text-sm text-zinc-400">
-            <span>Пролистай все карточки перед тестом.</span>
-            <Button onClick={() => setStage("quiz")}>Перейти к тесту</Button>
+          <div>
+            <strong>2.</strong>
+            <span>Активируй подписку и выбери трек</span>
+          </div>
+          <div>
+            <strong>3.</strong>
+            <span>Проходи уроки, квесты, набирай очки</span>
           </div>
         </div>
-      )}
-
-      {stage === "quiz" && (
-        <div className="space-y-4">
-          {lesson.questions.map((q, idx) => (
-            <div key={q.id} className="border border-zinc-800 rounded-2xl p-3 bg-zinc-950/80">
-              <div className="mb-2 font-medium">{idx + 1}. {q.text}</div>
-              <div className="grid gap-2">
-                {q.options.map((opt, i) => (
-                  <label key={i} className={`flex items-center gap-2 p-2 rounded-xl border ${answers[idx]===i?"border-zinc-500 bg-zinc-900":"border-zinc-800 bg-zinc-950"}`}>
-                    <input type="radio" name={`quiz-${lesson.id}-${idx}`} className="accent-white" checked={answers[idx]===i} onChange={() => setAnswers(a => ({ ...a, [idx]: i }))} />
-                    <span>{opt}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+      </div>
+      <div className="card quotes-card">
+        <Quotes />
+      </div>
+      <TrackTest onTrackComplete={onTrackComplete} savedTrack={track} />
+      <div className="card">
+        <div className="card-header">Регистрация / анкета</div>
+        <div className="form">
+          <label>Имя<input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
+          <label>Фамилия<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></label>
+          <label>Телефон<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+        </div>
+        <button className="primary" onClick={() => onSaveProfile(form)}>Сохранить данные</button>
+      </div>
+      <div className="card">
+        <div className="card-header">Лидеры недели</div>
+        <ul className="leader-list">
+          {top.map((u, i) => (
+            <li key={u.id}>
+              <span>{i + 1}. {u.name}</span>
+              <span>{u.points} очков</span>
+            </li>
           ))}
-          <div className="flex items-center gap-3">
-            <Button onClick={handleSubmit}>Показать результат</Button>
-            <Button variant="ghost" onClick={() => setStage("cards")}>Назад к карточкам</Button>
-          </div>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+const Library = ({ materials, subscriptionActive }) => {
+  const [filter, setFilter] = useState("all");
+  const navigate = useNavigate();
+  const filtered = materials.filter((m) => filter === "all" || m.category === filter);
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h2>Библиотека материалов</h2>
+          <p>Статьи, видео и тесты. Доступ по подписке.</p>
         </div>
-      )}
-
-      {result && (
-        <div className="mt-4 text-emerald-400 text-sm">+{result.delta} очков • Верно {result.correct}/{result.total} {isCompleted ? "(прогресс сохранён)" : ""}</div>
-      )}
-    </Card>
-  );
-}
-
-function LessonView({ lesson, onBack, onComplete, onSubmitQuiz, quizProgress, isCompleted }) {
-  if (!lesson) return null;
-  return (
-    <Page>
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-2xl">Модуль: {lesson.title}</div>
-        <Button variant="ghost" onClick={onBack}>← Назад</Button>
+        <div className="chip-row">
+          <button className={filter === "all" ? "chip active" : "chip"} onClick={() => setFilter("all")}>Все</button>
+          {categories.map((c) => (
+            <button key={c.id} className={filter === c.id ? "chip active" : "chip"} onClick={() => setFilter(c.id)}>{c.name}</button>
+          ))}
+        </div>
       </div>
-      {lesson.type === "article" && (
-        <LessonArticle lesson={lesson} onComplete={() => onComplete(lesson)} isCompleted={isCompleted} />
-      )}
-      {lesson.type === "quiz" && (
-        <LessonQuiz
-          lesson={lesson}
-          onSubmit={onSubmitQuiz}
-          onComplete={() => onComplete(lesson)}
-          previousResult={quizProgress}
-          isCompleted={isCompleted}
-        />
-      )}
-    </Page>
-  );
-}
-
-function Quests({ quizzes, onSubmit, profile, selected }) {
-  const [current, setCurrent] = useState(quizzes[0]?.id || null);
-  const quiz = useMemo(() => quizzes.find(q => q.id === current), [current, quizzes]);
-  const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null);
-  useEffect(() => { setAnswers({}); setResult(null); }, [current]);
-  useEffect(() => { if (selected) setCurrent(selected); }, [selected]);
-  return (
-    <Page>
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-2xl">Квесты</div>
-        <div className="flex gap-2">{quizzes.map(q => (<Button key={q.id} onClick={() => setCurrent(q.id)} variant={current===q.id?"":"ghost"}>{q.title}</Button>))}</div>
+      <div className="grid cards">
+        {filtered.map((m) => (
+          <div className="card" key={m.id}>
+            <div className="card-header">{m.title}</div>
+            <div className="meta">{categories.find((c) => c.id === m.category)?.name} • {m.type}</div>
+            <p className="desc">{m.description}</p>
+            <div className="tag">Доступ по подписке</div>
+            <button className="primary" onClick={() => navigate(`/lesson/${m.id}`)}>{subscriptionActive ? "Открыть" : "Нужна подписка"}</button>
+          </div>
+        ))}
       </div>
-      {quiz && (
-        <Card>
-          <div className="text-lg font-medium mb-2">{quiz.title}</div>
-          <div className="text-xs text-zinc-400 mb-4">Категория: {CATEGORIES.find(c=>c.id===quiz.category)?.title}</div>
-          <div className="space-y-4">
-            {quiz.questions.map((q, idx) => (
-              <div key={idx}>
-                <div className="mb-2">{idx+1}. {q.q}</div>
-                <div className="grid gap-2">
-                  {q.options.map((opt, i) => (
-                    <label key={i} className={`flex items-center gap-2 p-2 rounded-xl border ${answers[idx]===i?"border-zinc-500 bg-zinc-900":"border-zinc-800 bg-zinc-950"}`}>
-                      <input type="radio" name={`q${idx}`} className="accent-white" onChange={() => setAnswers(a => ({...a, [idx]: i}))} checked={answers[idx]===i} />
-                      <span>{opt}</span>
+    </div>
+  );
+};
+
+const LessonPage = ({ materials, subscriptionActive, onCompleteLesson, onTestFinish, lastLessonId }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const lesson = materials.find((m) => m.id === id);
+  const [answers, setAnswers] = useState([]);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!lesson) return;
+    setAnswers(Array(lesson.questions?.length || 0).fill(null));
+  }, [lesson]);
+
+  if (!lesson) return <div className="page">Урок не найден</div>;
+  if (!subscriptionActive) {
+    return (
+      <div className="page">
+        <div className="card">
+          <div className="card-header">Нужна подписка</div>
+          <p>Активируй подписку, чтобы смотреть уроки.</p>
+          <button className="primary" onClick={() => navigate("/subscription")}>Оформить</button>
+        </div>
+      </div>
+    );
+  }
+
+  const submitTest = () => {
+    if (answers.some((a) => a === null)) return alert("Ответь на все вопросы");
+    const correct = answers.filter((a, i) => a === lesson.questions[i].answer).length;
+    const delta = correct * 10;
+    onTestFinish(id, correct, lesson.questions.length, delta);
+    setDone(true);
+  };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h2>{lesson.title}</h2>
+          <p className="meta">{lesson.type}</p>
+        </div>
+        <div className="progress-line">
+          <div className="bar" style={{ width: `${done ? 100 : 40}%` }} />
+        </div>
+      </div>
+      <div className="card">
+        {lesson.type === "article" && <article className="article" dangerouslySetInnerHTML={{ __html: lesson.content.replace(/\n/g, "<br/>") }} />}
+        {lesson.type === "video" && <div className="video-placeholder">Видео будет доступно позже</div>}
+        {lesson.type === "quiz" && (
+          <div className="test-grid">
+            {lesson.questions.map((q, qi) => (
+              <div key={qi} className="question">
+                <div className="q-title">{qi + 1}. {q.text}</div>
+                <div className="options">
+                  {q.options.map((opt, oi) => (
+                    <label key={oi} className={`option ${answers[qi] === oi ? "selected" : ""}`}>
+                      <input type="radio" name={`q-${qi}`} onChange={() => setAnswers((arr) => arr.map((v, idx) => (idx === qi ? oi : v)))} />
+                      {opt}
                     </label>
                   ))}
                 </div>
               </div>
             ))}
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setResult(onSubmit(quiz, Object.values(answers)))}>Отправить</Button>
-              {profile.quizzes[quiz.id] && (<div className="text-zinc-400 text-sm">Результат: {profile.quizzes[quiz.id].correct}/{profile.quizzes[quiz.id].total}</div>)}
-            </div>
-            {result && (<div className="text-emerald-400 text-sm">+{result.delta} очков • Верно {result.correct}/{result.total}</div>)}
+            {!done ? <button className="primary" onClick={submitTest}>Пройти тест</button> : <div className="success">Тест завершён</div>}
           </div>
-        </Card>
+        )}
+        {lesson.type !== "quiz" && (
+          <button className="primary" onClick={() => { onCompleteLesson(id); setDone(true); }} disabled={done}>
+            {done ? "Урок завершён" : "Завершить урок"}
+          </button>
+        )}
+      </div>
+      {lastLessonId && lastLessonId !== id && (
+        <button className="ghost" onClick={() => navigate(`/lesson/${lastLessonId}`)}>Вернуться к последнему уроку</button>
       )}
-    </Page>
+    </div>
   );
-}
+};
 
-function Profile({ profile, status, setTab, setFilter, setSelectedQuiz }) {
-  const totalSkill = Object.values(profile.skills).reduce((a,b)=>a+b,0) || 1;
-  const progress = (k) => Math.round((profile.skills[k] / totalSkill) * 100);
+const QuestPage = ({ quest, onCompleteStep }) => {
+  const [answers, setAnswers] = useState({});
+  const currentStep = quest.progress.currentStep;
+  const activeStep = quest.steps[currentStep];
+
+  const submit = () => {
+    if (!activeStep) return;
+    const chosen = answers[activeStep.id] || {};
+    if (activeStep.questions.some((_, idx) => chosen[idx] === undefined)) return alert("Ответь на все вопросы");
+    onCompleteStep(activeStep, chosen);
+    setAnswers({ ...answers, [activeStep.id]: {} });
+  };
+
   return (
-    <Page>
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card>
-          <div className="text-xl mb-1">{profile.name}</div>
-          <div className="text-sm text-zinc-400 mb-4">Статус: {status} • Очки: {profile.points}</div>
-          <div className="space-y-3">
-            {CATEGORIES.map(c => (
-              <div key={c.id}>
-                <div className="flex justify-between text-sm mb-1"><span>{c.title}</span><span className="text-zinc-400">{profile.skills[c.id]} pts</span></div>
-                <Progress value={progress(c.id)} />
-              </div>
-            ))}
-          </div>
-          <div className="text-xs text-zinc-500 mt-4">Философия: <span className="text-zinc-200">быть лучше вчерашнего себя</span></div>
-        </Card>
-        <Card>
-          <div className="text-lg mb-2">Достижения</div>
-          <ul className="list-disc ml-5 text-зинк-400 space-y-1">
-            <li>Первый квест пройден</li>
-            <li>3 урока из базы изучены</li>
-            <li>Серия: 2 дня подряд</li>
-          </ul>
-          <div className="text-xs text-zinc-500 mt-4">*Автогенерация писем для родителей — в v2.</div>
-        </Card>
-        <Card>
-          <div className="text-lg mb-2">Рекомендации</div>
-          <p className="text-zinc-400 mb-3">Усиль мышление и финансы.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => { setFilter('thinking'); setTab('library'); }}>Карта логики</Button>
-            <Button onClick={() => { setSelectedQuiz('q_finance_1'); setTab('quests'); }}>Квест: бюджет</Button>
-            <Button onClick={() => { setFilter('business'); setTab('library'); }}>Видео: ценность</Button>
-          </div>
-        </Card>
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h2>Интеллектуальные квесты</h2>
+          <p>Проходи последовательные шаги и получай очки.</p>
+        </div>
       </div>
-    </Page>
-  );
-}
-
-function Leaderboard({ mePoints }) {
-  const base = [ { name: "Arsen", points: 880 }, { name: "Mira", points: 760 }, { name: "Leo", points: 640 } ];
-  const data = useMemo(() => [{ name: "Ты", points: mePoints }, ...base].sort((a,b)=>b.points-a.points), [mePoints]);
-  return (
-    <Page>
-      <div className="text-2xl mb-4">Лидеры</div>
-      <div className="grid md:grid-cols-2 gap-4">
-        {data.map((u,i) => (
-          <Card key={i}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-zinc-100"/>
-                <div>
-                  <div className="text-lg">{i+1}. {u.name}</div>
-                  <div className="text-xs text-zinc-400">Очки: {u.points}</div>
+      <div className="grid cards">
+        {quest.steps.map((step, idx) => {
+          const locked = idx > quest.progress.currentStep;
+          const completed = idx < quest.progress.currentStep || quest.progress.completed;
+          return (
+            <div className="card" key={step.id}>
+              <div className="card-header">{step.title}</div>
+              <div className="meta">Шаг {idx + 1} из {quest.steps.length}</div>
+              {completed && <div className="success">Пройдено</div>}
+              {locked && <div className="tag">Откроется после предыдущего шага</div>}
+              {!locked && !quest.progress.completed && idx === currentStep && (
+                <div className="test-grid">
+                  {step.questions.map((q, qi) => (
+                    <div key={qi} className="question">
+                      <div className="q-title">{q.text}</div>
+                      <div className="options">
+                        {q.options.map((opt, oi) => (
+                          <label key={oi} className={`option ${(answers[step.id]?.[qi] ?? null) === oi ? "selected" : ""}`}>
+                            <input type="radio" name={`${step.id}-${qi}`} onChange={() => setAnswers((prev) => ({ ...prev, [step.id]: { ...(prev[step.id] || {}), [qi]: oi } }))} />
+                            {opt}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <button className="primary" onClick={submit}>Завершить шаг</button>
                 </div>
-              </div>
-              {i===0 && <div className="text-xs text-amber-300">Топ недели</div>}
+              )}
             </div>
-          </Card>
-        ))}
+          );
+        })}
       </div>
-      <div className="text-zinc-500 text-sm mt-4">*В релизе: приватный/публичный режим, фильтры по трекам, дружеские дуэли.</div>
-    </Page>
+      {quest.progress.completed && <div className="success">Квест пройден! Достижение «Квест-мастер» начислено.</div>}
+    </div>
   );
-}
+};
 
-function Admin({ libraryExtra, setLibraryExtra, quizzesExtra, setQuizzesExtra }) {
-  const [item, setItem] = useState({ id: '', category: 'thinking', kind: 'article', title: '', duration: 5, cover: '', source_url: '', description: '' });
-  const [qz, setQz] = useState({ id: '', category: 'thinking', title: '', questions: [{ q: '', options: ['', '', ''], a: 0, explain: '' }] });
-
-  const addLibrary = () => {
-    if (!item.id || !item.title) { alert('Нужны id и title'); return; }
-    setLibraryExtra(arr => [...arr.filter(x=>x.id!==item.id), item]);
-    setItem({ id: '', category: 'thinking', kind: 'article', title: '', duration: 5, cover: '', source_url: '', description: '' });
-  };
-  const delLibrary = (id) => setLibraryExtra(arr => arr.filter(x=>x.id!==id));
-
-  const addQuiz = () => {
-    if (!qz.id || !qz.title || !qz.questions?.length) { alert('Нужны id, title и вопросы'); return; }
-    setQuizzesExtra(arr => [...arr.filter(x=>x.id!==qz.id), qz]);
-    setQz({ id: '', category: 'thinking', title: '', questions: [{ q: '', options: ['', '', ''], a: 0, explain: '' }] });
-  };
-  const delQuiz = (id) => setQuizzesExtra(arr => arr.filter(x=>x.id!==id));
-
-  const exportJSON = () => {
-    const payload = { items: libraryExtra, quizzes: quizzesExtra };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'noesis-content.json'; a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const importJSON = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result);
-        if (Array.isArray(data.items)) setLibraryExtra(data.items);
-        if (Array.isArray(data.quizzes)) setQuizzesExtra(data.quizzes);
-        alert('Импортировано');
-      } catch { alert('Не удалось прочитать JSON'); }
-    };
-    reader.readAsText(file);
-  };
-
+const Community = ({ users, mePoints, onSelectUser }) => {
+  const data = [...users.map((u) => (u.id === "you" ? { ...u, points: mePoints } : u))].sort((a, b) => b.points - a.points);
   return (
-    <Page>
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
-          <div className="text-xl mb-3">Добавить материал (Библиотека)</div>
-          <div className="grid gap-2 text-sm">
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="id (уникальный)" value={item.id} onChange={e=>setItem({...item, id:e.target.value})}/>
-            <select className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" value={item.category} onChange={e=>setItem({...item, category:e.target.value})}>
-              {CATEGORIES.map(c=>(<option key={c.id} value={c.id}>{c.title}</option>))}
-            </select>
-            <input className="bg-зинк-900 border border-зинк-800 rounded-xl p-2" placeholder="kind (article / video / game / podcast / quiz)" value={item.kind} onChange={e=>setItem({...item, kind:e.target.value})}/>
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Заголовок" value={item.title} onChange={e=>setItem({...item, title:e.target.value})}/>
-            <input type="number" className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Длительность (мин)" value={item.duration} onChange={e=>setItem({...item, duration:Number(e.target.value||0)})}/>
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Обложка (URL)" value={item.cover} onChange={e=>setItem({...item, cover:e.target.value})}/>
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Источник (URL)" value={item.source_url} onChange={e=>setItem({...item, source_url:e.target.value})}/>
-            <textarea className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Короткое описание" value={item.description} onChange={e=>setItem({...item, description:e.target.value})}/>
-            <div className="flex gap-2 mt-2"><Button onClick={addLibrary}>Добавить</Button></div>
-          </div>
-        </Card>
-        <Card>
-          <div className="text-xl mb-3">Добавить квест</div>
-          <div className="grid gap-2 text-sm">
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="id (уникальный)" value={qz.id} onChange={e=>setQz({...qz, id:e.target.value})}/>
-            <select className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" value={qz.category} onChange={e=>setQz({...qz, category:e.target.value})}>
-              {CATEGORIES.map(c=>(<option key={c.id} value={c.id}>{c.title}</option>))}
-            </select>
-            <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2" placeholder="Заголовок" value={qz.title} onChange={e=>setQz({...qz, title:e.target.value})}/>
-            <div className="text-xs text-zinc-400">Вопросы</div>
-            {qz.questions.map((qq,idx)=>(
-              <div key={idx} className="border border-zinc-800 rounded-xl p-2">
-                <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2 w-full mb-2" placeholder={`Вопрос #${idx+1}`} value={qq.q} onChange={e=>{
-                  const qs=[...qz.questions]; qs[idx]={...qq, q:e.target.value}; setQz({...qz, questions:qs});
-                }}/>
-                {qq.options.map((op,i)=>(
-                  <div key={i} className="flex items-center gap-2 mb-1">
-                    <input className="bg-zinc-900 border border-zinc-800 rounded-xl p-2 w-full" placeholder={`Вариант ${i+1}`} value={op} onChange={e=>{ const qs=[...qz.questions]; const opts=[...qq.options]; opts[i]=e.target.value; qs[idx]={...qq, options:opts}; setQz({...qz, questions:qs}); }} />
-                    <label className="text-xs text-zinc-400 flex items-center gap-1"><input type="radio" name={`a_${idx}`} className="accent-white" checked={qq.a===i} onChange={()=>{ const qs=[...qz.questions]; qs[idx]={...qq, a:i}; setQz({...qz, questions:qs}); }}/> правильный</label>
-                  </div>
-                ))}
-                <textarea className="bg-zinc-900 border border-zinc-800 rounded-xl p-2 w-full" placeholder="Объяснение ответа" value={qq.explain} onChange={e=>{ const qs=[...qz.questions]; qs[idx]={...qq, explain:e.target.value}; setQz({...qz, questions:qs}); }} />
-              </div>
-            ))}
-            <div className="flex gap-2">
-              <Button onClick={()=>setQz({...qz, questions:[...qz.questions, { q:'', options:['','',''], a:0, explain:'' }]})} variant="ghost">+ Вопрос</Button>
-              <Button onClick={addQuiz}>Сохранить квест</Button>
-            </div>
-          </div>
-        </Card>
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h2>Сообщество</h2>
+          <p>Таблица лидеров и профили участников.</p>
+        </div>
       </div>
-
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <div className="text-lg mb-2">Материалы (добавленные)</div>
-          <div className="space-y-2 text-sm">
-            {libraryExtra.length===0 && <div className="text-zinc-500">Пусто</div>}
-            {libraryExtra.map(x=> (
-              <div key={x.id} className="flex items-center justify-between border border-zinc-800 rounded-xl p-2">
-                <div className="truncate">{x.id} — {x.title}</div>
-                <Button variant="ghost" onClick={()=>delLibrary(x.id)}>Удалить</Button>
-              </div>
+      <div className="card">
+        <table className="table">
+          <thead>
+            <tr><th>Имя</th><th>Очки</th><th>Статус</th></tr>
+          </thead>
+          <tbody>
+            {data.map((u) => (
+              <tr key={u.id} onClick={() => onSelectUser(u)}>
+                <td>{u.name}</td>
+                <td>{u.points}</td>
+                <td>{statusFromPoints(u.points)}</td>
+              </tr>
             ))}
-          </div>
-        </Card>
-        <Card>
-          <div className="text-lg mb-2">Квесты (добавленные)</div>
-          <div className="space-y-2 text-sm">
-            {quizzesExtra.length===0 && <div className="text-zinc-500">Пусто</div>}
-            {quizzesExtra.map(x=> (
-              <div key={x.id} className="flex items-center justify-between border border-zinc-800 rounded-xl p-2">
-                <div className="truncate">{x.id} — {x.title}</div>
-                <Button variant="ghost" onClick={()=>delQuiz(x.id)}>Удалить</Button>
-              </div>
-            ))}
-          </div>
-        </Card>
+          </tbody>
+        </table>
       </div>
+    </div>
+  );
+};
 
-      <div className="grid md:grid-cols-2 gap-6 mt-6">
-        <Card>
-          <div className="text-lg mb-2">Импорт / Экспорт</div>
-          <div className="flex items-center gap-3 text-sm">
-            <Button onClick={exportJSON}>Экспорт JSON</Button>
-            <label className="border border-zinc-800 rounded-xl px-3 py-2 cursor-pointer">Импорт JSON
-              <input type="file" accept="application/json" className="hidden" onChange={importJSON} />
-            </label>
+const Profile = ({ profile, materials, onContinue, onToggleTask, onSubscriptionLink, theme, toggleTheme, onUpdateProfile }) => {
+  const completedCount = Object.keys(profile.completedLessons).length;
+  const totalCount = materials.length;
+  const progress = Math.round((completedCount / totalCount) * 100);
+  return (
+    <div className="page">
+      <div className="grid profile-grid">
+        <div className="card">
+          <div className="avatar large">{profile.firstName?.[0] || "Т"}</div>
+          <div className="card-header">{profile.firstName} {profile.lastName}</div>
+          <p className="meta">Очки: {profile.points} • Статус: {statusFromPoints(profile.points)}</p>
+          {profile.track && <p className="meta">Трек: {profile.track}</p>}
+          <button className="primary" onClick={onContinue}>Продолжить обучение</button>
+          <div className="progress-line">
+            <div className="bar" style={{ width: `${progress}%` }} />
           </div>
-          <div className="text-xs text-zinc-500 mt-2">* Для файлов (обложки/документы) сейчас вставляй URL (YouTube, Drive, Dropbox, Cloudinary). В v2 подключим Supabase Storage.</div>
-        </Card>
-        <Card>
-          <div className="text-lg mb-2">Инструкции</div>
-          <ul className="list-disc ml-5 text-zinc-400 text-sm space-y-1">
-            <li>Материал появляется в библиотеке сразу после добавления.</li>
-            <li>Квест становится доступен во вкладке «Квесты».</li>
-            <li>Экспорт/Импорт позволяет переносить контент между устройствами и деплоями.</li>
+          <div className="meta">Прогресс: {progress}%</div>
+        </div>
+        <div className="card">
+          <div className="card-header">Достижения</div>
+          <ul className="achievements">
+            <li className={profile.achievements.firstLesson ? "active" : ""}>Первый урок</li>
+            <li className={profile.achievements.firstTest ? "active" : ""}>Первый тест</li>
+            <li className={profile.achievements.questMaster ? "active" : ""}>Квест-мастер</li>
+            <li className={profile.achievements.streak3 ? "active" : ""}>Серия 3 дня</li>
           </ul>
-        </Card>
-      </div>
-    </Page>
-  );
-}
-
-export default function App() {
-  const m = useModel();
-  const [selectedQuiz, setSelectedQuiz] = useState(null);
-  const [activeLessonId, setActiveLessonId] = useState(null);
-
-  const libraryAll = [...INITIAL_LIBRARY, ...m.libraryExtra];
-  const quizzesAll = [...INITIAL_QUIZZES, ...m.quizzesExtra];
-  const lessonMap = useMemo(() => {
-    const extraLessons = m.libraryExtra.filter(x => x.content).map(x => ({
-      ...x,
-      type: x.kind || x.type,
-      durationMinutes: x.duration,
-    }));
-    const base = LESSON_MODULES.map(l => ({ ...l }));
-    return [...base, ...extraLessons].reduce((acc, l) => ({ ...acc, [l.id]: l }), {});
-  }, [m.libraryExtra]);
-
-  const activeLesson = activeLessonId ? lessonMap[activeLessonId] : null;
-
-  return (
-    <div className="min-h-screen bg-black text-zinc-100">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <Nav tab={m.tab} setTab={m.setTab} points={m.profile.points} status={m.status} isAdmin={m.isAdmin} />
-        {m.tab === "home" && <Home setTab={m.setTab} />}
-        {m.tab === "library" && (
-          <Library
-            lessons={libraryAll}
-            filter={m.filter}
-            setFilter={m.setFilter}
-            onStart={(l)=>{
-              if (lessonMap[l.id]) {
-                setActiveLessonId(l.id);
-                m.setTab('lesson');
-              } else {
-                m.completeLesson(l);
-                alert("Урок отмечен как изученный. +20 очков и рост навыка.");
-              }
-            }}
-            isCompleted={(id)=>!!m.profile.completed[id]}
-          />
-        )}
-        {m.tab === "quests" && (<Quests quizzes={quizzesAll} onSubmit={m.submitQuiz} profile={m.profile} selected={selectedQuiz} />)}
-        {m.tab === "lesson" && activeLesson && (
-          <LessonView
-            lesson={activeLesson}
-            onBack={() => { setActiveLessonId(null); m.setTab('library'); }}
-            onComplete={(lesson) => m.completeLesson(lesson)}
-            onSubmitQuiz={m.submitQuiz}
-            quizProgress={m.profile.quizzes[activeLesson.id]}
-            isCompleted={!!m.profile.completed[activeLesson.id]}
-          />
-        )}
-        {m.tab === "profile" && (<Profile profile={m.profile} status={m.status} setTab={m.setTab} setFilter={m.setFilter} setSelectedQuiz={setSelectedQuiz} />)}
-        {m.tab === "leaderboard" && (<Leaderboard mePoints={m.profile.points} />)}
-        {m.tab === "admin" && (<Admin libraryExtra={m.libraryExtra} setLibraryExtra={m.setLibraryExtra} quizzesExtra={m.quizzesExtra} setQuizzesExtra={m.setQuizzesExtra} />)}
-        <div className="mt-10 flex items-center justify-between text-xs text-zinc-500">
-          <div>© {new Date().getFullYear()} NOESIS — интеллектуальная платформа (MVP)</div>
-          <div className="flex items-center gap-3">
-            <button onClick={m.resetAll} className="underline hover:no-underline">Сбросить прогресс</button>
-            {!m.isAdmin && <button onClick={()=>{ const p = prompt('Пароль администратора'); if (p === 'noesis2025') { m.setIsAdmin(true); m.setTab('admin'); } else if (p) { alert('Неверный пароль'); } }} className="underline hover:no-underline">Войти как админ</button>}
-            {m.isAdmin && <button onClick={()=>{ m.setIsAdmin(false); if (m.tab==='admin') m.setTab('home'); }} className="underline hover:no-underline">Выйти из админки</button>}
+          <div className="meta">Серия входов: {profile.streak.count} дней подряд</div>
+        </div>
+        <div className="card">
+          <div className="card-header">Практические задания</div>
+          <ul className="tasks">
+            {practicalTasks.map((t) => (
+              <li key={t.id}>
+                <label>
+                  <input type="checkbox" checked={profile.practical[t.id]} onChange={() => onToggleTask(t.id)} />
+                  <div>
+                    <strong>{t.title}</strong>
+                    <p>{t.desc}</p>
+                  </div>
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className={`card subscription ${profile.subscriptionActive ? "active" : ""}`}>
+          <div className="card-header">Текущая подписка</div>
+          <p>{profile.subscriptionActive ? "Активна" : "Не активна"}</p>
+          <button className="primary" onClick={onSubscriptionLink}>Управление подпиской</button>
+        </div>
+        <div className="card">
+          <div className="card-header">Настройки</div>
+          <div className="form">
+            <label>Имя<input value={profile.firstName} onChange={(e) => onUpdateProfile({ firstName: e.target.value })} /></label>
+            <label>Фамилия<input value={profile.lastName} onChange={(e) => onUpdateProfile({ lastName: e.target.value })} /></label>
+            <label>Телефон<input value={profile.phone} onChange={(e) => onUpdateProfile({ phone: e.target.value })} /></label>
+            <label>Пароль<input value={profile.password} onChange={(e) => onUpdateProfile({ password: e.target.value })} /></label>
           </div>
+          <button className="ghost" onClick={toggleTheme}>Сменить тему ({theme})</button>
+          <button className="ghost" onClick={() => onUpdateProfile({ reset: true })}>Выйти из аккаунта</button>
+        </div>
+        <div className="card">
+          <div className="card-header">Помощь</div>
+          <a href="/help" className="link">FAQ и поддержка</a>
+          <a href="https://t.me/yourproject" className="link" target="_blank" rel="noreferrer">Telegram-чат</a>
         </div>
       </div>
     </div>
   );
+};
+
+const SubscriptionPage = ({ active, onToggle }) => (
+  <div className="page">
+    <div className="card">
+      <div className="card-header">Подписка</div>
+      <p>Для кого: подростки 13–20. Доступ к материалам, квестам, прогрессу и достижениям. Оплаты нет — это учебный прототип.</p>
+      <button className="primary" onClick={onToggle}>{active ? "Подписка активна" : "Активировать подписку"}</button>
+      {active && <p className="success">Доступ разблокирован!</p>}
+    </div>
+  </div>
+);
+
+const AdminPage = ({ users, onChangePoints, materials, onAddMaterial, onRemoveMaterial }) => {
+  const [draft, setDraft] = useState({ id: "", title: "", category: "thinking", type: "article", description: "", content: "" });
+  return (
+    <div className="page">
+      <div className="grid cards">
+        <div className="card">
+          <div className="card-header">Пользователи</div>
+          {users.map((u) => (
+            <div key={u.id} className="admin-row">
+              <span>{u.name}</span>
+              <div className="admin-actions">
+                <button onClick={() => onChangePoints(u.id, -10)}>-10</button>
+                <button onClick={() => onChangePoints(u.id, 10)}>+10</button>
+                <span>{u.points} очков</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="card">
+          <div className="card-header">Материалы</div>
+          <div className="form">
+            <label>ID<input value={draft.id} onChange={(e) => setDraft({ ...draft, id: e.target.value })} /></label>
+            <label>Название<input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
+            <label>Категория<select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>{categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+            <label>Тип<select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>
+              <option value="article">статья</option>
+              <option value="video">видео</option>
+              <option value="quiz">тест</option>
+            </select></label>
+            <label>Описание<textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></label>
+            <label>Контент<textarea value={draft.content} onChange={(e) => setDraft({ ...draft, content: e.target.value })} /></label>
+            <button className="primary" onClick={() => onAddMaterial(draft)}>Добавить</button>
+          </div>
+          <ul className="simple-list">
+            {materials.map((m) => (
+              <li key={m.id}>
+                <span>{m.title}</span>
+                <button onClick={() => onRemoveMaterial(m.id)}>Удалить</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HelpPage = ({ onIdea }) => {
+  const [form, setForm] = useState({ topic: "", description: "" });
+  const submit = () => {
+    if (!form.topic || !form.description) return alert("Заполни все поля");
+    onIdea(form);
+    setForm({ topic: "", description: "" });
+    alert("Спасибо! Мы внимательно рассмотрим твою идею.");
+  };
+  return (
+    <div className="page">
+      <div className="card">
+        <div className="card-header">Частые вопросы</div>
+        <ul className="faq">
+          {faqItems.map((f, i) => (
+            <li key={i}>
+              <strong>{f.q}</strong>
+              <p>{f.a}</p>
+            </li>
+          ))}
+        </ul>
+        <a href="https://t.me/yourproject" target="_blank" rel="noreferrer" className="primary outline">Нужна помощь? Telegram</a>
+      </div>
+      <div className="card">
+        <div className="card-header">Предложить идею</div>
+        <div className="form">
+          <label>Тема<input value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} /></label>
+          <label>Описание<textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
+        </div>
+        <button className="primary" onClick={submit}>Отправить</button>
+      </div>
+    </div>
+  );
+};
+
+const CommunityProfileModal = ({ user, onClose }) => {
+  if (!user) return null;
+  return (
+    <div className="modal">
+      <div className="modal-content">
+        <div className="card-header">{user.name}</div>
+        <p>Очки: {user.points}</p>
+        <p>Статус: {statusFromPoints(user.points)}</p>
+        <p>Достижения: «Первый урок», «Первый тест» (пример)</p>
+        <button className="ghost" onClick={onClose}>Закрыть</button>
+      </div>
+    </div>
+  );
+};
+
+function App() {
+  const [state, setState] = usePersistedState();
+  const status = statusFromPoints(state.profile.points);
+
+  const toggleTheme = () => setState((prev) => ({ ...prev, theme: prev.theme === "dark" ? "light" : "dark" }));
+
+  const addPoints = (amount) => setState((prev) => ({ ...prev, profile: { ...prev.profile, points: prev.profile.points + amount } }));
+
+  const completeLesson = (id) => {
+    setState((prev) => {
+      if (prev.profile.completedLessons[id]) return prev;
+      const achievements = { ...prev.profile.achievements };
+      achievements.firstLesson = true;
+      const updatedProfile = {
+        ...prev.profile,
+        completedLessons: { ...prev.profile.completedLessons, [id]: true },
+        lastLessonId: id,
+        achievements,
+        points: prev.profile.points + 20,
+      };
+      return { ...prev, profile: updatedProfile };
+    });
+  };
+
+  const finishTest = (id, correct, total, delta) => {
+    setState((prev) => {
+      const achievements = { ...prev.profile.achievements, firstTest: true };
+      return {
+        ...prev,
+        profile: {
+          ...prev.profile,
+          testResults: { ...prev.profile.testResults, [id]: { correct, total } },
+          points: prev.profile.points + delta,
+          achievements,
+          lastLessonId: id,
+          completedLessons: { ...prev.profile.completedLessons, [id]: true },
+        },
+      };
+    });
+  };
+
+  const toggleSubscription = () => setState((prev) => ({ ...prev, profile: { ...prev.profile, subscriptionActive: !prev.profile.subscriptionActive } }));
+
+  const completeQuestStep = (step, answers) => {
+    setState((prev) => {
+      const isLast = prev.quest.progress.currentStep === prev.quest.steps.length - 1;
+      const basePoints = step.questions.length * 10;
+      const bonus = isLast ? 30 : 0;
+      const achievements = { ...prev.profile.achievements };
+      const nextStep = isLast ? prev.quest.progress.currentStep : prev.quest.progress.currentStep + 1;
+      const completed = isLast;
+      if (completed) achievements.questMaster = true;
+      return {
+        ...prev,
+        profile: { ...prev.profile, points: prev.profile.points + basePoints + bonus, achievements },
+        quest: { ...prev.quest, progress: { ...prev.quest.progress, currentStep: nextStep, completed } },
+      };
+    });
+  };
+
+  const togglePractical = (id) => {
+    setState((prev) => {
+      const newValue = !prev.profile.practical[id];
+      return {
+        ...prev,
+        profile: {
+          ...prev.profile,
+          practical: { ...prev.profile.practical, [id]: newValue },
+          points: prev.profile.points + (newValue ? 5 : -5),
+        },
+      };
+    });
+  };
+
+  const updateProfile = (payload) => {
+    if (payload.reset) {
+      localStorage.removeItem("ep_state");
+      window.location.reload();
+      return;
+    }
+    setState((prev) => ({ ...prev, profile: { ...prev.profile, ...payload } }));
+  };
+
+  const changeUserPoints = (id, delta) => {
+    setState((prev) => ({
+      ...prev,
+      users: prev.users.map((u) => (u.id === id ? { ...u, points: u.points + delta } : u)),
+      profile: id === "you" ? { ...prev.profile, points: prev.profile.points + delta } : prev.profile,
+    }));
+  };
+
+  const addMaterial = (draft) => {
+    if (!draft.id || !draft.title) return alert("Нужен id и название");
+    setState((prev) => ({ ...prev, materials: [...prev.materials.filter((m) => m.id !== draft.id), draft] }));
+  };
+
+  const removeMaterial = (id) => setState((prev) => ({ ...prev, materials: prev.materials.filter((m) => m.id !== id) }));
+
+  const submitIdea = (idea) => setState((prev) => ({ ...prev, ideas: [...prev.ideas, { ...idea, date: new Date().toISOString() }] }));
+
+  const recordTrack = (track) => setState((prev) => ({ ...prev, profile: { ...prev.profile, track } }));
+
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const HomePage = () => {
+    const navigate = useNavigate();
+    return (
+      <Home
+        subscriptionActive={state.profile.subscriptionActive}
+        onCTA={() => navigate(state.profile.subscriptionActive ? "/library" : "/subscription")}
+        onTrackComplete={recordTrack}
+        track={state.profile.track}
+        leaderboard={state.users}
+        profile={state.profile}
+        onSaveProfile={updateProfile}
+      />
+    );
+  };
+
+  const ProfilePage = () => {
+    const navigate = useNavigate();
+    const go = () => {
+      const id = state.profile.lastLessonId || state.materials[0]?.id;
+      navigate(id ? `/lesson/${id}` : "/library");
+    };
+    return (
+      <Profile
+        profile={state.profile}
+        materials={state.materials}
+        onContinue={go}
+        onToggleTask={togglePractical}
+        onSubscriptionLink={() => navigate("/subscription")}
+        theme={state.theme}
+        toggleTheme={toggleTheme}
+        onUpdateProfile={updateProfile}
+      />
+    );
+  };
+
+  return (
+    <BrowserRouter>
+      <Layout theme={state.theme} toggleTheme={toggleTheme} subscriptionActive={state.profile.subscriptionActive}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/library" element={<Library materials={state.materials} subscriptionActive={state.profile.subscriptionActive} />} />
+          <Route
+            path="/lesson/:id"
+            element={
+              <LessonPage
+                materials={state.materials}
+                subscriptionActive={state.profile.subscriptionActive}
+                onCompleteLesson={completeLesson}
+                onTestFinish={finishTest}
+                lastLessonId={state.profile.lastLessonId}
+              />
+            }
+          />
+          <Route path="/quests" element={<QuestPage quest={state.quest} onCompleteStep={completeQuestStep} />} />
+          <Route path="/community" element={<Community users={state.users} mePoints={state.profile.points} onSelectUser={(u) => setSelectedUser(u)} />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/subscription" element={<SubscriptionPage active={state.profile.subscriptionActive} onToggle={toggleSubscription} />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminPage
+                users={state.users.map((u) => (u.id === "you" ? { ...u, points: state.profile.points } : u))}
+                onChangePoints={changeUserPoints}
+                materials={state.materials}
+                onAddMaterial={addMaterial}
+                onRemoveMaterial={removeMaterial}
+              />
+            }
+          />
+          <Route path="/help" element={<HelpPage onIdea={submitIdea} />} />
+        </Routes>
+        <CommunityProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />
+      </Layout>
+    </BrowserRouter>
+  );
 }
+
+export default App;
