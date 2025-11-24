@@ -77,12 +77,14 @@ body {
   border-color: var(--border);
 }
 
-.nav .nav-link.active,
-.nav a.active-sub,
-.nav .nav-link.active-sub {
+.nav .nav-link-home {
   border: 1px solid var(--accent);
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
   background: rgba(34, 197, 94, 0.08);
+}
+
+.nav .nav-link-home:hover {
+  border-color: var(--accent);
 }
 
 .header-actions {
