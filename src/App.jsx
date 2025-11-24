@@ -363,8 +363,9 @@ const TrackTest = ({ onComplete, savedTrack }) => {
   const [answers, setAnswers] = useState(Array(questions.length).fill(null));
   const totalScore = answers.reduce((acc, val, i) => acc + (questions[i].scores[val] || 0), 0);
   const tracks = [
-    { max: 4, title: "Командный игрок" },
-    { max: 7, title: "Мыслитель" },
+    { max: 3, title: "Командный игрок" },
+    { max: 6, title: "Коммандир" },
+    { max: 8, title: "Мыслитель" },
     { max: 10, title: "Создатель" },
   ];
   const result = tracks.find((t) => totalScore <= t.max) || tracks[tracks.length - 1];
@@ -407,7 +408,9 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
   useEffect(() => {
     if (showTrackTest) {
       const el = document.getElementById("track-test");
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const firstInput = el?.querySelector("input");
+      firstInput?.focus();
     }
   }, [showTrackTest]);
   return (
@@ -433,7 +436,7 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
       </div>
       <div className="card mini-track">
         <div className="card-header">Сформировать персональный трек развития</div>
-        <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: создатель, мыслитель или командный игрок.</p>
+        <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: командный игрок, коммандир, мыслитель или создатель.</p>
         <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
         <button className="primary" onClick={() => setShowTrackTest(true)}>Сформировать личный трекшн развития</button>
         {track && <div className="success">Текущий трек: {track}</div>}
@@ -569,6 +572,15 @@ const LessonPage = ({ materials, subscriptionActive, onCompleteLesson, onTestFin
           </button>
         )}
       </div>
+      {done && (
+        <div className="card">
+          <div className="card-header">Урок завершён!</div>
+          <p>Поздравляем, урок зачтён. Можно вернуться в библиотеку и выбрать следующий материал.</p>
+          <button className="primary" onClick={() => navigate("/library")}>
+            Вернуться в библиотеку
+          </button>
+        </div>
+      )}
       {lastLessonId && lastLessonId !== id && (
         <button className="ghost" onClick={() => navigate(`/lesson/${lastLessonId}`)}>Вернуться к последнему уроку</button>
       )}
@@ -816,7 +828,6 @@ const HelpPage = ({ onIdea }) => {
       </div>
       <div className="card">
         <div className="card-header">Поддержка и контакты</div>
-        <p>Если нужен живой ответ — пиши основателям прямо в Telegram. Мы отвечаем быстро и ценим каждое сообщение.</p>
         <ul className="contact-list">
           <li><a href="https://t.me/whohatesme" target="_blank" rel="noreferrer">@whohatesme</a> — FOUNDER, поможет с запуском, идеями и партнёрствами.</li>
           <li><a href="https://t.me/bohdan162" target="_blank" rel="noreferrer">@bohdan162</a> — CoFOUNDER, отвечает за продукты и комьюнити.</li>
