@@ -680,6 +680,28 @@ const Profile = ({ profile, materials, onContinue, onToggleTask, onSubscriptionL
   const completedCount = Object.keys(profile.completedLessons).length;
   const totalCount = materials.length;
   const progress = Math.round((completedCount / totalCount) * 100);
+  const [profileForm, setProfileForm] = useState({
+    firstName: profile.firstName || "",
+    lastName: profile.lastName || "",
+    phone: profile.phone || "",
+    password: profile.password || "",
+  });
+
+  useEffect(() => {
+    setProfileForm({
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      phone: profile.phone || "",
+      password: profile.password || "",
+    });
+  }, [profile.firstName, profile.lastName, profile.phone, profile.password]);
+
+  const handleProfileChange = (field) => (e) => {
+    const value = e.target.value;
+    setProfileForm((prev) => ({ ...prev, [field]: value }));
+    onUpdateProfile({ [field]: value });
+  };
+
   return (
     <div className="page">
       <div className="grid profile-grid">
@@ -728,10 +750,10 @@ const Profile = ({ profile, materials, onContinue, onToggleTask, onSubscriptionL
         <div className="card">
           <div className="card-header">Настройки</div>
           <div className="form">
-            <label>Имя<input value={profile.firstName} onChange={(e) => onUpdateProfile({ firstName: e.target.value })} /></label>
-            <label>Фамилия<input value={profile.lastName} onChange={(e) => onUpdateProfile({ lastName: e.target.value })} /></label>
-            <label>Телефон<input value={profile.phone} onChange={(e) => onUpdateProfile({ phone: e.target.value })} /></label>
-            <label>Пароль<input value={profile.password} onChange={(e) => onUpdateProfile({ password: e.target.value })} /></label>
+            <label>Имя<input value={profileForm.firstName} onChange={handleProfileChange("firstName")} /></label>
+            <label>Фамилия<input value={profileForm.lastName} onChange={handleProfileChange("lastName")} /></label>
+            <label>Телефон<input value={profileForm.phone} onChange={handleProfileChange("phone")} /></label>
+            <label>Пароль<input value={profileForm.password} onChange={handleProfileChange("password")} /></label>
           </div>
           <button className="ghost" onClick={toggleTheme}>Сменить тему ({theme})</button>
           <button className="ghost" onClick={() => onUpdateProfile({ reset: true })}>Выйти из аккаунта</button>
