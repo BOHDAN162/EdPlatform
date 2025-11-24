@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams } from "react-router-dom";
 
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const load = (k, d) => {
@@ -94,6 +94,34 @@ const initialMaterials = [
         answer: 0,
       },
     ],
+  },
+  {
+    id: "finance-longread",
+    title: "Финансовая база подростка",
+    category: "finance",
+    type: "article",
+    description: "Подробный гид о подушке безопасности, бюджете и первых инвестициях.",
+    content: `
+      Финансовая устойчивость начинается с дисциплины и прозрачности. Подушка безопасности — это 3–6 месяцев базовых расходов, которые позволяют спокойно учиться, пробовать и ошибаться. Начни с расчёта ежемесячных обязательных трат и поставь цель откладывать 10–20% поступлений, даже если это карманные деньги или подработки. Фиксируй каждый шаг: таблица или простое приложение помогают увидеть, куда утекают средства.
+
+      Бюджетирование — это не про ограничения, а про осознанные выборы. Сначала отдели обязательные расходы (транспорт, еда, связь), затем — полезные инвестиции (курсы, книги, спорт), и только потом — развлечения. Такой порядок заставляет подумать, приносит ли трата пользу будущему «я». Полезно ставить маленькие финансовые цели: накопить на собственный ноутбук, оплатить часть обучения, собрать резерв на мини-проект.
+
+      Инвестиции начинаются с знаний, а не с сложных инструментов. Изучи, как работают процентные ставки, инфляция и сложный процент. Оцени риски: вложения, которые обещают быстрый рост без усилий, почти всегда заканчиваются потерями. Выбирай понятные инструменты и инвестируй в себя: навыки, которые можно монетизировать, дают более высокий «доход на инвестиции», чем случайные сделки. Главное — регулярность и ответственность за решения.
+    `,
+  },
+  {
+    id: "psychology-longread",
+    title: "Психология устойчивости",
+    category: "psychology",
+    type: "article",
+    description: "Как сохранять мотивацию, работать со стрессом и не выгорать на старте.",
+    content: `
+      Психологическая устойчивость — это способность продолжать движение, когда план ломается. Она строится на трёх слоях: осознанности, поддержке и ритуалах восстановления. Осознанность помогает замечать свои реакции: когда тревога растёт, замедлись, сделай несколько глубоких вдохов и задай вопрос «что сейчас в моём контроле?». Это переключает мозг из паники в режим решения задач.
+
+      Поддержка — это люди, которые могут выслушать без оценок. Создай мини-комьюнити из 3–5 друзей или наставников, с которыми можно делиться планами и ошибками. Проговаривание снижает стресс и даёт новые идеи. Важно и внутреннее самосострадание: относись к себе как к другу, который учится, а не как к противнику, которого нужно «дожать».
+
+      Ритуалы восстановления — короткие действия, которые возвращают энергию: прогулка, спорт, сон без гаджетов, ведение дневника. Закрепи их в календаре, как встречи с самим собой. Если чувствуешь признаки выгорания (усталость, цинизм, потеря интереса), сделай паузу, пересмотри нагрузку, поговори с наставником или психологом. Устойчивость — это не жесткость, а гибкость и способность адаптироваться.
+    `,
   },
 ];
 
@@ -250,19 +278,34 @@ const usePersistedState = () => {
 
 const Header = ({ theme, toggleTheme, subscriptionActive }) => {
   const [open, setOpen] = useState(false);
+  const links = [
+    { to: "/", label: "Главная" },
+    { to: "/library", label: "Библиотека" },
+    { to: "/quests", label: "Квесты" },
+    { to: "/community", label: "Сообщество" },
+    { to: "/profile", label: "Профиль" },
+    { to: "/subscription", label: "Подписка" },
+    { to: "/help", label: "Помощь" },
+    { to: "/admin", label: "Админ" },
+  ];
   return (
     <header className="header">
       <div className="logo">EdPlatform</div>
       <button className="burger" onClick={() => setOpen(!open)} aria-label="menu">☰</button>
       <nav className={`nav ${open ? "open" : ""}`}>
-        <Link to="/">Главная</Link>
-        <Link to="/library">Библиотека</Link>
-        <Link to="/quests">Квесты</Link>
-        <Link to="/community">Сообщество</Link>
-        <Link to="/profile">Профиль</Link>
-        <Link to="/subscription" className={subscriptionActive ? "active-sub" : ""}>Подписка</Link>
-        <Link to="/help">Помощь</Link>
-        <Link to="/admin">Админ</Link>
+        {links.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === "/"}
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""} ${
+              link.to === "/subscription" && subscriptionActive && isActive ? "active-sub" : ""
+            }`}
+            onClick={() => setOpen(false)}
+          >
+            {link.label}
+          </NavLink>
+        ))}
       </nav>
       <div className="header-actions">
         <button onClick={toggleTheme} className="ghost">
@@ -361,10 +404,14 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
   const merged = leaderboard.map((u) => (u.id === "you" ? { ...u, points: profile.points } : u));
   const top = [...merged].sort((a, b) => b.points - a.points).slice(0, 3);
   const [form, setForm] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone });
-  const scrollToTrack = () => {
-    const el = document.getElementById("track-test");
-    el?.scrollIntoView({ behavior: "smooth", block: "center" });
-  };
+  const [showTrackTest, setShowTrackTest] = useState(false);
+
+  useEffect(() => {
+    if (showTrackTest) {
+      const el = document.getElementById("track-test");
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [showTrackTest]);
   return (
     <div className="grid home-grid">
       <div className="card hero">
@@ -390,13 +437,13 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
         <div className="card-header">Сформировать персональный трек развития</div>
         <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: создатель, мыслитель или командный игрок.</p>
         <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
-        <button className="primary" onClick={scrollToTrack}>Пройти мини-тест</button>
+        <button className="primary" onClick={() => setShowTrackTest(true)}>Сформировать личный трекшн развития</button>
         {track && <div className="success">Текущий трек: {track}</div>}
       </div>
       <div className="card quotes-card">
         <Quotes />
       </div>
-      <TrackTest onComplete={onTrackComplete} savedTrack={track} />
+      {showTrackTest && <TrackTest onComplete={onTrackComplete} savedTrack={track} />}
       <div className="card">
         <div className="card-header">Регистрация / анкета</div>
         <div className="form">
@@ -767,14 +814,14 @@ const HelpPage = ({ onIdea }) => {
             </li>
           ))}
         </ul>
-        <a href="https://t.me/yourproject" target="_blank" rel="noreferrer" className="primary outline">Нужна помощь? Telegram</a>
+        <a href="https://t.me/cfjbkevbbv" target="_blank" rel="noreferrer" className="primary outline">Нужна помощь? Telegram</a>
       </div>
       <div className="card">
         <div className="card-header">Поддержка и контакты</div>
         <p>Если нужен живой ответ — пиши основателям прямо в Telegram. Мы отвечаем быстро и ценим каждое сообщение.</p>
         <ul className="contact-list">
-          <li><a href="https://t.me/bohdan162" target="_blank" rel="noreferrer">@bohdan162</a> — отвечает за продукты и комьюнити.</li>
-          <li><a href="https://t.me/whohatesme" target="_blank" rel="noreferrer">@whohatesme</a> — поможет с запуском, идеями и партнёрствами.</li>
+          <li><a href="https://t.me/whohatesme" target="_blank" rel="noreferrer">@whohatesme</a> — FOUNDER, поможет с запуском, идеями и партнёрствами.</li>
+          <li><a href="https://t.me/bohdan162" target="_blank" rel="noreferrer">@bohdan162</a> — CoFOUNDER, отвечает за продукты и комьюнити.</li>
         </ul>
       </div>
       <div className="card">

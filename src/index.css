@@ -63,7 +63,8 @@ body {
   align-items: center;
 }
 
-.nav a {
+.nav a,
+.nav .nav-link {
   text-decoration: none;
   color: var(--fg);
   padding: 8px 12px;
@@ -71,12 +72,17 @@ body {
   border: 1px solid transparent;
 }
 
-.nav a:hover {
+.nav a:hover,
+.nav .nav-link:hover {
   border-color: var(--border);
 }
 
-.nav a.active-sub {
+.nav .nav-link.active,
+.nav a.active-sub,
+.nav .nav-link.active-sub {
   border: 1px solid var(--accent);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.08);
 }
 
 .header-actions {

@@ -69,6 +69,26 @@ export function Link({ to, children, ...rest }) {
   );
 }
 
+export function NavLink({ to, children, className, end, ...rest }) {
+  const { navigate, path } = useContext(RouterContext);
+  const isActive = end ? path === to : path.startsWith(to);
+  const resolvedClass =
+    typeof className === "function" ? className({ isActive }) : className;
+  return React.createElement(
+    "a",
+    {
+      href: to,
+      className: resolvedClass,
+      onClick: (e) => {
+        e.preventDefault();
+        navigate(to);
+      },
+      ...rest,
+    },
+    children
+  );
+}
+
 export function useNavigate() {
   const { navigate } = useContext(RouterContext);
   return navigate;
@@ -78,4 +98,4 @@ export function useParams() {
   return useContext(ParamsContext);
 }
 
-export default { BrowserRouter, Routes, Route, Link, useNavigate, useParams };
+export default { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams };
