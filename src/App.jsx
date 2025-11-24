@@ -298,9 +298,7 @@ const Header = ({ theme, toggleTheme, subscriptionActive }) => {
             key={link.to}
             to={link.to}
             end={link.to === "/"}
-            className={({ isActive }) => `nav-link ${isActive ? "active" : ""} ${
-              link.to === "/subscription" && subscriptionActive && isActive ? "active-sub" : ""
-            }`}
+            className={() => `nav-link ${link.to === "/" ? "nav-link-home" : ""}`.trim()}
             onClick={() => setOpen(false)}
           >
             {link.label}
