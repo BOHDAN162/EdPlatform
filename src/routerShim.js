@@ -3,6 +3,11 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 const RouterContext = createContext({ path: "/", navigate: () => {} });
 const ParamsContext = createContext({});
 
+const normalizePath = (value) => {
+  if (!value) return "/";
+  return value.startsWith("/") ? value : `/${value}`;
+};
+
 const matchPath = (pattern, path) => {
   const patternParts = pattern.split("/").filter(Boolean);
   const pathParts = path.split("/").filter(Boolean);
@@ -21,16 +26,22 @@ const matchPath = (pattern, path) => {
 };
 
 export function BrowserRouter({ children }) {
-  const [path, setPath] = useState(() => window.location.pathname || "/");
+  const getPath = () => {
+    const hash = window.location.hash.replace(/^#/, "");
+    return normalizePath(hash || "/");
+  };
+
+  const [path, setPath] = useState(getPath);
   useEffect(() => {
-    const handler = () => setPath(window.location.pathname || "/");
-    window.addEventListener("popstate", handler);
-    return () => window.removeEventListener("popstate", handler);
+    const handler = () => setPath(getPath());
+    window.addEventListener("hashchange", handler);
+    return () => window.removeEventListener("hashchange", handler);
   }, []);
   const navigate = (to) => {
     if (to === path) return;
-    window.history.pushState({}, "", to);
-    setPath(to || "/");
+    const next = normalizePath(to);
+    window.location.hash = next;
+    setPath(next);
   };
   const value = useMemo(() => ({ path, navigate }), [path]);
   return React.createElement(RouterContext.Provider, { value }, children);
@@ -58,10 +69,10 @@ export function Link({ to, children, ...rest }) {
   return React.createElement(
     "a",
     {
-      href: to,
+      href: `#${normalizePath(to)}`,
       onClick: (e) => {
         e.preventDefault();
-        navigate(to);
+        navigate(normalizePath(to));
       },
       ...rest,
     },
@@ -71,17 +82,18 @@ export function Link({ to, children, ...rest }) {
 
 export function NavLink({ to, children, className, end, ...rest }) {
   const { navigate, path } = useContext(RouterContext);
-  const isActive = end ? path === to : path.startsWith(to);
+  const normalized = normalizePath(to);
+  const isActive = end ? path === normalized : path.startsWith(normalized);
   const resolvedClass =
     typeof className === "function" ? className({ isActive }) : className;
   return React.createElement(
     "a",
     {
-      href: to,
+      href: `#${normalized}`,
       className: resolvedClass,
       onClick: (e) => {
         e.preventDefault();
-        navigate(to);
+        navigate(normalized);
       },
       ...rest,
     },
