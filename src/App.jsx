@@ -405,6 +405,11 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
   const [form, setForm] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone });
   const [showTrackTest, setShowTrackTest] = useState(false);
 
+  const scrollToLeaderboard = () => {
+    const el = document.getElementById("leaderboard");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
     if (showTrackTest) {
       const el = document.getElementById("track-test");
@@ -414,56 +419,71 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
     }
   }, [showTrackTest]);
   return (
-    <div className="grid home-grid">
-      <div className="card hero">
-        <h1>Будь лучше вчерашнего себя</h1>
-        <p>Платформа для подростков про предпринимательство, мышление и психологию. Уроки, квесты, очки, достижения и поддержка сообщества.</p>
-        <button className="primary" onClick={onCTA}>{subscriptionActive ? "Перейти в библиотеку" : "Начать обучение"}</button>
-        <div className="how-it-works">
-          <div>
-            <strong>1.</strong>
-            <span>Пройди короткую регистрацию</span>
+    <div className="home">
+      <div className="card hero hero-spotlight">
+        <div className="hero-inner">
+          <p className="hero-kicker">Платформа для подростков</p>
+          <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
+          <p className="hero-subtitle">Уроки, квесты, очки, достижения и поддержка сообщества про предпринимательство, мышление и психологию.</p>
+          <div className="quote-panel">
+            <Quotes />
           </div>
-          <div>
-            <strong>2.</strong>
-            <span>Активируй подписку и выбери трек</span>
-          </div>
-          <div>
-            <strong>3.</strong>
-            <span>Проходи уроки, квесты, набирай очки</span>
+          <button className="primary hero-cta" onClick={onCTA}>{subscriptionActive ? "Перейти в библиотеку" : "Начать обучение"}</button>
+          <div className="how-it-works">
+            <div>
+              <strong>1.</strong>
+              <span>Пройди короткую регистрацию</span>
+            </div>
+            <div>
+              <strong>2.</strong>
+              <span>Активируй подписку и выбери трек</span>
+            </div>
+            <div>
+              <strong>3.</strong>
+              <span>Проходи уроки, квесты, набирай очки</span>
+            </div>
           </div>
         </div>
       </div>
-      <div className="card mini-track">
-        <div className="card-header">Сформировать персональный трек развития</div>
-        <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: командный игрок, коммандир, мыслитель или создатель.</p>
-        <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
-        <button className="primary" onClick={() => setShowTrackTest(true)}>Сформировать личный трекшн развития</button>
-        {track && <div className="success">Текущий трек: {track}</div>}
+      <div className="cta-suggestions">
+        <button className="hint-card" onClick={() => setShowTrackTest(true)}>
+          <span className="hint-label">Сформировать личный трекшн развития</span>
+          <span className="hint-action">Пройти быстрый тест</span>
+        </button>
+        <button className="hint-card" onClick={scrollToLeaderboard}>
+          <span className="hint-label">Лидеры недели</span>
+          <span className="hint-action">Посмотреть топ-3</span>
+        </button>
       </div>
-      <div className="card quotes-card">
-        <Quotes />
-      </div>
-      {showTrackTest && <TrackTest onComplete={onTrackComplete} savedTrack={track} />}
-      <div className="card">
-        <div className="card-header">Регистрация / анкета</div>
-        <div className="form">
-          <label>Имя<input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
-          <label>Фамилия<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></label>
-          <label>Телефон<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+      <div className="grid home-grid">
+        <div className="card mini-track">
+          <div className="card-header">Сформировать персональный трек развития</div>
+          <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: командный игрок, коммандир, мыслитель или создатель.</p>
+          <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
+          <button className="primary" onClick={() => setShowTrackTest(true)}>Сформировать личный трекшн развития</button>
+          {track && <div className="success">Текущий трек: {track}</div>}
         </div>
-        <button className="primary" onClick={() => onSaveProfile(form)}>Сохранить данные</button>
-      </div>
-      <div className="card">
-        <div className="card-header">Лидеры недели</div>
-        <ul className="leader-list">
-          {top.map((u, i) => (
-            <li key={u.id}>
-              <span>{i + 1}. {u.name}</span>
-              <span>{u.points} очков</span>
-            </li>
-          ))}
-        </ul>
+        {showTrackTest && <TrackTest onComplete={onTrackComplete} savedTrack={track} />}
+        <div className="card" id="leaderboard">
+          <div className="card-header">Лидеры недели</div>
+          <ul className="leader-list">
+            {top.map((u, i) => (
+              <li key={u.id}>
+                <span>{i + 1}. {u.name}</span>
+                <span>{u.points} очков</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="card">
+          <div className="card-header">Регистрация / анкета</div>
+          <div className="form">
+            <label>Имя<input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} /></label>
+            <label>Фамилия<input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} /></label>
+            <label>Телефон<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+          </div>
+          <button className="primary" onClick={() => onSaveProfile(form)}>Сохранить данные</button>
+        </div>
       </div>
     </div>
   );
