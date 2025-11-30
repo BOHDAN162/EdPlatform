@@ -5,6 +5,7 @@ const ParamsContext = createContext({});
 
 const normalizePath = (value) => {
   if (!value) return "/";
+  if (typeof value === "number") return value;
   return value.startsWith("/") ? value : `/${value}`;
 };
 
@@ -40,6 +41,10 @@ export function BrowserRouter({ children }) {
   const navigate = (to) => {
     if (to === path) return;
     const next = normalizePath(to);
+    if (typeof next === "number") {
+      window.history.go(next);
+      return;
+    }
     window.location.hash = next;
     setPath(next);
   };
