@@ -554,6 +554,10 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.columns-2.responsive {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
 .mini-card {
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -575,6 +579,10 @@ body {
   gap: 10px;
 }
 
+.tabs.wrap {
+  flex-wrap: wrap;
+}
+
 .tab {
   border: 1px solid var(--border);
   background: transparent;
@@ -587,6 +595,11 @@ body {
 .tab.active {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.small-meta {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .toast-stack {
@@ -605,6 +618,115 @@ body {
   padding: 12px 14px;
   border-radius: 12px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+.faq-card .faq-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--card);
+}
+
+.faq-card summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.faq-card p {
+  margin: 6px 0 0;
+}
+
+.timeline-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--card);
+  margin-top: 12px;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.timeline {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  overflow-x: auto;
+  padding: 12px 4px 4px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 26px;
+  height: 2px;
+  background: var(--border);
+}
+
+.timeline-step {
+  min-width: 150px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.timeline-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.timeline-step.done .timeline-circle {
+  background: var(--accent);
+  color: #0a0a0a;
+  border-color: var(--accent);
+}
+
+.timeline-label {
+  text-align: center;
+  display: grid;
+  gap: 4px;
+}
+
+.timeline-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.timeline-step.done .timeline-title {
+  color: var(--accent);
+}
+
+.test-followup {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 6px;
+}
+
+.result-card {
+  display: grid;
+  gap: 10px;
 }
 
 .user-chip {

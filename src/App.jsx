@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams } from "./routerShim";
 import {
   awardForMaterial,
   awardForTest,
@@ -8,22 +8,19 @@ import {
   loadGamification,
   progressToNextStatus,
 } from "./gamification";
-import { articles, communityMembers, courses, tests } from "./data";
-import {
-  loadCurrentUser,
-  loginUser,
-  logoutUser,
-  registerUser,
-  updatePassword,
-} from "./auth";
+import { articles, communityMembers, courses, tests, themes, getMaterialByType } from "./data";
+import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
 import DevelopmentTrackPage from "./DevelopmentTrackPage";
+import { clearTrack, loadTrack, markStepCompleted, saveTrack } from "./trackStorage";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
   return (
     <div className="toast-stack">
       {messages.map((m) => (
-        <div key={m.id} className="toast">{m.text}</div>
+        <div key={m.id} className="toast">
+          {m.text}
+        </div>
       ))}
     </div>
   );
@@ -42,7 +39,9 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
   return (
     <header className="header">
       <div className="logo">NOESIS</div>
-      <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">☰</button>
+      <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
+        ☰
+      </button>
       <nav className={`nav ${open ? "open" : ""}`}>
         {links.map((link) => (
           <NavLink
@@ -57,16 +56,20 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
         ))}
       </nav>
       <div className="header-actions">
-        <button className="ghost" onClick={toggleTheme}>{theme === "dark" ? "Тёмная" : "Светлая"}</button>
-        {!user && (
-          <Link to="/auth" className="primary">Войти</Link>
-        )}
+        <button className="ghost" onClick={toggleTheme}>
+          {theme === "dark" ? "Тёмная" : "Светлая"}
+        </button>
+        {!user && <Link to="/auth" className="primary">Войти</Link>}
         {user && (
           <div className="user-chip">
-            <Link to="/profile" className="avatar">{user.name?.[0] || "Я"}</Link>
+            <Link to="/profile" className="avatar">
+              {user.name?.[0] || "Я"}
+            </Link>
             <div className="user-meta">
               <div className="user-name">{user.name}</div>
-              <button className="ghost" onClick={onLogout}>Выйти</button>
+              <button className="ghost" onClick={onLogout}>
+                Выйти
+              </button>
             </div>
           </div>
         )}
@@ -100,7 +103,9 @@ const GamificationSummary = ({ gamification }) => {
       <div className="badges">
         {gamification.achievements.length === 0 && <span className="tag">Пока без наград</span>}
         {gamification.achievements.map((a) => (
-          <span key={a} className="tag">{achievementsMap[a] || a}</span>
+          <span key={a} className="tag">
+            {achievementsMap[a] || a}
+          </span>
         ))}
       </div>
     </div>
@@ -124,7 +129,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           </div>
           <div className="actions hero-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
-            <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+            <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
           </div>
           <div className="how-it-works">
             <div>
@@ -171,7 +176,9 @@ const HomePage = ({ user, navigate, community, gamification }) => {
               <div className="meta">{u.points} очков • {u.status}</div>
               <div className="badges">
                 {u.achievements.slice(0, 2).map((a) => (
-                  <span key={a} className="tag">{a}</span>
+                  <span key={a} className="tag">
+                    {a}
+                  </span>
                 ))}
               </div>
             </div>
@@ -188,76 +195,72 @@ const CourseCard = ({ course }) => (
     <p>{course.description}</p>
     <p className="meta">Возраст: {course.age} • Фокус: {course.focus} • Длительность: {course.duration}</p>
     <div className="tag">Уровень: {course.difficulty}</div>
+    <p className="meta">Тема: {course.theme}</p>
+    {course.testId && <p className="small-meta">В комплекте проверка знаний</p>}
+    <Link to={`/library/course/${course.id}`} className="primary outline">Открыть</Link>
   </div>
 );
 
-const ArticleCard = ({ article, onComplete }) => (
+const ArticleCard = ({ article }) => (
   <div className="card">
     <div className="card-header">{article.title}</div>
     <p>{article.description}</p>
-    <p className="meta">{article.content}</p>
-    <button className="primary" onClick={() => onComplete(article.id)}>Отметить прочитанным</button>
+    <p className="meta">Тема: {article.theme}</p>
+    {article.testId && <p className="small-meta">Доступен тест после чтения</p>}
+    <Link to={`/library/article/${article.id}`} className="ghost">Читать</Link>
   </div>
 );
 
-const TestCard = ({ test, onComplete }) => {
-  const [answers, setAnswers] = useState([]);
-  const [result, setResult] = useState(null);
+const LibraryPage = () => {
+  const [activeTheme, setActiveTheme] = useState(themes[0].id);
 
-  const submit = () => {
-    if (test.questions.some((_, idx) => answers[idx] === undefined)) {
-      alert("Ответь на все вопросы");
-      return;
-    }
-    const correct = test.questions.reduce((acc, q, idx) => acc + (q.answer === answers[idx] ? 1 : 0), 0);
-    setResult({ correct, total: test.questions.length });
-    onComplete({ testId: test.id, correct, total: test.questions.length });
-  };
-
-  return (
-    <div className="card">
-      <div className="card-header">{test.title}</div>
-      <p className="meta">{test.description}</p>
-      <div className="test-grid">
-        {test.questions.map((q, qi) => (
-          <div key={qi} className="question">
-            <div className="q-title">{qi + 1}. {q.text}</div>
-            <div className="options">
-              {q.options.map((opt, oi) => (
-                <label key={oi} className={`option ${answers[qi] === oi ? "selected" : ""}`}>
-                  <input type="radio" name={`${test.id}-${qi}`} onChange={() => setAnswers((prev) => ({ ...prev, [qi]: oi }))} />
-                  {opt}
-                </label>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <button className="primary" onClick={submit}>Завершить тест</button>
-      {result && <div className="success">Результат: {result.correct} из {result.total}</div>}
-    </div>
+  const grouped = useMemo(
+    () =>
+      themes.map((theme) => ({
+        ...theme,
+        courses: courses.filter((c) => c.theme === theme.id),
+        articles: articles.filter((a) => a.theme === theme.id),
+      })),
+    []
   );
-};
 
-const LibraryPage = ({ onFinishMaterial, onFinishTest }) => {
-  const [tab, setTab] = useState("courses");
+  const current = grouped.find((t) => t.id === activeTheme) || grouped[0];
+
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
-          <p>Курсы, тесты и статьи, чтобы собрать свои очки и навыки.</p>
+          <p>Курсы, статьи и тесты, сгруппированные по ключевым темам развития.</p>
         </div>
-        <div className="tabs">
-          <button className={tab === "courses" ? "tab active" : "tab"} onClick={() => setTab("courses")}>Курсы</button>
-          <button className={tab === "tests" ? "tab active" : "tab"} onClick={() => setTab("tests")}>Тесты</button>
-          <button className={tab === "articles" ? "tab active" : "tab"} onClick={() => setTab("articles")}>Статьи</button>
+        <div className="tabs wrap">
+          {grouped.map((t) => (
+            <button key={t.id} className={t.id === activeTheme ? "tab active" : "tab"} onClick={() => setActiveTheme(t.id)}>
+              {t.title}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="grid cards">
-        {tab === "courses" && courses.map((c) => <CourseCard key={c.id} course={c} />)}
-        {tab === "articles" && articles.map((a) => <ArticleCard key={a.id} article={a} onComplete={onFinishMaterial} />)}
-        {tab === "tests" && tests.map((t) => <TestCard key={t.id} test={t} onComplete={onFinishTest} />)}
+
+      <div className="grid columns-2 responsive">
+        <div className="card">
+          <div className="card-header">Курсы и программы</div>
+          {current.courses.length === 0 && <p className="meta">Материалы в этой теме появятся позже.</p>}
+          <div className="grid cards">
+            {current.courses.map((c) => (
+              <CourseCard key={c.id} course={c} />
+            ))}
+          </div>
+        </div>
+        <div className="card">
+          <div className="card-header">Статьи и лонгриды</div>
+          {current.articles.length === 0 && <p className="meta">Статьи скоро добавим.</p>}
+          <div className="grid cards">
+            {current.articles.map((a) => (
+              <ArticleCard key={a.id} article={a} />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -281,7 +284,9 @@ const CommunityPage = ({ community }) => {
             <div className="big-number">{u.points} очков</div>
             <div className="badges">
               {u.achievements.slice(0, 3).map((a) => (
-                <span key={a} className="tag">{a}</span>
+                <span key={a} className="tag">
+                  {a}
+                </span>
               ))}
             </div>
           </div>
@@ -311,6 +316,49 @@ const ProfilePage = ({ user, gamification, onPasswordChange }) => {
     setConfirm("");
   };
 
+  const faq = [
+    {
+      q: "Что такое личный трек развития?",
+      a: "Это персональный маршрут по курсам, статьям и тестам в нашей платформе. Мы подбираем для тебя 10 шагов, исходя из твоих ответов в опросе и твоего текущего профиля. Проходя этот трек, ты двигаешься к своим целям более осознанно и планомерно.",
+    },
+    {
+      q: "Нужно ли проходить опрос каждый раз заново?",
+      a: "Нет. Опрос проходится один раз. После того как ты ответил на 10 вопросов и нажал “Сформировать мой трек развития”, результат сохраняется. В разделе “Трек” ты увидишь готовую стратегию и прогресс по шагам. При желании ты можешь сбросить трек и пройти опрос ещё раз.",
+    },
+    {
+      q: "Как работают баллы и уровни?",
+      a: "За прохождение тестов, курсов и статей ты получаешь баллы. Чем больше баллов — тем выше твой уровень и статус в системе. Это помогает видеть свой прогресс и даёт мотивацию двигаться дальше.",
+    },
+    {
+      q: "Что дают достижения?",
+      a: "Достижения — это специальные отметки за ключевые действия: первый тест, серия пройденных материалов, набор определённого количества баллов. Они помогают фиксировать важные шаги в развитии и выделяют тебя в сообществе.",
+    },
+    {
+      q: "Где посмотреть свой прогресс?",
+      a: "Основной прогресс по развитию можно увидеть в разделе “Профиль” — там отображаются баллы, статус, достижения и общий прогресс по треку. Также прогресс виден на линии трека в разделе “Трек развития”.",
+    },
+    {
+      q: "Можно ли поменять свой трек?",
+      a: "Да. Если ты чувствуешь, что трек больше тебе не подходит, ты можешь сбросить его и пройти опрос заново. Тогда мы сформируем для тебя новый маршрут на основе свежих ответов.",
+    },
+    {
+      q: "Что делать, если я забыл пароль?",
+      a: "Если ты забыл пароль, воспользуйся формой смены пароля в профиле или на странице входа (в рамках текущего MVP это может быть ручной сброс внутри приложения). В будущих версиях мы добавим восстановление пароля через email.",
+    },
+    {
+      q: "Кто видит мои баллы и достижения?",
+      a: "В базовом режиме твои баллы и достижения видишь ты сам. Если ты участвуешь в рейтингах или челленджах внутри сообщества, часть информации может отображаться в общем списке участников, но без лишних личных данных.",
+    },
+    {
+      q: "Нужно ли платить за доступ к материалам?",
+      a: "Сейчас платформа находится на этапе развития и тестирования. Часть материалов может быть открыта бесплатно, часть может потребовать отдельного доступа. Точную информацию о доступе ты увидишь рядом с каждым курсом или программой.",
+    },
+    {
+      q: "Для кого вообще эта платформа?",
+      a: "NOESIS создаётся для подростков и детей предпринимателей, которые хотят развиваться быстрее: понимать себя, разбираться в деньгах, пробовать проекты, прокачивать мышление и окружать себя сильными ребятами. Родители получают здесь понятную систему развития, а подростки — живую среду и понятный маршрут.",
+    },
+  ];
+
   if (!user) {
     return (
       <div className="page">
@@ -335,11 +383,28 @@ const ProfilePage = ({ user, gamification, onPasswordChange }) => {
         <div className="card">
           <div className="card-header">Смена пароля</div>
           <div className="form">
-            <label>Новый пароль<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
-            <label>Подтверждение пароля<input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} /></label>
+            <label>
+              Новый пароль
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+            <label>
+              Подтверждение пароля
+              <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+            </label>
             <button className="primary" onClick={submit}>Сохранить</button>
             {message && <div className="success">{message}</div>}
           </div>
+        </div>
+      </div>
+      <div className="card faq-card">
+        <div className="card-header">Помощь</div>
+        <div className="faq-list">
+          {faq.map((item, idx) => (
+            <details key={idx} className="faq-item" open={idx === 0}>
+              <summary>{item.q}</summary>
+              <p>{item.a}</p>
+            </details>
+          ))}
         </div>
       </div>
     </div>
@@ -381,20 +446,145 @@ const AuthPage = ({ onAuth }) => {
       <div className="page-header">
         <h1>{tab === "login" ? "Вход" : "Регистрация"}</h1>
         <div className="tabs">
-          <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>Вход</button>
-          <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>Регистрация</button>
+          <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>
+            Вход
+          </button>
+          <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>
+            Регистрация
+          </button>
         </div>
       </div>
       <div className="card">
         <div className="form">
           {tab === "register" && (
-            <label>Имя<input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} /></label>
+            <label>
+              Имя
+              <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value || "Макс" }))} />
+            </label>
           )}
-          <label>Email<input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} /></label>
-          <label>Пароль<input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} /></label>
+          <label>
+            Email
+            <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+          </label>
+          <label>
+            Пароль
+            <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
+          </label>
           {error && <div className="error">{error}</div>}
-          <button className="primary" onClick={handleSubmit}>{tab === "login" ? "Войти" : "Зарегистрироваться"}</button>
+          <button className="primary" onClick={handleSubmit}>
+            {tab === "login" ? "Войти" : "Зарегистрироваться"}
+          </button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+const MaterialDetailPage = ({ onComplete }) => {
+  const { type, id } = useParams();
+  const navigate = useNavigate();
+  const material = getMaterialByType(type, id);
+
+  if (!material) {
+    return (
+      <div className="page">
+        <div className="card">
+          <p>Материал не найден.</p>
+          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        </div>
+      </div>
+    );
+  }
+
+  const nextTestId = material.testId;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1>{material.title}</h1>
+          <p className="meta">Тема: {material.theme}</p>
+        </div>
+        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+      </div>
+      <div className="card">
+        <p className="meta">{type === "course" ? material.duration : "Быстрое изучение"}</p>
+        <p>{material.description}</p>
+        {material.content && <p className="meta">{material.content}</p>}
+        <button className="primary" onClick={() => onComplete(material.id, type)}>
+          Отметить завершённым
+        </button>
+        {nextTestId && (
+          <div className="test-followup">
+            <div className="card-header">Проверь себя по этой теме</div>
+            <p className="meta">Короткий тест поможет закрепить материал.</p>
+            <Link className="primary outline" to={`/tests/${nextTestId}`}>
+              Пройти тест
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TestPage = ({ onComplete }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const test = tests.find((t) => t.id === id);
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null);
+
+  if (!test) {
+    return (
+      <div className="page">
+        <div className="card">
+          <p>Тест не найден.</p>
+          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        </div>
+      </div>
+    );
+  }
+
+  const submit = () => {
+    if (test.questions.some((_, idx) => answers[idx] === undefined)) {
+      alert("Ответь на все вопросы");
+      return;
+    }
+    const correct = test.questions.reduce((acc, q, idx) => acc + (q.answer === answers[idx] ? 1 : 0), 0);
+    setResult({ correct, total: test.questions.length });
+    onComplete({ testId: test.id, correct, total: test.questions.length });
+  };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1>{test.title}</h1>
+          <p className="meta">{test.description}</p>
+        </div>
+        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+      </div>
+      <div className="card">
+        <div className="test-grid">
+          {test.questions.map((q, qi) => (
+            <div key={qi} className="question">
+              <div className="q-title">
+                {qi + 1}. {q.text}
+              </div>
+              <div className="options">
+                {q.options.map((opt, oi) => (
+                  <label key={oi} className={`option ${answers[qi] === oi ? "selected" : ""}`}>
+                    <input type="radio" name={`${test.id}-${qi}`} onChange={() => setAnswers((prev) => ({ ...prev, [qi]: oi }))} />
+                    {opt}
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="primary" onClick={submit}>Завершить тест</button>
+        {result && <div className="success">Результат: {result.correct} из {result.total}</div>}
       </div>
     </div>
   );
@@ -404,6 +594,7 @@ function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("ep_theme") || "light");
   const [user, setUser] = useState(() => loadCurrentUser());
   const [gamification, setGamification] = useState(() => loadGamification(loadCurrentUser()?.id));
+  const [trackData, setTrackData] = useState(() => loadTrack(loadCurrentUser()?.id));
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -414,8 +605,10 @@ function App() {
   useEffect(() => {
     if (user) {
       setGamification(loadGamification(user.id));
+      setTrackData(loadTrack(user.id));
     } else {
       setGamification({ ...defaultGamification });
+      setTrackData(loadTrack(null));
     }
   }, [user]);
 
@@ -429,35 +622,50 @@ function App() {
 
   const addToasts = (messages) => messages.forEach((m) => addToast(m));
 
-  const handleFinishMaterial = () => {
-    if (!user) {
-      addToast("Войдите, чтобы получить очки за материалы");
-      return;
+  const markCompletionForMaterial = (materialId, materialType) => {
+    if (!trackData) return;
+    const match = trackData.generatedTrack?.find(
+      (s) => s.materialId === materialId && s.materialType === materialType
+    );
+    if (match) {
+      const updated = markStepCompleted(user?.id, match.id);
+      if (updated) setTrackData(updated);
     }
-    const res = awardForMaterial(user.id, gamification);
-    setGamification(res.gamification);
-    addToasts(res.messages);
   };
 
-  const handleFinishTest = () => {
+  const handleFinishMaterial = (materialId, materialType) => {
+    if (!user) {
+      addToast("Войдите, чтобы получить очки за материалы");
+    } else {
+      const res = awardForMaterial(user.id, gamification);
+      setGamification(res.gamification);
+      addToasts(res.messages);
+    }
+    markCompletionForMaterial(materialId, materialType);
+  };
+
+  const handleFinishTest = ({ testId }) => {
     if (!user) {
       addToast("Войдите, чтобы получить очки за тест");
-      return;
+    } else {
+      const res = awardForTest(user.id, gamification);
+      setGamification(res.gamification);
+      addToasts(res.messages);
     }
-    const res = awardForTest(user.id, gamification);
-    setGamification(res.gamification);
-    addToasts(res.messages);
+    markCompletionForMaterial(testId, "test");
   };
 
   const handleAuth = (usr) => {
     setUser(usr);
     setGamification(loadGamification(usr.id));
+    setTrackData(loadTrack(usr.id));
   };
 
   const handleLogout = () => {
     logoutUser();
     setUser(null);
     setGamification({ ...defaultGamification });
+    setTrackData(loadTrack(null));
   };
 
   const handlePasswordChange = (password) => {
@@ -491,6 +699,18 @@ function App() {
     return [me, ...communityMembers];
   }, [user, gamification]);
 
+  const handleTrackSave = (payload) => {
+    const saved = saveTrack(user?.id, payload);
+    setTrackData(saved);
+    addToast("Трек сохранён");
+  };
+
+  const handleTrackReset = () => {
+    clearTrack(user?.id);
+    setTrackData(null);
+    addToast("Трек сброшен");
+  };
+
   const Layout = ({ children }) => (
     <div className={`app ${theme}`}>
       <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
@@ -509,11 +729,24 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/library" element={<LibraryPage onFinishMaterial={handleFinishMaterial} onFinishTest={handleFinishTest} />} />
+          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/library/:type/:id" element={<MaterialDetailPage onComplete={handleFinishMaterial} />} />
+          <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} />} />
           <Route path="/community" element={<CommunityPage community={community} />} />
           <Route path="/profile" element={<ProfilePage user={user} gamification={gamification} onPasswordChange={handlePasswordChange} />} />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
-          <Route path="/track" element={<DevelopmentTrackPage materials={articles} onSaveTrack={() => addToast("Трек сохранён") } />} />
+          <Route
+            path="/track"
+            element={
+              <DevelopmentTrackPage
+                library={{ courses, articles, tests }}
+                userId={user?.id}
+                savedTrack={trackData}
+                onTrackSave={handleTrackSave}
+                onTrackReset={handleTrackReset}
+              />
+            }
+          />
         </Routes>
       </Layout>
     </BrowserRouter>
