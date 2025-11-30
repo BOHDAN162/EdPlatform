@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import DevelopmentTrackPage from "./DevelopmentTrackPage";
 
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const load = (k, d) => {
@@ -122,6 +123,96 @@ const initialMaterials = [
 
       Ритуалы восстановления — короткие действия, которые возвращают энергию: прогулка, спорт, сон без гаджетов, ведение дневника. Закрепи их в календаре, как встречи с самим собой. Если чувствуешь признаки выгорания (усталость, цинизм, потеря интереса), сделай паузу, пересмотри нагрузку, поговори с наставником или психологом. Устойчивость — это не жесткость, а гибкость и способность адаптироваться.
     `,
+  },
+  {
+    id: "emotional-intelligence",
+    title: "Эмоциональный интеллект",
+    category: "psychology",
+    type: "longread",
+    description:
+      "Эмоциональный интеллект — это умение замечать свои эмоции и эмоции других людей, понимать, откуда они берутся, и управлять ими так, чтобы не срывать ни себя, ни окружающих.",
+    content: `Эмоциональный интеллект — это умение замечать свои эмоции и эмоции других людей, понимать, откуда они берутся, и управлять ими так, чтобы не срывать ни себя, ни окружающих. Предпринимателю это важно, потому что бизнес — всегда про людей: партнёров, клиентов, команду, инвесторов. Чем лучше ты считываешь состояние других и своё, тем легче договариваться, решать конфликты и не выгорать на длинной дистанции.`,
+  },
+  {
+    id: "teen-financial-literacy",
+    title: "Финансовая грамотность для подростка-предпринимателя",
+    category: "finance",
+    type: "longread",
+    description:
+      "Финансовая грамотность — это базовые правила обращения с деньгами: сколько зарабатываешь, сколько тратишь, сколько откладываешь и во что инвестируешь.",
+    content: `Финансовая грамотность — это не про сложную теорию, а про базовые правила обращения с деньгами: сколько зарабатываешь, сколько тратишь, сколько откладываешь и во что инвестируешь. Если ты хочешь запускать проекты, тебе нужно понимать, как считать прибыль, какие есть расходы, что такое «кассовый разрыв» и зачем нужен финансовый резерв. Чем раньше ты научишься видеть деньги как ресурс, которым нужно управлять, а не как случайную удачу, тем увереннее будешь в любом бизнесе.`,
+  },
+  {
+    id: "sales-negotiations",
+    title: "Основы продаж и переговоров",
+    category: "business",
+    type: "longread",
+    description:
+      "Продажи — это умение понять, что человеку реально нужно, и предложить ему решение его проблемы. Навык переговоров нужен везде.",
+    content: `Продажи — это не «впаривание», а умение понять, что человеку реально нужно, и предложить ему решение его проблемы. Хороший продавец слушает больше, чем говорит, задаёт вопросы и помогает клиенту принять выгодное решение. Навык переговоров нужен везде: когда ты обсуждаешь цену с клиентом, зарплату с работодателем или распределяешь обязанности в команде. Чем лучше ты продаёшь и ведёшь переговоры, тем больше у тебя свободы и возможностей в жизни.`,
+  },
+  {
+    id: "personal-productivity",
+    title: "Личная продуктивность и управление временем",
+    category: "thinking",
+    type: "longread",
+    description:
+      "Продуктивность — это умение делать важное, а не только срочное. Предприниматель всегда разрывается между задачами и должен держать фокус.",
+    content: `Продуктивность — это не про бесконечную занятость, а про умение делать важное, а не только срочное. Предприниматель всегда разрывается между десятком задач: встречи, идеи, команда, клиенты. Если не управлять временем, оно начнёт управлять тобой. Важно уметь планировать день, выстраивать приоритеты, говорить «нет» лишнему и оставлять время на отдых, чтобы не сгореть на старте.`,
+  },
+  {
+    id: "entrepreneurial-thinking-risk",
+    title: "Предпринимательское мышление и работа с риском",
+    category: "thinking",
+    type: "longread",
+    description:
+      "Предпринимательское мышление — это взгляд на мир через призму возможностей, умение задавать вопрос «как превратить сложность в пользу».",
+    content: `Предпринимательское мышление — это взгляд на мир через призму возможностей, а не проблем. Любая сложность может стать шансом, если ты умеешь задавать вопрос: «Как из этого сделать пользу и для себя, и для других?» При этом предприниматель всегда работает с риском: что-то может не получиться. Важно не избегать риска совсем, а учиться оценивать его, просчитывать варианты и делать маленькие тестовые шаги вместо того, чтобы сразу «ставить всё на кон».`,
+  },
+  {
+    id: "client-service-value",
+    title: "Клиентский сервис и создание ценности",
+    category: "business",
+    type: "longread",
+    description:
+      "Сервис — это то, что человек чувствует, когда соприкасается с твоим продуктом или тобой лично. Внимание к людям создаёт доверие и повторные продажи.",
+    content: `Сервис — это то, что человек чувствует, когда соприкасается с твоим продуктом или тобой лично. Многие проекты гибнут не потому, что у них плохая идея, а потому что людям неприятно с ними взаимодействовать. Уважительное отношение, внимание к деталям, умение быстро решать проблемы и извиняться, если что-то пошло не так, создают доверие. Когда ты ставишь ценность для клиента выше сиюминутной выгоды, у тебя появляются повторные покупки, рекомендации и сильная репутация.`,
+  },
+  {
+    id: "teamwork-leadership",
+    title: "Командная работа и лидерство",
+    category: "psychology",
+    type: "longread",
+    description:
+      "Сильный бизнес редко строится в одиночку. Настоящее лидерство — это сочетание требований к результату и уважения к людям.",
+    content: `Сильный бизнес редко строится в одиночку. Умение работать в команде означает, что ты умеешь слушать других, договариваться о правилах, брать ответственность за свою часть и поддерживать общую цель. Лидер — это не тот, кто всех строит, а тот, кто первым берёт на себя ответственность и показывает пример. Настоящее лидерство — это сочетание требований к результату и уважения к людям, с которыми ты идёшь к этой цели.`,
+  },
+  {
+    id: "marketing-packaging",
+    title: "Маркетинг и упаковка продукта",
+    category: "business",
+    type: "longread",
+    description:
+      "Маркетинг отвечает на вопрос: почему люди вообще должны обратить внимание на то, что ты делаешь?",
+    content: `Маркетинг отвечает на вопрос: «Почему люди вообще должны обратить внимание на то, что ты делаешь?» Даже самый полезный продукт не будет продаваться, если люди о нём не знают или не понимают, чем он отличается от других. Упаковка — это то, как ты рассказываешь о продукте: название, описание, визуал, отзывы, история. Если ты умеешь ясно формулировать ценность и показывать её понятным языком и образами, у тебя появляется очередь из тех, кому это действительно нужно.`,
+  },
+  {
+    id: "presentation-skills",
+    title: "Навыки презентации и публичных выступлений",
+    category: "thinking",
+    type: "longread",
+    description:
+      "Любой важный шаг в бизнесе связан с выступлением: презентовать идею инвестору, защитить командное решение, представить проект.",
+    content: `Почти любой важный шаг в бизнесе связан с выступлением: презентовать идею инвестору, представить проект на конкурсе, защитить командное решение. Умение говорить так, чтобы тебя слушали, — это навык, а не талант. Важно научиться структурировать мысли, говорить простым языком, не прятаться за сложными словами и смотреть людям в глаза. Чем лучше ты презентуешь свои идеи, тем больше у тебя шансов привлекать ресурсы, партнёров и сильных людей в команду.`,
+  },
+  {
+    id: "habits-discipline",
+    title: "Привычки и личная дисциплина предпринимателя",
+    category: "psychology",
+    type: "longread",
+    description:
+      "Дисциплина — это умение выполнять главное даже без вдохновения. Именно привычки определяют, кем ты станешь через год.",
+    content: `Дисциплина — это не про «жить по таймеру», а про то, чтобы договориться с собой и выполнять главное, даже когда нет вдохновения. Именно привычки определяют, кем ты станешь через год: читаешь ли ты по 10–15 минут в день, делаешь ли спорт, разбираешь ли свои ошибки. Предпринимателю особенно важно уметь держать слово перед собой и другими, потому что бизнес — это марафон. Сильная дисциплина даёт ощущение внутренней опоры и уверенности, что ты вытянул не случайно, а потому что системно действуешь.`,
   },
 ];
 
@@ -280,6 +371,7 @@ const Header = ({ theme, toggleTheme, subscriptionActive }) => {
   const [open, setOpen] = useState(false);
   const links = [
     { to: "/", label: "Главная" },
+    { to: "/track", label: "Трек" },
     { to: "/library", label: "Библиотека" },
     { to: "/quests", label: "Квесты" },
     { to: "/community", label: "Сообщество" },
@@ -399,25 +491,16 @@ const TrackTest = ({ onComplete, savedTrack }) => {
   );
 };
 
-const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, profile, onSaveProfile }) => {
+const Home = ({ subscriptionActive, onCTA, onOpenTrack, track, leaderboard, profile, onSaveProfile }) => {
   const merged = leaderboard.map((u) => (u.id === "you" ? { ...u, points: profile.points } : u));
   const top = [...merged].sort((a, b) => b.points - a.points).slice(0, 3);
   const [form, setForm] = useState({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone });
-  const [showTrackTest, setShowTrackTest] = useState(false);
 
   const scrollToLeaderboard = () => {
     const el = document.getElementById("leaderboard");
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  useEffect(() => {
-    if (showTrackTest) {
-      const el = document.getElementById("track-test");
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-      const firstInput = el?.querySelector("input");
-      firstInput?.focus();
-    }
-  }, [showTrackTest]);
   return (
     <div className="home">
       <div className="card hero hero-spotlight">
@@ -446,9 +529,9 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
         </div>
       </div>
       <div className="cta-suggestions">
-        <button className="hint-card" onClick={() => setShowTrackTest(true)}>
-          <span className="hint-label">Сформировать личный трекшн развития</span>
-          <span className="hint-action">Пройти быстрый тест</span>
+        <button className="hint-card" onClick={onOpenTrack}>
+          <span className="hint-label">Сформировать личный трек развития</span>
+          <span className="hint-action">Перейти на страницу трека</span>
         </button>
         <button className="hint-card" onClick={scrollToLeaderboard}>
           <span className="hint-label">Лидеры недели</span>
@@ -458,12 +541,11 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
       <div className="grid home-grid">
         <div className="card mini-track">
           <div className="card-header">Сформировать персональный трек развития</div>
-          <p className="meta">Маленькое окно с быстрым доступом к тесту. Узнай, кто ты: командный игрок, коммандир, мыслитель или создатель.</p>
-          <p>Ответь на 5 вопросов и получи свой маршрут — сохраним его в профиле и подскажем, с чего начать.</p>
-          <button className="primary" onClick={() => setShowTrackTest(true)}>Сформировать личный трекшн развития</button>
+          <p className="meta">Теперь анкета вынесена на отдельную страницу. Там 10 вопросов и понятный результат по профилю.</p>
+          <p>Ответь на вопросы и получи маршрут с материалами. Мы сохраним выбранный профиль рядом с твоим аккаунтом.</p>
+          <button className="primary" onClick={onOpenTrack}>Сформировать личный трек развития</button>
           {track && <div className="success">Текущий трек: {track}</div>}
         </div>
-        {showTrackTest && <TrackTest onComplete={onTrackComplete} savedTrack={track} />}
         <div className="card" id="leaderboard">
           <div className="card-header">Лидеры недели</div>
           <ul className="leader-list">
@@ -566,7 +648,9 @@ const LessonPage = ({ materials, subscriptionActive, onCompleteLesson, onTestFin
         </div>
       </div>
       <div className="card">
-        {lesson.type === "article" && <article className="article" dangerouslySetInnerHTML={{ __html: lesson.content.replace(/\n/g, "<br/>") }} />}
+        {(lesson.type === "article" || lesson.type === "longread") && (
+          <article className="article" dangerouslySetInnerHTML={{ __html: lesson.content.replace(/\n/g, "<br/>") }} />
+        )}
         {lesson.type === "video" && <div className="video-placeholder">Видео будет доступно позже</div>}
         {lesson.type === "quiz" && (
           <div className="test-grid">
@@ -1018,7 +1102,7 @@ function App() {
       <Home
         subscriptionActive={state.profile.subscriptionActive}
         onCTA={() => navigate(state.profile.subscriptionActive ? "/library" : "/subscription")}
-        onTrackComplete={recordTrack}
+        onOpenTrack={() => navigate("/track")}
         track={state.profile.track}
         leaderboard={state.users}
         profile={state.profile}
@@ -1069,6 +1153,7 @@ function App() {
           <Route path="/community" element={<Community users={state.users} mePoints={state.profile.points} onSelectUser={(u) => setSelectedUser(u)} />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/subscription" element={<SubscriptionPage active={state.profile.subscriptionActive} onToggle={toggleSubscription} />} />
+          <Route path="/track" element={<DevelopmentTrackPage materials={state.materials} onSaveTrack={recordTrack} />} />
           <Route
             path="/admin"
             element={
