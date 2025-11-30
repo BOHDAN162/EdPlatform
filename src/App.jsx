@@ -197,6 +197,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           <div className="actions hero-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
             <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
+            <button className="ghost" onClick={() => navigate("/community")}>Посмотреть сообщество</button>
           </div>
           <div className="how-it-works">
             <div>
@@ -363,6 +364,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           <div className="cta-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
             <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
+            <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
           </div>
         </LandingSection>
       </div>
@@ -387,6 +389,11 @@ const LibraryPage = ({ completedMaterialIds }) => {
         <div>
           <h1>Библиотека</h1>
           <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
+        </div>
+        <div className="cta-actions">
+          <button className="ghost" onClick={() => navigate("/track")}>Перейти в трек</button>
+          <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+          <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
       </div>
 
@@ -512,12 +519,18 @@ const LearningPathPage = ({ completedMaterialIds }) => {
 
 const CommunityPage = ({ community }) => {
   const data = [...community].sort((a, b) => b.points - a.points);
+  const navigate = useNavigate();
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Сообщество участников</h1>
           <p>20+ ребят, которые уже копят очки и делятся прогрессом.</p>
+        </div>
+        <div className="cta-actions">
+          <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
+          <button className="ghost" onClick={() => navigate("/track")}>Трек</button>
+          <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
       </div>
       <div className="grid cards columns-3">
