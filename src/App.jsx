@@ -15,8 +15,7 @@ import { loadActivity, registerActivity } from "./activity";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
-import DevelopmentTrackPage from "./DevelopmentTrackPage";
-import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
+import { loadTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import Dashboard from "./Dashboard";
@@ -40,7 +39,6 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
     { to: "/", label: "Главная" },
     { to: "/library", label: "Библиотека" },
     { to: "/community", label: "Сообщество" },
-    { to: "/track", label: "Трек" },
     { to: "/profile", label: "Профиль" },
   ];
 
@@ -196,7 +194,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           </div>
           <div className="actions hero-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
-            <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
+            <button className="ghost" onClick={() => navigate(user ? "/profile" : "/auth")}>Перейти в профиль</button>
             <button className="ghost" onClick={() => navigate("/community")}>Посмотреть сообщество</button>
           </div>
           <div className="how-it-works">
@@ -227,7 +225,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           </div>
           <p className="meta">Это пригодится в любых направлениях — учёбе, бизнесе, работе и настройке своей головы.</p>
           <div className="track-actions">
-            <button className="primary outline" onClick={() => navigate("/track")}>Пройти тест и собрать трек</button>
+            <button className="primary outline" onClick={() => navigate(user ? "/profile" : "/auth")}>Открыть профиль</button>
             <button className="ghost" onClick={() => navigate("/library")}>Посмотреть материалы</button>
           </div>
         </div>
@@ -362,7 +360,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           childrenIllustration={<BadgeOrbit />}
         >
           <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
+            <button className="primary hero-cta" onClick={() => navigate(user ? "/profile" : "/auth")}>Открыть профиль</button>
             <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
             <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
           </div>
@@ -391,7 +389,6 @@ const LibraryPage = ({ completedMaterialIds }) => {
           <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
         </div>
         <div className="cta-actions">
-          <button className="ghost" onClick={() => navigate("/track")}>Перейти в трек</button>
           <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
           <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
@@ -529,7 +526,6 @@ const CommunityPage = ({ community }) => {
         </div>
         <div className="cta-actions">
           <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
-          <button className="ghost" onClick={() => navigate("/track")}>Трек</button>
           <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
       </div>
@@ -1005,20 +1001,6 @@ function App() {
     return [me, ...communityMembers];
   }, [user, gamification]);
 
-  const handleTrackSave = (payload) => {
-    const saved = saveTrack(user?.id, payload);
-    setTrackData(saved);
-    addToast("Трек сохранён");
-    recordActivity({ type: "track", text: "Собрал новый личный трек" });
-  };
-
-  const handleTrackReset = () => {
-    clearTrack(user?.id);
-    setTrackData(null);
-    addToast("Трек сброшен");
-    recordActivity({ type: "track", text: "Сбросил трек" });
-  };
-
   const Layout = ({ children }) => (
     <div className={`app ${theme}`}>
       <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
@@ -1070,19 +1052,6 @@ function App() {
             }
           />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
-          <Route
-            path="/track"
-            element={
-              <DevelopmentTrackPage
-                libraryMaterials={materials}
-                userId={user?.id}
-                savedTrack={trackData}
-                completedMaterialIds={completedMaterialIds}
-                onTrackSave={handleTrackSave}
-                onTrackReset={handleTrackReset}
-              />
-            }
-          />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -71,10 +71,10 @@ const UserHeroCard = ({ user, gamification, activity, progress, trackData }) => 
 
 const NextStepCard = ({ trackData, completedMaterialIds = [], navigate }) => {
   const completedSet = new Set(completedMaterialIds);
-  let title = "Пройти стартовый опрос";
-  let description = "Собери личный трек развития и получи первый набор шагов.";
-  let action = () => navigate("/track");
-  let cta = "Собрать трек";
+  let title = "Начать с материалов";
+  let description = "Открой библиотеку и выбери первое действие для прогресса.";
+  let action = () => navigate("/library");
+  let cta = "Открыть библиотеку";
 
   if (trackData?.generatedTrack?.length) {
     const nextStep = trackData.generatedTrack.find(
@@ -111,8 +111,8 @@ const MainTrackWidget = ({ trackData, completedMaterialIds = [], navigate }) => 
   if (!trackData?.generatedTrack?.length) return (
     <div className="card">
       <div className="card-header">Основной трек</div>
-      <p className="meta">Ты ещё не собрал личный маршрут. Ответь на вопросы, чтобы получить свой трек.</p>
-      <button className="primary outline" onClick={() => navigate("/track")}>Собрать трек</button>
+      <p className="meta">У нас пока нет сохранённого маршрута. Начни с подборки материалов, чтобы собрать свой прогресс.</p>
+      <button className="primary outline" onClick={() => navigate("/library")}>Перейти в библиотеку</button>
     </div>
   );
 
@@ -285,7 +285,6 @@ const QuickNavigation = ({ navigate }) => {
         <button className="ghost" onClick={() => navigate("/")}>Главная</button>
         <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
         <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
-        <button className="ghost" onClick={() => navigate("/track")}>Трек</button>
       </div>
     </div>
   );
