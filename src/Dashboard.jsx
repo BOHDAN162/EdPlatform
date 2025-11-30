@@ -276,20 +276,6 @@ const CommunityWidget = ({ community }) => {
   );
 };
 
-const QuickNavigation = ({ navigate }) => {
-  return (
-    <div className="card">
-      <div className="card-header">Быстрые переходы</div>
-      <p className="meta">Переключайся между разделами без лишних кликов.</p>
-      <div className="cta-actions">
-        <button className="ghost" onClick={() => navigate("/")}>Главная</button>
-        <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
-        <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
-      </div>
-    </div>
-  );
-};
-
 const GoalsWidget = ({ trackData, completedMaterialIds = [], gamification }) => {
   const completedSet = new Set(completedMaterialIds);
   const trackTotal = trackData?.generatedTrack?.length || 0;
@@ -394,19 +380,19 @@ const ActivityFeed = ({ activity }) => {
   );
 };
 
-const Dashboard = ({ user, trackData, progress, gamification, community, activity, onVisit }) => {
+const Dashboard = ({ user, trackData, progress, gamification, community, activity, onVisit, embedded = false }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
     if (user && onVisit) {
       onVisit({ type: "visit", text: "Зашёл на дашборд" });
     }
-  }, [user]);
+  }, [user, onVisit]);
 
   const completedMaterialIds = progress.completedMaterialIds || [];
 
   return (
-    <div className="page dashboard">
+    <div className={embedded ? "dashboard embedded" : "page dashboard"}>
       <UserHeroCard user={user} gamification={gamification} activity={activity} progress={progress} trackData={trackData} />
       <div className="dashboard-grid">
         <div className="dashboard-main">
@@ -417,7 +403,6 @@ const Dashboard = ({ user, trackData, progress, gamification, community, activit
           <ActivityFeed activity={activity} />
         </div>
         <div className="dashboard-side">
-          <QuickNavigation navigate={navigate} />
           <GamificationWidget gamification={gamification} />
           <QuestsWidget activity={activity} gamification={gamification} />
           <CommunityWidget community={community} />

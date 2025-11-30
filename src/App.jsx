@@ -636,12 +636,17 @@ const ProfilePage = ({ user, gamification, onPasswordChange, trackData, progress
       />
       <div className="grid profile-grid">
         <div className="card">
+          <div className="card-header">Данные аккаунта</div>
           <div className="avatar large">{user.name[0]}</div>
-          <div className="card-header">{user.name}</div>
+          <div className="user-name">{user.name}</div>
           <p className="meta">Email: {user.email}</p>
           <p className="meta">Статус: {getStatusByPoints(gamification.totalPoints)}</p>
+          <div className="chip-row">
+            <Link className="ghost" to="/track">К треку</Link>
+            <Link className="ghost" to="/library">В библиотеку</Link>
+            <Link className="ghost" to="/community">Сообщество</Link>
+          </div>
         </div>
-        <GamificationSummary gamification={gamification} />
         <div className="card">
           <div className="card-header">Смена пароля</div>
           <div className="form">
