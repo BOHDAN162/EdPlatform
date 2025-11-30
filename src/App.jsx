@@ -422,13 +422,13 @@ const Home = ({ subscriptionActive, onCTA, onTrackComplete, track, leaderboard, 
     <div className="home">
       <div className="card hero hero-spotlight">
         <div className="hero-inner">
-          <p className="hero-kicker">Платформа для подростков</p>
+          <p className="hero-kicker">Платформа развития</p>
           <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
-          <p className="hero-subtitle">Уроки, квесты, очки, достижения и поддержка сообщества про предпринимательство, мышление и психологию.</p>
+          <p className="hero-subtitle">Квесты, контент, форматы, сообщество, игры мышления и персональный путь — все чтобы прокачать себя и становиться сильнее каждый день.</p>
           <div className="quote-panel">
             <Quotes />
           </div>
-          <button className="primary hero-cta" onClick={onCTA}>{subscriptionActive ? "Перейти в библиотеку" : "Начать обучение"}</button>
+          <button className="primary hero-cta" onClick={onCTA}>{subscriptionActive ? "Начать учиться" : "Начать обучение"}</button>
           <div className="how-it-works">
             <div>
               <strong>1.</strong>
