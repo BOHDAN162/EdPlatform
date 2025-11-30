@@ -5,6 +5,10 @@ export const defaultGamification = {
   completedTestsCount: 0,
   completedMaterialsCount: 0,
   achievements: [],
+  communityPosts: 0,
+  communityAnswers: 0,
+  communityBestAnswers: 0,
+  communityMessages: 0,
 };
 
 export const STATUSES = [
@@ -35,6 +39,8 @@ export const getLevelFromPoints = (points = 0) => {
   };
 };
 
+const applyDefaults = (gamification) => ({ ...defaultGamification, ...gamification });
+
 const save = (userId, data) => {
   if (!userId) return;
   localStorage.setItem(`${baseKey}${userId}`, JSON.stringify(data));
@@ -58,6 +64,10 @@ const achievementsList = [
   { id: "materials-5", title: "5 материалов", check: (g) => g.completedMaterialsCount >= 5 },
   { id: "points-100", title: "100 очков", check: (g) => g.totalPoints >= 100 },
   { id: "points-300", title: "300 очков", check: (g) => g.totalPoints >= 300 },
+  { id: "community-first-post", title: "Первый пост в сообществе", check: (g) => g.communityPosts >= 1 },
+  { id: "community-5-answers", title: "5 ответов в сообществе", check: (g) => g.communityAnswers >= 5 },
+  { id: "community-3-best", title: "3 лучших ответа", check: (g) => g.communityBestAnswers >= 3 },
+  { id: "community-10-messages", title: "10 сообщений в чатах", check: (g) => g.communityMessages >= 10 },
 ];
 
 const evaluateAchievements = (gamification) => {
@@ -73,10 +83,11 @@ const evaluateAchievements = (gamification) => {
 };
 
 export const awardForTest = (userId, current) => {
+  const base = applyDefaults(current);
   const updated = {
-    ...current,
-    totalPoints: current.totalPoints + 50,
-    completedTestsCount: current.completedTestsCount + 1,
+    ...base,
+    totalPoints: base.totalPoints + 50,
+    completedTestsCount: base.completedTestsCount + 1,
   };
   const { achievements, newly } = evaluateAchievements(updated);
   const result = { ...updated, achievements };
@@ -85,10 +96,11 @@ export const awardForTest = (userId, current) => {
 };
 
 export const awardForMaterial = (userId, current) => {
+  const base = applyDefaults(current);
   const updated = {
-    ...current,
-    totalPoints: current.totalPoints + 30,
-    completedMaterialsCount: current.completedMaterialsCount + 1,
+    ...base,
+    totalPoints: base.totalPoints + 30,
+    completedMaterialsCount: base.completedMaterialsCount + 1,
   };
   const { achievements, newly } = evaluateAchievements(updated);
   const result = { ...updated, achievements };
@@ -97,6 +109,49 @@ export const awardForMaterial = (userId, current) => {
     gamification: result,
     messages: ["+30 очков за материал", ...newly.map((n) => `Новая награда: "${n}"`)],
   };
+};
+
+export const awardForCommunityAction = (userId, current, action = {}) => {
+  const base = applyDefaults(current);
+  const updated = { ...base };
+  let delta = 8;
+  let label = "активность";
+
+  switch (action.type) {
+    case "post-create":
+      updated.communityPosts += 1;
+      delta = 25;
+      label = "пост в ленте";
+      break;
+    case "answer":
+      updated.communityAnswers += 1;
+      delta = 35;
+      label = "ответ в вопросах";
+      break;
+    case "best-answer":
+      updated.communityBestAnswers += 1;
+      delta = 50;
+      label = "лучший ответ";
+      break;
+    case "message":
+      updated.communityMessages += 1;
+      delta = 10;
+      label = "сообщение в чате";
+      break;
+    case "club-join":
+      delta = 15;
+      label = "вступление в клуб";
+      break;
+    default:
+      delta = 10;
+  }
+
+  updated.totalPoints += delta;
+  const { achievements, newly } = evaluateAchievements(updated);
+  const result = { ...updated, achievements };
+  save(userId, result);
+  const messages = [`+${delta} XP за ${label}`, ...newly.map((n) => `Новая награда: "${n}"`)];
+  return { gamification: result, messages };
 };
 
 export const progressToNextStatus = (points = 0) => {
