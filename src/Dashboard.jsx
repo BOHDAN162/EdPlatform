@@ -276,6 +276,21 @@ const CommunityWidget = ({ community }) => {
   );
 };
 
+const QuickNavigation = ({ navigate }) => {
+  return (
+    <div className="card">
+      <div className="card-header">Быстрые переходы</div>
+      <p className="meta">Переключайся между разделами без лишних кликов.</p>
+      <div className="cta-actions">
+        <button className="ghost" onClick={() => navigate("/")}>Главная</button>
+        <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+        <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
+        <button className="ghost" onClick={() => navigate("/track")}>Трек</button>
+      </div>
+    </div>
+  );
+};
+
 const GoalsWidget = ({ trackData, completedMaterialIds = [], gamification }) => {
   const completedSet = new Set(completedMaterialIds);
   const trackTotal = trackData?.generatedTrack?.length || 0;
@@ -403,6 +418,7 @@ const Dashboard = ({ user, trackData, progress, gamification, community, activit
           <ActivityFeed activity={activity} />
         </div>
         <div className="dashboard-side">
+          <QuickNavigation navigate={navigate} />
           <GamificationWidget gamification={gamification} />
           <QuestsWidget activity={activity} gamification={gamification} />
           <CommunityWidget community={community} />
