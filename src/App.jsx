@@ -15,8 +15,7 @@ import { loadActivity, registerActivity } from "./activity";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
-import DevelopmentTrackPage from "./DevelopmentTrackPage";
-import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
+import { loadTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import Dashboard from "./Dashboard";
@@ -36,25 +35,16 @@ const Toast = ({ messages }) => {
 
 const Header = ({ user, onLogout, theme, toggleTheme }) => {
   const [open, setOpen] = useState(false);
-  const links = user
-    ? [
-        { to: "/", label: "Главная" },
-        { to: "/library", label: "Библиотека" },
-        { to: "/community", label: "Сообщество" },
-        { to: "/track", label: "Трек" },
-        { to: "/profile", label: "Профиль" },
-      ]
-    : [
-        { to: "/", label: "Главная" },
-        { to: "/library", label: "Библиотека" },
-        { to: "/community", label: "Сообщество" },
-        { to: "/track", label: "Трек" },
-        { to: "/profile", label: "Профиль" },
-      ];
+  const links = [
+    { to: "/", label: "Главная" },
+    { to: "/library", label: "Библиотека" },
+    { to: "/community", label: "Сообщество" },
+    { to: "/profile", label: "Профиль" },
+  ];
 
   return (
     <header className="header">
-      <Link to={user ? "/profile" : "/"} className="logo">NOESIS</Link>
+      <Link to="/" className="logo">NOESIS</Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -204,7 +194,8 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           </div>
           <div className="actions hero-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
-            <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
+            <button className="ghost" onClick={() => navigate(user ? "/profile" : "/auth")}>Перейти в профиль</button>
+            <button className="ghost" onClick={() => navigate("/community")}>Посмотреть сообщество</button>
           </div>
           <div className="how-it-works">
             <div>
@@ -234,7 +225,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           </div>
           <p className="meta">Это пригодится в любых направлениях — учёбе, бизнесе, работе и настройке своей головы.</p>
           <div className="track-actions">
-            <button className="primary outline" onClick={() => navigate("/track")}>Пройти тест и собрать трек</button>
+            <button className="primary outline" onClick={() => navigate(user ? "/profile" : "/auth")}>Открыть профиль</button>
             <button className="ghost" onClick={() => navigate("/library")}>Посмотреть материалы</button>
           </div>
         </div>
@@ -369,8 +360,9 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           childrenIllustration={<BadgeOrbit />}
         >
           <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
+            <button className="primary hero-cta" onClick={() => navigate(user ? "/profile" : "/auth")}>Открыть профиль</button>
             <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
+            <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
           </div>
         </LandingSection>
       </div>
@@ -395,6 +387,10 @@ const LibraryPage = ({ completedMaterialIds }) => {
         <div>
           <h1>Библиотека</h1>
           <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
+        </div>
+        <div className="cta-actions">
+          <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+          <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
       </div>
 
@@ -520,12 +516,17 @@ const LearningPathPage = ({ completedMaterialIds }) => {
 
 const CommunityPage = ({ community }) => {
   const data = [...community].sort((a, b) => b.points - a.points);
+  const navigate = useNavigate();
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Сообщество участников</h1>
           <p>20+ ребят, которые уже копят очки и делятся прогрессом.</p>
+        </div>
+        <div className="cta-actions">
+          <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
+          <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
         </div>
       </div>
       <div className="grid cards columns-3">
@@ -548,16 +549,7 @@ const CommunityPage = ({ community }) => {
   );
 };
 
-const ProfilePage = ({
-  user,
-  gamification,
-  onPasswordChange,
-  progress,
-  trackData,
-  community,
-  activity,
-  onVisit,
-}) => {
+const ProfilePage = ({ user, gamification, onPasswordChange, trackData, progress, community, activity, onVisit }) => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
@@ -633,15 +625,7 @@ const ProfilePage = ({
 
   return (
     <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Профиль и личный кабинет</h1>
-          <p className="meta">Здесь собрана твоя панель: прогресс, задания, цели и настройки.</p>
-        </div>
-      </div>
-
       <Dashboard
-        embedded
         user={user}
         trackData={trackData}
         progress={progress}
@@ -650,7 +634,6 @@ const ProfilePage = ({
         activity={activity}
         onVisit={onVisit}
       />
-
       <div className="grid profile-grid">
         <div className="card">
           <div className="card-header">Данные аккаунта</div>
@@ -713,7 +696,7 @@ const AuthPage = ({ onAuth }) => {
         return;
       }
       onAuth(res.user);
-      navigate("/profile");
+      navigate("/");
       return;
     }
     const res = loginUser({ email: form.email.trim(), password: form.password });
@@ -722,7 +705,7 @@ const AuthPage = ({ onAuth }) => {
       return;
     }
     onAuth(res.user);
-    navigate("/profile");
+    navigate("/");
   };
 
   return (
@@ -1023,20 +1006,6 @@ function App() {
     return [me, ...communityMembers];
   }, [user, gamification]);
 
-  const handleTrackSave = (payload) => {
-    const saved = saveTrack(user?.id, payload);
-    setTrackData(saved);
-    addToast("Трек сохранён");
-    recordActivity({ type: "track", text: "Собрал новый личный трек" });
-  };
-
-  const handleTrackReset = () => {
-    clearTrack(user?.id);
-    setTrackData(null);
-    addToast("Трек сброшен");
-    recordActivity({ type: "track", text: "Сбросил трек" });
-  };
-
   const Layout = ({ children }) => (
     <div className={`app ${theme}`}>
       <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
@@ -1063,10 +1032,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route
-            path="/dashboard"
-            element={<DashboardRedirect />}
-          />
+          <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
@@ -1081,29 +1047,16 @@ function App() {
               <ProfilePage
                 user={user}
                 gamification={gamification}
-                onPasswordChange={handlePasswordChange}
-                progress={progress}
                 trackData={trackData}
+                progress={progress}
                 community={community}
                 activity={activity}
                 onVisit={recordActivity}
+                onPasswordChange={handlePasswordChange}
               />
             }
           />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
-          <Route
-            path="/track"
-            element={
-              <DevelopmentTrackPage
-                libraryMaterials={materials}
-                userId={user?.id}
-                savedTrack={trackData}
-                completedMaterialIds={completedMaterialIds}
-                onTrackSave={handleTrackSave}
-                onTrackReset={handleTrackReset}
-              />
-            }
-          />
         </Routes>
       </Layout>
     </BrowserRouter>
