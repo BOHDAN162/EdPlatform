@@ -14,9 +14,25 @@ export const STATUSES = [
   { min: 0, title: "Новичок" },
 ];
 
+const LEVEL_STEP = 120;
+
 export const getStatusByPoints = (points = 0) => {
   const found = STATUSES.find((s) => points >= s.min);
   return found ? found.title : "Новичок";
+};
+
+export const getLevelFromPoints = (points = 0) => {
+  const level = Math.max(1, Math.floor(points / LEVEL_STEP) + 1);
+  const currentLevelBase = (level - 1) * LEVEL_STEP;
+  const nextLevelBase = level * LEVEL_STEP;
+  const progress = Math.min(100, Math.round(((points - currentLevelBase) / (nextLevelBase - currentLevelBase)) * 100));
+  return {
+    level,
+    currentLevelBase,
+    nextLevelBase,
+    progress,
+    toNext: Math.max(0, nextLevelBase - points),
+  };
 };
 
 const save = (userId, data) => {
