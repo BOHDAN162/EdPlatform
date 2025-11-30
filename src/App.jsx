@@ -36,25 +36,17 @@ const Toast = ({ messages }) => {
 
 const Header = ({ user, onLogout, theme, toggleTheme }) => {
   const [open, setOpen] = useState(false);
-  const links = user
-    ? [
-        { to: "/dashboard", label: "Домой" },
-        { to: "/library", label: "Библиотека" },
-        { to: "/community", label: "Сообщество" },
-        { to: "/track", label: "Трек" },
-        { to: "/profile", label: "Профиль" },
-      ]
-    : [
-        { to: "/", label: "Главная" },
-        { to: "/library", label: "Библиотека" },
-        { to: "/community", label: "Сообщество" },
-        { to: "/track", label: "Трек" },
-        { to: "/profile", label: "Профиль" },
-      ];
+  const links = [
+    { to: "/", label: "Главная" },
+    { to: "/library", label: "Библиотека" },
+    { to: "/community", label: "Сообщество" },
+    { to: "/track", label: "Трек" },
+    { to: "/profile", label: "Профиль" },
+  ];
 
   return (
     <header className="header">
-      <Link to={user ? "/dashboard" : "/"} className="logo">NOESIS</Link>
+      <Link to="/" className="logo">NOESIS</Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -548,7 +540,7 @@ const CommunityPage = ({ community }) => {
   );
 };
 
-const ProfilePage = ({ user, gamification, onPasswordChange }) => {
+const ProfilePage = ({ user, gamification, onPasswordChange, trackData, progress, community, activity, onVisit }) => {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState("");
@@ -624,6 +616,15 @@ const ProfilePage = ({ user, gamification, onPasswordChange }) => {
 
   return (
     <div className="page">
+      <Dashboard
+        user={user}
+        trackData={trackData}
+        progress={progress}
+        gamification={gamification}
+        community={community}
+        activity={activity}
+        onVisit={onVisit}
+      />
       <div className="grid profile-grid">
         <div className="card">
           <div className="avatar large">{user.name[0]}</div>
@@ -681,7 +682,7 @@ const AuthPage = ({ onAuth }) => {
         return;
       }
       onAuth(res.user);
-      navigate("/dashboard");
+      navigate("/");
       return;
     }
     const res = loginUser({ email: form.email.trim(), password: form.password });
@@ -690,7 +691,7 @@ const AuthPage = ({ onAuth }) => {
       return;
     }
     onAuth(res.user);
-    navigate("/dashboard");
+    navigate("/");
   };
 
   return (
@@ -1015,10 +1016,15 @@ function App() {
 
   const HomeRoute = () => {
     const navigate = useNavigate();
-    useEffect(() => {
-      if (user) navigate("/dashboard");
-    }, [user, navigate]);
     return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} />;
+  };
+
+  const DashboardRedirect = () => {
+    const navigate = useNavigate();
+    useEffect(() => {
+      navigate("/profile");
+    }, [navigate]);
+    return null;
   };
 
   return (
@@ -1026,20 +1032,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route
-            path="/dashboard"
-            element={
-              <Dashboard
-                user={user}
-                trackData={trackData}
-                  progress={progress}
-                  gamification={gamification}
-                  community={community}
-                  activity={activity}
-                  onVisit={recordActivity}
-                />
-              }
-            />
+          <Route path="/dashboard" element={<DashboardRedirect />} />
           <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
@@ -1048,7 +1041,21 @@ function App() {
           />
           <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
           <Route path="/community" element={<CommunityPage community={community} />} />
-          <Route path="/profile" element={<ProfilePage user={user} gamification={gamification} onPasswordChange={handlePasswordChange} />} />
+          <Route
+            path="/profile"
+            element={
+              <ProfilePage
+                user={user}
+                gamification={gamification}
+                trackData={trackData}
+                progress={progress}
+                community={community}
+                activity={activity}
+                onVisit={recordActivity}
+                onPasswordChange={handlePasswordChange}
+              />
+            }
+          />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
