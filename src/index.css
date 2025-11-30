@@ -256,6 +256,26 @@ body {
   line-height: 1.6;
 }
 
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.check-dot {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 50%;
+  font-size: 12px;
+  background: rgba(34, 197, 94, 0.08);
+}
+
 .hero-cta {
   min-width: 240px;
   padding: 14px 22px;
@@ -277,6 +297,33 @@ body {
   background: rgba(34, 197, 94, 0.08);
   padding: 10px;
   border-radius: 12px;
+}
+
+.track-highlight {
+  display: grid;
+  gap: 10px;
+}
+
+.track-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(34, 197, 94, 0.08);
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.track-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .quote {

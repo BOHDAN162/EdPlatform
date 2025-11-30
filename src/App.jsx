@@ -111,20 +111,56 @@ const HomePage = ({ user, navigate, community, gamification }) => {
   const top = [...community].sort((a, b) => b.points - a.points).slice(0, 3);
   return (
     <div className="page">
-      <div className="grid hero-grid">
-        <div className="card hero">
-          <p className="hero-kicker">Платформа NOESIS</p>
-          <h1>Будь лучше вчерашнего себя</h1>
+      <div className="card hero-spotlight">
+        <div className="hero-inner">
+          <p className="hero-kicker">Платформа развития</p>
+          <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
           <p className="hero-subtitle">
-            Курсы, тесты, статьи и живое сообщество подростков-предпринимателей. Собирай очки, повышай статус и открывай достижения.
+            Квесты, контент, форматы, сообщество, игры мышления и персональный путь — все чтобы прокачать себя и становиться сильнее каждый день.
           </p>
-          <div className="actions">
-            <button className="primary" onClick={() => navigate(user ? "/library" : "/auth")}>{user ? "Продолжить" : "Начать"}</button>
+          <div className="quote-panel">
+            <p className="quote-text">«Единственный способ сделать великую работу — любить то, что ты делаешь.»</p>
+            <p className="quote-author">— Стив Джобс</p>
+          </div>
+          <div className="actions hero-actions">
+            <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
             <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+          </div>
+          <div className="how-it-works">
+            <div>
+              <span className="check-dot">✓</span>
+              <span>Пройди короткую регистрацию</span>
+            </div>
+            <div>
+              <span className="check-dot">✓</span>
+              <span>Активируй подписку и выбери трек</span>
+            </div>
+            <div>
+              <span className="check-dot">✓</span>
+              <span>Учись, проходи тесты и собирай очки</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid hero-grid">
+        <div className="card track-highlight">
+          <div className="card-header">Личный трек развития</div>
+          <p className="meta">Определи направление, собери подборку материалов и двигайся по персональному маршруту.</p>
+          <div className="track-steps">
+            <div className="pill">Осознание болей</div>
+            <div className="pill">Определение сильных сторон</div>
+            <div className="pill">Грамотное использование ресурсов</div>
+          </div>
+          <p className="meta">Это пригодится в любых направлениях — учёбе, бизнесе, работе и настройке своей головы.</p>
+          <div className="track-actions">
+            <button className="primary outline" onClick={() => navigate("/track")}>Пройти тест и собрать трек</button>
+            <button className="ghost" onClick={() => navigate("/library")}>Посмотреть материалы</button>
           </div>
         </div>
         <GamificationSummary gamification={gamification} />
       </div>
+
       <div className="card">
         <div className="card-header">ТОП сообщества</div>
         <div className="grid columns-3">
