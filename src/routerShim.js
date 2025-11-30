@@ -64,15 +64,18 @@ export function Route() {
   return null;
 }
 
-export function Link({ to, children, ...rest }) {
+export function Link({ to, children, onClick, ...rest }) {
   const { navigate } = useContext(RouterContext);
+  const normalized = normalizePath(to);
   return React.createElement(
     "a",
     {
-      href: `#${normalizePath(to)}`,
+      href: `#${normalized}`,
       onClick: (e) => {
+        onClick?.(e);
+        if (e.defaultPrevented) return;
         e.preventDefault();
-        navigate(normalizePath(to));
+        navigate(normalized);
       },
       ...rest,
     },
@@ -80,7 +83,7 @@ export function Link({ to, children, ...rest }) {
   );
 }
 
-export function NavLink({ to, children, className, end, ...rest }) {
+export function NavLink({ to, children, className, end, onClick, ...rest }) {
   const { navigate, path } = useContext(RouterContext);
   const normalized = normalizePath(to);
   const isActive = end ? path === normalized : path.startsWith(normalized);
@@ -92,6 +95,8 @@ export function NavLink({ to, children, className, end, ...rest }) {
       href: `#${normalized}`,
       className: resolvedClass,
       onClick: (e) => {
+        onClick?.(e);
+        if (e.defaultPrevented) return;
         e.preventDefault();
         navigate(normalized);
       },
