@@ -8,10 +8,14 @@ import {
   loadGamification,
   progressToNextStatus,
 } from "./gamification";
-import { articles, communityMembers, courses, tests, themes, getMaterialByType } from "./data";
+import { communityMembers, tests } from "./data";
+import { learningPaths, materialThemes, materials, getMaterialById, themeLabels } from "./libraryData";
+import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
+import PathCard from "./components/PathCard";
+import MaterialCard from "./components/MaterialCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
 import DevelopmentTrackPage from "./DevelopmentTrackPage";
-import { clearTrack, loadTrack, markStepCompleted, saveTrack } from "./trackStorage";
+import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 
@@ -364,77 +368,140 @@ const HomePage = ({ user, navigate, community, gamification }) => {
   );
 };
 
-const CourseCard = ({ course }) => (
-  <div className="card">
-    <div className="card-header">{course.title}</div>
-    <p>{course.description}</p>
-    <p className="meta">Возраст: {course.age} • Фокус: {course.focus} • Длительность: {course.duration}</p>
-    <div className="tag">Уровень: {course.difficulty}</div>
-    <p className="meta">Тема: {course.theme}</p>
-    {course.testId && <p className="small-meta">В комплекте проверка знаний</p>}
-    <Link to={`/library/course/${course.id}`} className="primary outline">Открыть</Link>
-  </div>
-);
-
-const ArticleCard = ({ article }) => (
-  <div className="card">
-    <div className="card-header">{article.title}</div>
-    <p>{article.description}</p>
-    <p className="meta">Тема: {article.theme}</p>
-    {article.testId && <p className="small-meta">Доступен тест после чтения</p>}
-    <Link to={`/library/article/${article.id}`} className="ghost">Читать</Link>
-  </div>
-);
-
-const LibraryPage = () => {
-  const [activeTheme, setActiveTheme] = useState(themes[0].id);
-
-  const grouped = useMemo(
+const LibraryPage = ({ completedMaterialIds }) => {
+  const navigate = useNavigate();
+  const groupedMaterials = useMemo(
     () =>
-      themes.map((theme) => ({
+      materialThemes.map((theme) => ({
         ...theme,
-        courses: courses.filter((c) => c.theme === theme.id),
-        articles: articles.filter((a) => a.theme === theme.id),
+        items: materials.filter((m) => m.theme === theme.id),
       })),
     []
   );
-
-  const current = grouped.find((t) => t.id === activeTheme) || grouped[0];
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
-          <p>Курсы, статьи и тесты, сгруппированные по ключевым темам развития.</p>
+          <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
         </div>
-        <div className="tabs wrap">
-          {grouped.map((t) => (
-            <button key={t.id} className={t.id === activeTheme ? "tab active" : "tab"} onClick={() => setActiveTheme(t.id)}>
-              {t.title}
-            </button>
+      </div>
+
+      <div className="card">
+        <div className="card-header">Твои дорожки</div>
+        <div className="path-grid">
+          {learningPaths.map((path) => (
+            <PathCard
+              key={path.id}
+              path={path}
+              progress={getPathProgress(path, completedMaterialIds)}
+              onOpen={() => navigate(`/library/paths/${path.slug}`)}
+            />
           ))}
         </div>
       </div>
 
-      <div className="grid columns-2 responsive">
-        <div className="card">
-          <div className="card-header">Курсы и программы</div>
-          {current.courses.length === 0 && <p className="meta">Материалы в этой теме появятся позже.</p>}
-          <div className="grid cards">
-            {current.courses.map((c) => (
-              <CourseCard key={c.id} course={c} />
+      {groupedMaterials.map((theme) => (
+        <div key={theme.id} className="card">
+          <div className="card-header">{theme.title}</div>
+          <p className="meta">{theme.description}</p>
+          <div className="material-grid">
+            {theme.items.map((material) => (
+              <MaterialCard key={material.id} material={material} completed={completedMaterialIds.includes(material.id)} />
             ))}
           </div>
         </div>
+      ))}
+    </div>
+  );
+};
+
+const LearningPathPage = ({ completedMaterialIds }) => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const path = learningPaths.find((p) => p.slug === slug);
+
+  if (!path) {
+    return (
+      <div className="page">
         <div className="card">
-          <div className="card-header">Статьи и лонгриды</div>
-          {current.articles.length === 0 && <p className="meta">Статьи скоро добавим.</p>}
-          <div className="grid cards">
-            {current.articles.map((a) => (
-              <ArticleCard key={a.id} article={a} />
-            ))}
-          </div>
+          <p>Дорожка не найдена.</p>
+          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        </div>
+      </div>
+    );
+  }
+
+  const progress = getPathProgress(path, completedMaterialIds);
+  const theme = themeLabels[path.theme] || { accent: "#6b7280", title: "Тема" };
+  const completedSet = new Set(completedMaterialIds);
+  const nextId = path.materials.find((m) => !completedSet.has(m)) || path.materials[0];
+  const nextMaterial = getMaterialById(nextId);
+
+  const goToMaterial = (materialId) => {
+    const target = getMaterialById(materialId);
+    if (!target) return;
+    navigate(target.type === "test" ? `/tests/${target.id}` : `/library/${target.type}/${target.id}`);
+  };
+
+  const ratio = progress.totalCount ? Math.round((progress.completedCount / progress.totalCount) * 100) : 0;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <h1>{path.title}</h1>
+          <p className="meta">{path.description}</p>
+        </div>
+        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+      </div>
+      <div className="card path-detail">
+        <div className="path-detail-header">
+          <span className="path-theme" style={{ background: `${theme.accent}20`, color: theme.accent }}>
+            {theme.title}
+          </span>
+          <span className="path-progress">{progress.completedCount} / {progress.totalCount} шагов</span>
+        </div>
+        <div className="progress-shell large">
+          <div className="progress-fill" style={{ width: `${ratio}%` }} />
+        </div>
+        <p className="meta">
+          {progress.completedCount === 0
+            ? "Начни с первого шага, чтобы разогнаться"
+            : progress.completedCount === progress.totalCount
+            ? "Все шаги закрыты — можно повторить или выбрать новую дорожку"
+            : `Следующий шаг под номером ${progress.completedCount + 1}`}
+        </p>
+        {nextMaterial && (
+          <button className="primary" onClick={() => goToMaterial(nextMaterial.id)}>
+            {completedSet.has(nextMaterial.id) ? "Повторить" : "Продолжить"}: {nextMaterial.title}
+          </button>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-header">Шаги дорожки</div>
+        <div className="path-steps">
+          {path.materials.map((materialId, idx) => {
+            const material = getMaterialById(materialId);
+            const done = completedSet.has(materialId);
+            if (!material) return null;
+            return (
+              <div key={materialId} className={`path-step ${done ? "done" : ""}`}>
+                <div className="path-step-index">{idx + 1}</div>
+                <div className="path-step-body">
+                  <div className="path-step-top">
+                    <div className="path-step-title">{material.title}</div>
+                    <span className="material-badge outline">{material.type === "course" ? "Курс" : material.type === "article" ? "Статья" : "Тест"}</span>
+                  </div>
+                  <p className="meta">{material.description}</p>
+                  <div className="path-step-meta">{material.estimatedTime} • Уровень: {material.level}</div>
+                </div>
+                <button className="ghost" onClick={() => goToMaterial(material.id)}>{done ? "Повторить" : "Открыть"}</button>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -655,10 +722,10 @@ const AuthPage = ({ onAuth }) => {
   );
 };
 
-const MaterialDetailPage = ({ onComplete }) => {
+const MaterialDetailPage = ({ onComplete, completedMaterialIds }) => {
   const { type, id } = useParams();
   const navigate = useNavigate();
-  const material = getMaterialByType(type, id);
+  const material = getMaterialById(id);
 
   if (!material) {
     return (
@@ -672,22 +739,33 @@ const MaterialDetailPage = ({ onComplete }) => {
   }
 
   const nextTestId = material.testId;
+  const completed = completedMaterialIds?.includes(material.id);
+  const theme = themeLabels[material.theme] || { accent: "#6b7280", title: "Тема" };
+  const materialType = material.type || type;
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>{material.title}</h1>
-          <p className="meta">Тема: {material.theme}</p>
+          <p className="meta">Тема: {theme.title || material.theme}</p>
         </div>
         <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
       </div>
       <div className="card">
-        <p className="meta">{type === "course" ? material.duration : "Быстрое изучение"}</p>
+        <div className="chip-row">
+          <span className="material-badge" style={{ background: `${theme.accent}20`, color: theme.accent }}>
+            {theme.title || "Тема"}
+          </span>
+          <span className="material-badge outline">{materialType === "course" ? "Курс" : materialType === "article" ? "Статья" : "Тест"}</span>
+          <span className="material-badge outline">{material.level || "начальный"}</span>
+          <span className="material-badge outline">{material.estimatedTime || "15 минут"}</span>
+        </div>
+        <p className="meta">{materialType === "course" ? material.duration || material.estimatedTime : material.estimatedTime || "Быстрое изучение"}</p>
         <p>{material.description}</p>
         {material.content && <p className="meta">{material.content}</p>}
-        <button className="primary" onClick={() => onComplete(material.id, type)}>
-          Отметить завершённым
+        <button className="primary" onClick={() => onComplete(material.id, materialType)}>
+          {completed ? "Повторить материал" : "Отметить завершённым"}
         </button>
         {nextTestId && (
           <div className="test-followup">
@@ -703,12 +781,13 @@ const MaterialDetailPage = ({ onComplete }) => {
   );
 };
 
-const TestPage = ({ onComplete }) => {
+const TestPage = ({ onComplete, completedMaterialIds }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const test = tests.find((t) => t.id === id);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
+  const completed = completedMaterialIds?.includes(id);
 
   if (!test) {
     return (
@@ -737,6 +816,7 @@ const TestPage = ({ onComplete }) => {
         <div>
           <h1>{test.title}</h1>
           <p className="meta">{test.description}</p>
+          {completed && <p className="meta success">Тест уже завершён — результат можно улучшить</p>}
         </div>
         <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
       </div>
@@ -770,6 +850,7 @@ function App() {
   const [user, setUser] = useState(() => loadCurrentUser());
   const [gamification, setGamification] = useState(() => loadGamification(loadCurrentUser()?.id));
   const [trackData, setTrackData] = useState(() => loadTrack(loadCurrentUser()?.id));
+  const [progress, setProgress] = useState(() => loadProgress(loadCurrentUser()?.id));
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -781,9 +862,11 @@ function App() {
     if (user) {
       setGamification(loadGamification(user.id));
       setTrackData(loadTrack(user.id));
+      setProgress(loadProgress(user.id));
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
+      setProgress(loadProgress(null));
     }
   }, [user]);
 
@@ -797,18 +880,16 @@ function App() {
 
   const addToasts = (messages) => messages.forEach((m) => addToast(m));
 
-  const markCompletionForMaterial = (materialId, materialType) => {
-    if (!trackData) return;
-    const match = trackData.generatedTrack?.find(
-      (s) => s.materialId === materialId && s.materialType === materialType
-    );
-    if (match) {
-      const updated = markStepCompleted(user?.id, match.id);
-      if (updated) setTrackData(updated);
-    }
-  };
+  const completedMaterialIds = progress.completedMaterialIds || [];
 
   const handleFinishMaterial = (materialId, materialType) => {
+    const alreadyCompleted = completedMaterialIds.includes(materialId);
+    const updatedProgress = markMaterialCompleted(user?.id, materialId, progress);
+    setProgress(updatedProgress);
+    if (alreadyCompleted) {
+      addToast("Материал уже отмечен как завершён");
+      return;
+    }
     if (!user) {
       addToast("Войдите, чтобы получить очки за материалы");
     } else {
@@ -816,10 +897,16 @@ function App() {
       setGamification(res.gamification);
       addToasts(res.messages);
     }
-    markCompletionForMaterial(materialId, materialType);
   };
 
   const handleFinishTest = ({ testId }) => {
+    const alreadyCompleted = completedMaterialIds.includes(testId);
+    const updatedProgress = markMaterialCompleted(user?.id, testId, progress);
+    setProgress(updatedProgress);
+    if (alreadyCompleted) {
+      addToast("Тест уже закрыт, но можно освежить знания");
+      return;
+    }
     if (!user) {
       addToast("Войдите, чтобы получить очки за тест");
     } else {
@@ -827,13 +914,13 @@ function App() {
       setGamification(res.gamification);
       addToasts(res.messages);
     }
-    markCompletionForMaterial(testId, "test");
   };
 
   const handleAuth = (usr) => {
     setUser(usr);
     setGamification(loadGamification(usr.id));
     setTrackData(loadTrack(usr.id));
+    setProgress(loadProgress(usr.id));
   };
 
   const handleLogout = () => {
@@ -841,6 +928,7 @@ function App() {
     setUser(null);
     setGamification({ ...defaultGamification });
     setTrackData(loadTrack(null));
+    setProgress(loadProgress(null));
   };
 
   const handlePasswordChange = (password) => {
@@ -904,9 +992,13 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/library/:type/:id" element={<MaterialDetailPage onComplete={handleFinishMaterial} />} />
-          <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} />} />
+          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
+          <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
+          <Route
+            path="/library/:type/:id"
+            element={<MaterialDetailPage onComplete={handleFinishMaterial} completedMaterialIds={completedMaterialIds} />}
+          />
+          <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
           <Route path="/community" element={<CommunityPage community={community} />} />
           <Route path="/profile" element={<ProfilePage user={user} gamification={gamification} onPasswordChange={handlePasswordChange} />} />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
@@ -914,9 +1006,10 @@ function App() {
             path="/track"
             element={
               <DevelopmentTrackPage
-                library={{ courses, articles, tests }}
+                libraryMaterials={materials}
                 userId={user?.id}
                 savedTrack={trackData}
+                completedMaterialIds={completedMaterialIds}
                 onTrackSave={handleTrackSave}
                 onTrackReset={handleTrackReset}
               />

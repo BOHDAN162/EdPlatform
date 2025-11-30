@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "./routerShim";
 
 const profiles = {
   founder: {
@@ -157,14 +157,16 @@ const profileTracks = {
   ],
 };
 
-const StrategyTimeline = ({ steps, completedStepIds, onReset }) => {
+const StrategyTimeline = ({ steps, completedStepIds, completedMaterialIds = [], onReset }) => {
   const completed = new Set(completedStepIds || []);
+  const materialCompleted = new Set(completedMaterialIds || []);
+  const doneCount = steps.filter((step) => completed.has(step.id) || materialCompleted.has(step.materialId)).length;
   return (
     <div className="timeline-card">
       <div className="timeline-header">
         <div>
           <div className="card-header">Твоя стратегия на ближайшее время</div>
-          <p className="meta">Выполнено {completed.size} из {steps.length} шагов</p>
+          <p className="meta">Выполнено {doneCount} из {steps.length} шагов</p>
         </div>
         {onReset && (
           <button className="ghost" onClick={onReset}>
@@ -174,7 +176,7 @@ const StrategyTimeline = ({ steps, completedStepIds, onReset }) => {
       </div>
       <div className="timeline">
         {steps.map((step, idx) => {
-          const done = completed.has(step.id);
+          const done = completed.has(step.id) || materialCompleted.has(step.materialId);
           return (
             <div key={step.id} className={`timeline-step ${done ? "done" : ""}`}>
               <Link
@@ -210,7 +212,7 @@ const buildTrack = (profileKey, libraryIndex) => {
   return steps;
 };
 
-const DevelopmentTrackPage = ({ library, userId, savedTrack, onTrackSave, onTrackReset }) => {
+const DevelopmentTrackPage = ({ libraryMaterials, userId, savedTrack, onTrackSave, onTrackReset, completedMaterialIds }) => {
   const [answers, setAnswers] = useState({});
   const [currentTrack, setCurrentTrack] = useState(savedTrack);
 
@@ -221,14 +223,14 @@ const DevelopmentTrackPage = ({ library, userId, savedTrack, onTrackSave, onTrac
     setCurrentTrack(savedTrack);
   }, [savedTrack]);
 
-  const libraryIndex = useMemo(
-    () => ({
-      course: Object.fromEntries(library.courses.map((c) => [c.id, c])),
-      article: Object.fromEntries(library.articles.map((a) => [a.id, a])),
-      test: Object.fromEntries(library.tests.map((t) => [t.id, t])),
-    }),
-    [library]
-  );
+  const libraryIndex = useMemo(() => {
+    const byType = { course: {}, article: {}, test: {} };
+    (libraryMaterials || []).forEach((m) => {
+      if (!byType[m.type]) byType[m.type] = {};
+      byType[m.type][m.id] = m;
+    });
+    return byType;
+  }, [libraryMaterials]);
 
   const handleSubmit = () => {
     if (!allAnswered) return;
@@ -311,6 +313,7 @@ const DevelopmentTrackPage = ({ library, userId, savedTrack, onTrackSave, onTrac
           <StrategyTimeline
             steps={currentTrack.generatedTrack}
             completedStepIds={currentTrack.completedStepIds}
+            completedMaterialIds={completedMaterialIds}
             onReset={() => {
               setAnswers({});
               setCurrentTrack(null);
