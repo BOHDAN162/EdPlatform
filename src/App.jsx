@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams } from "./routerShim";
 import {
+  awardForCommunityAction,
   awardForMaterial,
   awardForTest,
   defaultGamification,
   getStatusByPoints,
+  getLevelFromPoints,
   loadGamification,
   progressToNextStatus,
 } from "./gamification";
-import { communityMembers, tests } from "./data";
+import { tests } from "./data";
+import { communityParticipants } from "./communityData";
 import { learningPaths, materialThemes, materials, getMaterialById, themeLabels } from "./libraryData";
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
@@ -21,6 +24,7 @@ import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
 import { loadStreak, resetStreak, updateStreakOnActivity } from "./streak";
 import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
+import CommunityPage from "./community/CommunityPage";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -95,6 +99,10 @@ const GamificationSummary = ({ gamification }) => {
     "materials-5": "5 материалов",
     "points-100": "100 очков",
     "points-300": "300 очков",
+    "community-first-post": "Первый пост в сообществе",
+    "community-5-answers": "5 ответов в сообществе",
+    "community-3-best": "3 лучших ответа",
+    "community-10-messages": "10 сообщений в чатах",
   };
 
   return (
@@ -510,36 +518,6 @@ const LearningPathPage = ({ completedMaterialIds }) => {
   );
 };
 
-const CommunityPage = ({ community }) => {
-  const data = [...community].sort((a, b) => b.points - a.points);
-  return (
-    <div className="page">
-      <div className="page-header">
-        <div>
-          <h1>Сообщество участников</h1>
-          <p>20+ ребят, которые уже копят очки и делятся прогрессом.</p>
-        </div>
-      </div>
-      <div className="grid cards columns-3">
-        {data.map((u) => (
-          <div key={u.id} className="card">
-            <div className="card-header">{u.name}</div>
-            <p className="meta">{u.status}</p>
-            <div className="big-number">{u.points} очков</div>
-            <div className="badges">
-              {u.achievements.slice(0, 3).map((a) => (
-                <span key={a} className="tag">
-                  {a}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const AuthPage = ({ onAuth }) => {
   const [tab, setTab] = useState("login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -828,6 +806,32 @@ function App() {
     pushActivity({ title: `Пройден тест «${test?.title || "Тест"}»`, type: "тест" });
   };
 
+  const handleCommunityAction = (action) => {
+    if (!user) {
+      addToast("Войдите, чтобы получать XP за активность в сообществе");
+      return;
+    }
+    const previousAchievements = gamification.achievements || [];
+    const res = awardForCommunityAction(user.id, gamification, action);
+    setGamification(res.gamification);
+    addToasts(res.messages);
+    const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
+    newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+    if (action?.type === "post-create") {
+      pushActivity({ title: "Новый пост в сообществе", type: "сообщество" });
+    } else if (action?.type === "answer") {
+      pushActivity({ title: "Ответ в вопросах", type: "сообщество" });
+    } else if (action?.type === "message") {
+      pushActivity({ title: "Сообщение в чате", type: "сообщество" });
+    } else if (action?.type === "best-answer") {
+      pushActivity({ title: "Лучший ответ", type: "сообщество" });
+    } else if (action?.type === "club-join") {
+      pushActivity({ title: "Присоединился к клубу", type: "сообщество" });
+    } else if (action?.type === "question") {
+      pushActivity({ title: "Новый вопрос", type: "сообщество" });
+    }
+  };
+
   const handleAuth = (usr) => {
     setUser(usr);
     setGamification(loadGamification(usr.id));
@@ -851,27 +855,24 @@ function App() {
   };
 
   const community = useMemo(() => {
-    if (!user) return communityMembers;
+    const base = communityParticipants.map((p) => ({
+      ...p,
+      points: p.xp,
+      status: p.role,
+      achievements: [],
+    }));
+    if (!user) return base;
+    const levelInfo = getLevelFromPoints(gamification.totalPoints);
     const me = {
       id: "me",
       name: user.name,
       points: gamification.totalPoints,
+      xp: gamification.totalPoints,
+      level: levelInfo.level,
       status: getStatusByPoints(gamification.totalPoints),
-      achievements: gamification.achievements.map((a) =>
-        a === "first-test"
-          ? "Первый тест"
-          : a === "tests-3"
-          ? "3 теста подряд"
-          : a === "materials-5"
-          ? "Закрыл 5 материалов"
-          : a === "points-100"
-          ? "100 очков"
-          : a === "points-300"
-          ? "300 очков"
-          : a
-      ),
+      achievements: gamification.achievements,
     };
-    return [me, ...communityMembers];
+    return [me, ...base.filter((p) => p.id !== me.id)];
   }, [user, gamification]);
 
   const handleTrackSave = (payload) => {
@@ -911,7 +912,17 @@ function App() {
             element={<MaterialDetailPage onComplete={handleFinishMaterial} completedMaterialIds={completedMaterialIds} />}
           />
           <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
-          <Route path="/community" element={<CommunityPage community={community} />} />
+          <Route
+            path="/community"
+            element={
+              <CommunityPage
+                user={user}
+                gamification={gamification}
+                onCommunityAction={handleCommunityAction}
+                onToast={addToast}
+              />
+            }
+          />
           <Route
             path="/profile"
             element={
