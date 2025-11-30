@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "./routerShim";
+import { Link } from "react-router-dom";
 
 const profiles = {
   founder: {
@@ -121,28 +121,28 @@ const questions = [
 
 const trackRecommendations = {
   founder: [
-    "entrepreneurial-thinking-risk",
-    "marketing-packaging",
-    "sales-negotiations",
-    "client-service-value",
-    "habits-discipline",
-    "teamwork-leadership",
+    "article-risk",
+    "article-marketing",
+    "article-sales",
+    "article-service",
+    "article-productivity",
+    "article-team",
   ],
   strategist: [
-    "teen-financial-literacy",
-    "personal-productivity",
-    "entrepreneurial-thinking-risk",
-    "marketing-packaging",
-    "presentation-skills",
-    "client-service-value",
+    "article-finance",
+    "article-productivity",
+    "article-marketing",
+    "article-risk",
+    "article-entrepreneur-mind",
+    "article-service",
   ],
   leader: [
-    "emotional-intelligence",
-    "teamwork-leadership",
-    "presentation-skills",
-    "sales-negotiations",
-    "client-service-value",
-    "habits-discipline",
+    "article-ei",
+    "article-team",
+    "article-networking",
+    "article-brand",
+    "article-sales",
+    "article-service",
   ],
 };
 
