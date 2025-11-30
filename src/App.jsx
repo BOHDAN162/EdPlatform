@@ -13,11 +13,14 @@ import { learningPaths, materialThemes, materials, getMaterialById, themeLabels 
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
-import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
+import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import DevelopmentTrackPage from "./DevelopmentTrackPage";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
+import ProfileDashboard from "./ProfileDashboard";
+import { loadStreak, resetStreak, updateStreakOnActivity } from "./streak";
+import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -38,7 +41,6 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
     { to: "/", label: "Главная" },
     { to: "/library", label: "Библиотека" },
     { to: "/community", label: "Сообщество" },
-    { to: "/track", label: "Трек" },
     { to: "/profile", label: "Профиль" },
   ];
 
@@ -538,121 +540,6 @@ const CommunityPage = ({ community }) => {
   );
 };
 
-const ProfilePage = ({ user, gamification, onPasswordChange }) => {
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [message, setMessage] = useState("");
-
-  const submit = () => {
-    if (!password || !confirm) {
-      setMessage("Заполни оба поля");
-      return;
-    }
-    if (password !== confirm) {
-      setMessage("Пароли не совпадают");
-      return;
-    }
-    onPasswordChange(password);
-    setMessage("Пароль обновлён");
-    setPassword("");
-    setConfirm("");
-  };
-
-  const faq = [
-    {
-      q: "Что такое личный трек развития?",
-      a: "Это персональный маршрут по курсам, статьям и тестам в нашей платформе. Мы подбираем для тебя 10 шагов, исходя из твоих ответов в опросе и твоего текущего профиля. Проходя этот трек, ты двигаешься к своим целям более осознанно и планомерно.",
-    },
-    {
-      q: "Нужно ли проходить опрос каждый раз заново?",
-      a: "Нет. Опрос проходится один раз. После того как ты ответил на 10 вопросов и нажал “Сформировать мой трек развития”, результат сохраняется. В разделе “Трек” ты увидишь готовую стратегию и прогресс по шагам. При желании ты можешь сбросить трек и пройти опрос ещё раз.",
-    },
-    {
-      q: "Как работают баллы и уровни?",
-      a: "За прохождение тестов, курсов и статей ты получаешь баллы. Чем больше баллов — тем выше твой уровень и статус в системе. Это помогает видеть свой прогресс и даёт мотивацию двигаться дальше.",
-    },
-    {
-      q: "Что дают достижения?",
-      a: "Достижения — это специальные отметки за ключевые действия: первый тест, серия пройденных материалов, набор определённого количества баллов. Они помогают фиксировать важные шаги в развитии и выделяют тебя в сообществе.",
-    },
-    {
-      q: "Где посмотреть свой прогресс?",
-      a: "Основной прогресс по развитию можно увидеть в разделе “Профиль” — там отображаются баллы, статус, достижения и общий прогресс по треку. Также прогресс виден на линии трека в разделе “Трек развития”.",
-    },
-    {
-      q: "Можно ли поменять свой трек?",
-      a: "Да. Если ты чувствуешь, что трек больше тебе не подходит, ты можешь сбросить его и пройти опрос заново. Тогда мы сформируем для тебя новый маршрут на основе свежих ответов.",
-    },
-    {
-      q: "Что делать, если я забыл пароль?",
-      a: "Если ты забыл пароль, воспользуйся формой смены пароля в профиле или на странице входа (в рамках текущего MVP это может быть ручной сброс внутри приложения). В будущих версиях мы добавим восстановление пароля через email.",
-    },
-    {
-      q: "Кто видит мои баллы и достижения?",
-      a: "В базовом режиме твои баллы и достижения видишь ты сам. Если ты участвуешь в рейтингах или челленджах внутри сообщества, часть информации может отображаться в общем списке участников, но без лишних личных данных.",
-    },
-    {
-      q: "Нужно ли платить за доступ к материалам?",
-      a: "Сейчас платформа находится на этапе развития и тестирования. Часть материалов может быть открыта бесплатно, часть может потребовать отдельного доступа. Точную информацию о доступе ты увидишь рядом с каждым курсом или программой.",
-    },
-    {
-      q: "Для кого вообще эта платформа?",
-      a: "NOESIS создаётся для подростков и детей предпринимателей, которые хотят развиваться быстрее: понимать себя, разбираться в деньгах, пробовать проекты, прокачивать мышление и окружать себя сильными ребятами. Родители получают здесь понятную систему развития, а подростки — живую среду и понятный маршрут.",
-    },
-  ];
-
-  if (!user) {
-    return (
-      <div className="page">
-        <div className="card">
-          <p>Сначала войди или зарегистрируйся.</p>
-          <Link to="/auth" className="primary">Перейти к авторизации</Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="page">
-      <div className="grid profile-grid">
-        <div className="card">
-          <div className="avatar large">{user.name[0]}</div>
-          <div className="card-header">{user.name}</div>
-          <p className="meta">Email: {user.email}</p>
-          <p className="meta">Статус: {getStatusByPoints(gamification.totalPoints)}</p>
-        </div>
-        <GamificationSummary gamification={gamification} />
-        <div className="card">
-          <div className="card-header">Смена пароля</div>
-          <div className="form">
-            <label>
-              Новый пароль
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            </label>
-            <label>
-              Подтверждение пароля
-              <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
-            </label>
-            <button className="primary" onClick={submit}>Сохранить</button>
-            {message && <div className="success">{message}</div>}
-          </div>
-        </div>
-      </div>
-      <div className="card faq-card">
-        <div className="card-header">Помощь</div>
-        <div className="faq-list">
-          {faq.map((item, idx) => (
-            <details key={idx} className="faq-item" open={idx === 0}>
-              <summary>{item.q}</summary>
-              <p>{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const AuthPage = ({ onAuth }) => {
   const [tab, setTab] = useState("login");
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -847,10 +734,13 @@ const TestPage = ({ onComplete, completedMaterialIds }) => {
 
 function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem("ep_theme") || "light");
-  const [user, setUser] = useState(() => loadCurrentUser());
-  const [gamification, setGamification] = useState(() => loadGamification(loadCurrentUser()?.id));
-  const [trackData, setTrackData] = useState(() => loadTrack(loadCurrentUser()?.id));
-  const [progress, setProgress] = useState(() => loadProgress(loadCurrentUser()?.id));
+  const initialUser = loadCurrentUser();
+  const [user, setUser] = useState(() => initialUser);
+  const [gamification, setGamification] = useState(() => loadGamification(initialUser?.id));
+  const [trackData, setTrackData] = useState(() => loadTrack(initialUser?.id));
+  const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
+  const [streak, setStreak] = useState(() => loadStreak(initialUser?.id));
+  const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -863,10 +753,14 @@ function App() {
       setGamification(loadGamification(user.id));
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
+      setStreak(loadStreak(user.id));
+      setActivityLog(loadActivity(user.id));
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
+      setStreak(loadStreak(null));
+      setActivityLog(loadActivity(null));
     }
   }, [user]);
 
@@ -880,12 +774,17 @@ function App() {
 
   const addToasts = (messages) => messages.forEach((m) => addToast(m));
 
+  const pushActivity = (entry) => {
+    setActivityLog((prev) => addActivityEntry(user?.id, entry, prev));
+  };
+
   const completedMaterialIds = progress.completedMaterialIds || [];
 
   const handleFinishMaterial = (materialId, materialType) => {
     const alreadyCompleted = completedMaterialIds.includes(materialId);
     const updatedProgress = markMaterialCompleted(user?.id, materialId, progress);
     setProgress(updatedProgress);
+    const material = getMaterialById(materialId);
     if (alreadyCompleted) {
       addToast("Материал уже отмечен как завершён");
       return;
@@ -893,16 +792,23 @@ function App() {
     if (!user) {
       addToast("Войдите, чтобы получить очки за материалы");
     } else {
+      const previousAchievements = gamification.achievements || [];
       const res = awardForMaterial(user.id, gamification);
       setGamification(res.gamification);
       addToasts(res.messages);
+      const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
+      newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
     }
+    const updatedStreak = updateStreakOnActivity(user?.id, streak);
+    setStreak(updatedStreak);
+    pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
   };
 
   const handleFinishTest = ({ testId }) => {
     const alreadyCompleted = completedMaterialIds.includes(testId);
     const updatedProgress = markMaterialCompleted(user?.id, testId, progress);
     setProgress(updatedProgress);
+    const test = tests.find((t) => t.id === testId);
     if (alreadyCompleted) {
       addToast("Тест уже закрыт, но можно освежить знания");
       return;
@@ -910,10 +816,16 @@ function App() {
     if (!user) {
       addToast("Войдите, чтобы получить очки за тест");
     } else {
+      const previousAchievements = gamification.achievements || [];
       const res = awardForTest(user.id, gamification);
       setGamification(res.gamification);
       addToasts(res.messages);
+      const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
+      newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
     }
+    const updatedStreak = updateStreakOnActivity(user?.id, streak);
+    setStreak(updatedStreak);
+    pushActivity({ title: `Пройден тест «${test?.title || "Тест"}»`, type: "тест" });
   };
 
   const handleAuth = (usr) => {
@@ -921,21 +833,21 @@ function App() {
     setGamification(loadGamification(usr.id));
     setTrackData(loadTrack(usr.id));
     setProgress(loadProgress(usr.id));
+    setStreak(loadStreak(usr.id));
+    setActivityLog(loadActivity(usr.id));
   };
 
   const handleLogout = () => {
+    const currentId = user?.id;
     logoutUser();
+    resetStreak(currentId);
+    clearActivity(currentId);
     setUser(null);
     setGamification({ ...defaultGamification });
     setTrackData(loadTrack(null));
     setProgress(loadProgress(null));
-  };
-
-  const handlePasswordChange = (password) => {
-    if (user) {
-      const updated = updatePassword(user.id, password);
-      if (updated) setUser(updated);
-    }
+    setStreak(loadStreak(null));
+    setActivityLog(loadActivity(null));
   };
 
   const community = useMemo(() => {
@@ -1000,7 +912,20 @@ function App() {
           />
           <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
           <Route path="/community" element={<CommunityPage community={community} />} />
-          <Route path="/profile" element={<ProfilePage user={user} gamification={gamification} onPasswordChange={handlePasswordChange} />} />
+          <Route
+            path="/profile"
+            element={
+              <ProfileDashboard
+                user={user}
+                gamification={gamification}
+                progress={progress}
+                streak={streak}
+                trackData={trackData}
+                activityLog={activityLog}
+                community={community}
+              />
+            }
+          />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
