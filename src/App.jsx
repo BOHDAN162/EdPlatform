@@ -12,6 +12,8 @@ import { articles, communityMembers, courses, tests, themes, getMaterialByType }
 import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
 import DevelopmentTrackPage from "./DevelopmentTrackPage";
 import { clearTrack, loadTrack, markStepCompleted, saveTrack } from "./trackStorage";
+import LandingSection from "./LandingSection";
+import MascotIllustration from "./MascotIllustration";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -112,6 +114,65 @@ const GamificationSummary = ({ gamification }) => {
   );
 };
 
+const DeviceMock = ({ title, items }) => (
+  <div className="device-mock">
+    <div className="device-top">
+      <span className="device-dot" />
+      <span className="device-dot" />
+      <span className="device-dot" />
+    </div>
+    <div className="device-body">
+      <div className="device-title">{title}</div>
+      <div className="device-items">
+        {items.map((item, idx) => (
+          <div key={idx} className="device-item">
+            <div className="device-pill" />
+            <div className="device-line" style={{ width: `${70 - idx * 8}%` }} />
+            <div className="device-label-line">{item}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+const BadgeOrbit = () => (
+  <div className="badge-orbit">
+    <div className="badge bubble">Очки +120</div>
+    <div className="badge bubble">Новый статус</div>
+    <div className="badge bubble">Серия 7 дней</div>
+    <div className="badge bubble">Тест закрыт</div>
+  </div>
+);
+
+const TrackPreview = () => (
+  <div className="track-preview">
+    {["Осознание", "Финансы", "Проект", "Комьюнити"].map((label, idx) => (
+      <div key={label} className={`track-chip ${idx === 0 ? "active" : ""}`}>
+        <span className="track-index">{idx + 1}</span>
+        <div>
+          <div className="track-label">{label}</div>
+          <div className="track-sub">Шаг {idx + 1}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const CommunityOrbit = () => (
+  <div className="community-orbit">
+    {["Алия", "Рома", "Милена", "Тимур"].map((name, idx) => (
+      <div key={name} className={`orbit-card orbit-${idx}`}>
+        <div className="avatar bubble">{name[0]}</div>
+        <div className="orbit-meta">{name}</div>
+      </div>
+    ))}
+    <div className="orbit-core">Живые созвоны
+      <span className="orbit-chip">каждую неделю</span>
+    </div>
+  </div>
+);
+
 const HomePage = ({ user, navigate, community, gamification }) => {
   const top = [...community].sort((a, b) => b.points - a.points).slice(0, 3);
   return (
@@ -184,6 +245,120 @@ const HomePage = ({ user, navigate, community, gamification }) => {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="landing-flow">
+        <LandingSection
+          kicker="Почему NOESIS"
+          title="Платформа роста для подростков и детей предпринимателей"
+          subtitle="Мы не просто даём уроки. Мы собираем твой маршрут, мотивируем наградами и создаём среду, где хочется двигаться вперёд."
+          bullets={[
+            "Личный трек под твои цели",
+            "Геймификация и награды за активность",
+            "Фокус на мышлении, деньгах, проектах",
+            "Комьюнити, которое поддержит и не даст слиться",
+          ]}
+          childrenIllustration={<MascotIllustration />}
+        />
+
+        <LandingSection
+          kicker="Личный маршрут"
+          title="Твой трек развития"
+          subtitle="Ответь на вопросы, получи профиль и двигайся по понятной цепочке шагов: курсы, статьи, тесты и челленджи."
+          bullets={[
+            "Фокус и ясные приоритеты",
+            "План по 5 направлениям: мышление, деньги, коммуникации, лидерство, эффективность",
+            "Видимый прогресс и чекпоинты",
+            "Мотивация за закрытие каждого шага",
+          ]}
+          reverse
+          childrenIllustration={<TrackPreview />}
+        />
+
+        <LandingSection
+          kicker="Геймификация"
+          title="Очки, статусы и достижения"
+          subtitle="Получай баллы за действия, открывай уровни и собирай коллекцию достижений. Видно, как ты растёшь."
+          bullets={[
+            "Баллы за материалы, тесты и челленджи",
+            "Статусы за серию дней и общее количество очков",
+            "Челленджи с друзьями и группами",
+            "Вся статистика в профиле без лишних кликов",
+          ]}
+          childrenIllustration={<BadgeOrbit />}
+        />
+
+        <LandingSection
+          kicker="Библиотека"
+          title="Курсы, статьи и тесты в одном месте"
+          subtitle="Подборка материалов по пяти темам: предпринимательское мышление, деньги, коммуникации, лидерство и эффективность."
+          bullets={[
+            "Курсы по запуску проектов и управлению ресурсами",
+            "Статьи и лонгриды, которые можно пройти на бегу",
+            "Тесты после каждого блока, чтобы закрепить знания",
+            "Новые материалы каждую неделю",
+          ]}
+          reverse
+          childrenIllustration={
+            <DeviceMock
+              title="Библиотека NOESIS"
+              items={["Курс", "Статья", "Тест", "Разбор"]}
+            />
+          }
+        />
+
+        <LandingSection
+          kicker="Для кого"
+          title="13–20 лет: ребята, которые хотят большего"
+          subtitle="Подходит подросткам и детям предпринимателей. Родители получают систему развития, подростки — живую среду и понятный маршрут."
+          bullets={[
+            "Гибкие форматы под занятый график",
+            "Общение с наставниками и сверстниками",
+            "Практика на реальных мини-проектах",
+            "Прозрачные отчёты для родителей",
+          ]}
+          childrenIllustration={<CommunityOrbit />}
+        />
+
+        <LandingSection
+          kicker="Как это работает"
+          title="4 шага до результатов"
+          subtitle="Первые шаги занимают меньше 10 минут. Дальше — движение по треку с понятными точками роста."
+          bullets={[
+            "Ответить на вопросы и зафиксировать цели",
+            "Получить персональный трек",
+            "Проходить материалы и собирать награды",
+            "Видеть прогресс и праздновать уровни",
+          ]}
+          reverse
+          childrenIllustration={<DeviceMock title="Стартовый маршрут" items={["Опрос", "Трек", "Челлендж", "Статус"]} />}
+        />
+
+        <LandingSection
+          kicker="Среда"
+          title="Комьюнити, события и челленджи"
+          subtitle="Окружение активных ребят, живые созвоны, проектные спринты и дружеские соревнования."
+          bullets={[
+            "Чат и встречи по темам",
+            "Совместные челленджи на неделю",
+            "Поддержка наставников и комьюнити-менеджеров",
+            "Видно, кто рядом и кто помогает",
+          ]}
+          childrenIllustration={<MascotIllustration mood="joy" />}
+        />
+
+        <LandingSection
+          kicker="Призыв"
+          title="Готов начать путь в NOESIS?"
+          subtitle="Собери свой трек, получи первые очки и познакомься с комьюнити."
+          reverse
+          childrenIllustration={<BadgeOrbit />}
+        >
+          <div className="cta-actions">
+            <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
+            <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
+          </div>
+        </LandingSection>
       </div>
     </div>
   );
