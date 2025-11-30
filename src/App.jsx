@@ -11,6 +11,7 @@ import {
 import { communityMembers, tests } from "./data";
 import { learningPaths, materialThemes, materials, getMaterialById, themeLabels } from "./libraryData";
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
+import { loadActivity, registerActivity } from "./activity";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser, updatePassword } from "./auth";
@@ -18,6 +19,7 @@ import DevelopmentTrackPage from "./DevelopmentTrackPage";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
+import Dashboard from "./Dashboard";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -34,17 +36,25 @@ const Toast = ({ messages }) => {
 
 const Header = ({ user, onLogout, theme, toggleTheme }) => {
   const [open, setOpen] = useState(false);
-  const links = [
-    { to: "/", label: "Главная" },
-    { to: "/library", label: "Библиотека" },
-    { to: "/community", label: "Сообщество" },
-    { to: "/track", label: "Трек" },
-    { to: "/profile", label: "Профиль" },
-  ];
+  const links = user
+    ? [
+        { to: "/dashboard", label: "Домой" },
+        { to: "/library", label: "Библиотека" },
+        { to: "/community", label: "Сообщество" },
+        { to: "/track", label: "Трек" },
+        { to: "/profile", label: "Профиль" },
+      ]
+    : [
+        { to: "/", label: "Главная" },
+        { to: "/library", label: "Библиотека" },
+        { to: "/community", label: "Сообщество" },
+        { to: "/track", label: "Трек" },
+        { to: "/profile", label: "Профиль" },
+      ];
 
   return (
     <header className="header">
-      <div className="logo">NOESIS</div>
+      <Link to={user ? "/dashboard" : "/"} className="logo">NOESIS</Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -671,7 +681,7 @@ const AuthPage = ({ onAuth }) => {
         return;
       }
       onAuth(res.user);
-      navigate("/profile");
+      navigate("/dashboard");
       return;
     }
     const res = loginUser({ email: form.email.trim(), password: form.password });
@@ -680,7 +690,7 @@ const AuthPage = ({ onAuth }) => {
       return;
     }
     onAuth(res.user);
-    navigate("/profile");
+    navigate("/dashboard");
   };
 
   return (
@@ -851,6 +861,7 @@ function App() {
   const [gamification, setGamification] = useState(() => loadGamification(loadCurrentUser()?.id));
   const [trackData, setTrackData] = useState(() => loadTrack(loadCurrentUser()?.id));
   const [progress, setProgress] = useState(() => loadProgress(loadCurrentUser()?.id));
+  const [activity, setActivity] = useState(() => loadActivity(loadCurrentUser()?.id));
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -863,10 +874,12 @@ function App() {
       setGamification(loadGamification(user.id));
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
+      setActivity(loadActivity(user.id));
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
+      setActivity(loadActivity(null));
     }
   }, [user]);
 
@@ -879,6 +892,11 @@ function App() {
   };
 
   const addToasts = (messages) => messages.forEach((m) => addToast(m));
+
+  const recordActivity = (event) => {
+    const updated = registerActivity(user?.id, event);
+    setActivity(updated);
+  };
 
   const completedMaterialIds = progress.completedMaterialIds || [];
 
@@ -897,6 +915,13 @@ function App() {
       setGamification(res.gamification);
       addToasts(res.messages);
     }
+    const material = getMaterialById(materialId);
+    recordActivity({
+      type: "material",
+      text: `Закрыл материал «${material?.title || "Материал"}»`,
+      materialId,
+      materialType,
+    });
   };
 
   const handleFinishTest = ({ testId }) => {
@@ -914,6 +939,8 @@ function App() {
       setGamification(res.gamification);
       addToasts(res.messages);
     }
+    const test = tests.find((t) => t.id === testId);
+    recordActivity({ type: "test", text: `Пройден тест «${test?.title || "Тест"}»`, materialId: testId });
   };
 
   const handleAuth = (usr) => {
@@ -921,6 +948,7 @@ function App() {
     setGamification(loadGamification(usr.id));
     setTrackData(loadTrack(usr.id));
     setProgress(loadProgress(usr.id));
+    setActivity(loadActivity(usr.id));
   };
 
   const handleLogout = () => {
@@ -929,6 +957,7 @@ function App() {
     setGamification({ ...defaultGamification });
     setTrackData(loadTrack(null));
     setProgress(loadProgress(null));
+    setActivity(loadActivity(null));
   };
 
   const handlePasswordChange = (password) => {
@@ -966,12 +995,14 @@ function App() {
     const saved = saveTrack(user?.id, payload);
     setTrackData(saved);
     addToast("Трек сохранён");
+    recordActivity({ type: "track", text: "Собрал новый личный трек" });
   };
 
   const handleTrackReset = () => {
     clearTrack(user?.id);
     setTrackData(null);
     addToast("Трек сброшен");
+    recordActivity({ type: "track", text: "Сбросил трек" });
   };
 
   const Layout = ({ children }) => (
@@ -984,6 +1015,9 @@ function App() {
 
   const HomeRoute = () => {
     const navigate = useNavigate();
+    useEffect(() => {
+      if (user) navigate("/dashboard");
+    }, [user, navigate]);
     return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} />;
   };
 
@@ -992,6 +1026,20 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard
+                user={user}
+                trackData={trackData}
+                  progress={progress}
+                  gamification={gamification}
+                  community={community}
+                  activity={activity}
+                  onVisit={recordActivity}
+                />
+              }
+            />
           <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
