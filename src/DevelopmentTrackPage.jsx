@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const profiles = {
   founder: {
@@ -25,7 +25,6 @@ const profiles = {
   },
 };
 
-// Каждая опция даёт очки одному или нескольким профилям. Итоговый профиль — тот, у кого сумма баллов выше всего.
 const questions = [
   {
     id: "motivation",
@@ -119,38 +118,117 @@ const questions = [
   },
 ];
 
-const trackRecommendations = {
+const profileTracks = {
   founder: [
-    "article-risk",
-    "article-marketing",
-    "article-sales",
-    "article-service",
-    "article-productivity",
-    "article-team",
+    { materialType: "course", materialId: "course-entrepreneur-basic" },
+    { materialType: "article", materialId: "article-entrepreneur-mind" },
+    { materialType: "test", materialId: "test-entrepreneur-thinking" },
+    { materialType: "course", materialId: "course-30-days" },
+    { materialType: "article", materialId: "article-risk" },
+    { materialType: "course", materialId: "course-sales" },
+    { materialType: "article", materialId: "article-marketing" },
+    { materialType: "test", materialId: "test-communication" },
+    { materialType: "article", materialId: "article-service" },
+    { materialType: "test", materialId: "test-brand" },
   ],
   strategist: [
-    "article-finance",
-    "article-productivity",
-    "article-marketing",
-    "article-risk",
-    "article-entrepreneur-mind",
-    "article-service",
+    { materialType: "course", materialId: "course-finance" },
+    { materialType: "test", materialId: "test-finance-basics" },
+    { materialType: "article", materialId: "article-productivity" },
+    { materialType: "article", materialId: "article-risk" },
+    { materialType: "course", materialId: "course-mindset" },
+    { materialType: "article", materialId: "article-entrepreneur-mind" },
+    { materialType: "course", materialId: "course-soft-skills" },
+    { materialType: "test", materialId: "test-creativity" },
+    { materialType: "course", materialId: "course-business-games" },
+    { materialType: "article", materialId: "article-service" },
   ],
   leader: [
-    "article-ei",
-    "article-team",
-    "article-networking",
-    "article-brand",
-    "article-sales",
-    "article-service",
+    { materialType: "course", materialId: "course-leadership" },
+    { materialType: "article", materialId: "article-team" },
+    { materialType: "test", materialId: "test-leadership" },
+    { materialType: "article", materialId: "article-ei" },
+    { materialType: "course", materialId: "course-presentations" },
+    { materialType: "test", materialId: "test-communication" },
+    { materialType: "article", materialId: "article-networking" },
+    { materialType: "course", materialId: "course-mindfulness" },
+    { materialType: "test", materialId: "test-ethics" },
+    { materialType: "article", materialId: "article-brand" },
   ],
 };
 
-const DevelopmentTrackPage = ({ materials = [], onSaveTrack }) => {
+const StrategyTimeline = ({ steps, completedStepIds, onReset }) => {
+  const completed = new Set(completedStepIds || []);
+  return (
+    <div className="timeline-card">
+      <div className="timeline-header">
+        <div>
+          <div className="card-header">Твоя стратегия на ближайшее время</div>
+          <p className="meta">Выполнено {completed.size} из {steps.length} шагов</p>
+        </div>
+        {onReset && (
+          <button className="ghost" onClick={onReset}>
+            Сбросить трек и пройти опрос заново
+          </button>
+        )}
+      </div>
+      <div className="timeline">
+        {steps.map((step, idx) => {
+          const done = completed.has(step.id);
+          return (
+            <div key={step.id} className={`timeline-step ${done ? "done" : ""}`}>
+              <Link
+                to={step.materialType === "test" ? `/tests/${step.materialId}` : `/library/${step.materialType}/${step.materialId}`}
+                className="timeline-circle"
+              >
+                {done ? "✓" : idx + 1}
+              </Link>
+              <div className="timeline-label">
+                <div className="small-meta">{step.materialType === "course" ? "Курс" : step.materialType === "article" ? "Статья" : "Тест"}</div>
+                <div className="timeline-title">{step.title}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const buildTrack = (profileKey, libraryIndex) => {
+  const trackScheme = profileTracks[profileKey] || [];
+  const steps = trackScheme.map((entry, idx) => {
+    const material = libraryIndex[entry.materialType][entry.materialId];
+    return {
+      id: `${profileKey}-${idx + 1}`,
+      order: idx + 1,
+      materialId: entry.materialId,
+      materialType: entry.materialType,
+      title: material?.title || "Материал",
+    };
+  });
+  return steps;
+};
+
+const DevelopmentTrackPage = ({ library, userId, savedTrack, onTrackSave, onTrackReset }) => {
   const [answers, setAnswers] = useState({});
-  const [result, setResult] = useState(null);
+  const [currentTrack, setCurrentTrack] = useState(savedTrack);
 
   const allAnswered = questions.every((q) => answers[q.id] !== undefined);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setCurrentTrack(savedTrack);
+  }, [savedTrack]);
+
+  const libraryIndex = useMemo(
+    () => ({
+      course: Object.fromEntries(library.courses.map((c) => [c.id, c])),
+      article: Object.fromEntries(library.articles.map((a) => [a.id, a])),
+      test: Object.fromEntries(library.tests.map((t) => [t.id, t])),
+    }),
+    [library]
+  );
 
   const handleSubmit = () => {
     if (!allAnswered) return;
@@ -159,28 +237,26 @@ const DevelopmentTrackPage = ({ materials = [], onSaveTrack }) => {
     questions.forEach((q) => {
       const optionIndex = answers[q.id];
       const option = q.options[optionIndex];
-      // Каждая опция хранит очки, которые добавляются выбранным профилям.
       Object.entries(option.scores).forEach(([profileKey, points]) => {
         totals[profileKey] += points;
       });
     });
 
-    const winner = Object.keys(totals).reduce((best, current) =>
-      totals[current] > totals[best] ? current : best
-    , "founder");
-
-    const computed = { key: winner, totals, profile: profiles[winner] };
-    setResult(computed);
-    if (onSaveTrack) onSaveTrack(profiles[winner].title);
+    const winner = Object.keys(totals).reduce((best, current) => (totals[current] > totals[best] ? current : best), "founder");
+    const steps = buildTrack(winner, libraryIndex);
+    const payload = {
+      profileKey: winner,
+      profileType: profiles[winner].title,
+      description: profiles[winner].description,
+      growth: profiles[winner].growth,
+      generatedTrack: steps,
+      completedStepIds: [],
+    };
+    setCurrentTrack(payload);
+    onTrackSave?.(payload);
   };
 
-  const recommendedMaterials = useMemo(() => {
-    if (!result) return [];
-    const ids = trackRecommendations[result.key] || [];
-    return ids
-      .map((id) => materials.find((m) => m.id === id))
-      .filter(Boolean);
-  }, [materials, result]);
+  const profileTitle = currentTrack ? profiles[currentTrack.profileKey]?.title || currentTrack.profileType : null;
 
   return (
     <div className="page">
@@ -188,67 +264,62 @@ const DevelopmentTrackPage = ({ materials = [], onSaveTrack }) => {
         <div>
           <h1>Личный трек развития</h1>
           <p>
-            Этот трек помогает подросткам-предпринимателям понять свои сильные стороны, зоны роста и получить
-            понятный маршрут по материалам библиотеки.
+            Этот трек помогает подросткам-предпринимателям понять свои сильные стороны, зоны роста и получить понятный маршрут по материалам библиотеки.
           </p>
           <p>
-            Ответь на вопросы ниже, чтобы получить профиль и подборку шагов. Результат останется на странице и поможет
-            вернуться к материалам в нужном порядке.
+            Ответь на вопросы ниже, чтобы получить профиль и подборку шагов. Результат останется на странице и поможет вернуться к материалам в нужном порядке.
           </p>
         </div>
-        <Link to="/" className="ghost">На главную</Link>
+        <Link to="/" className="ghost">
+          На главную
+        </Link>
       </div>
 
-      <div className="card">
-        <div className="card-header">Ответь на 10 вопросов</div>
-        <div className="test-grid">
-          {questions.map((q, idx) => (
-            <div key={q.id} className="question">
-              <div className="q-title">{idx + 1}. {q.text}</div>
-              <div className="options">
-                {q.options.map((opt, oi) => (
-                  <label
-                    key={oi}
-                    className={`option ${answers[q.id] === oi ? "selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name={q.id}
-                      onChange={() => setAnswers({ ...answers, [q.id]: oi })}
-                    />
-                    {opt.text}
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <button className="primary" onClick={handleSubmit} disabled={!allAnswered}>
-          Сформировать мой трек развития
-        </button>
-        {!allAnswered && <p className="meta">Заполни все ответы, чтобы кнопка стала активной.</p>}
-      </div>
-
-      {result && (
-        <div className="grid cards">
-          <div className="card">
-            <div className="card-header">Ты сейчас ближе всего к профилю: {result.profile.title}</div>
-            <p>{result.profile.description}</p>
-            <p>{result.profile.growth}</p>
-          </div>
-          <div className="card">
-            <div className="card-header">Твой трек развития</div>
-            {recommendedMaterials.length === 0 && <p>Материалы скоро появятся.</p>}
-            <div className="grid cards">
-              {recommendedMaterials.map((item, idx) => (
-                <div className="card" key={item.id}>
-                  <div className="meta">Шаг {idx + 1}</div>
-                  <div className="card-header">{item.title}</div>
-                  <p className="desc">{item.description}</p>
-                  <Link to={`/lesson/${item.id}`} className="primary outline">Читать</Link>
+      {!currentTrack && (
+        <div className="card">
+          <div className="card-header">Ответь на 10 вопросов</div>
+          <div className="test-grid">
+            {questions.map((q, idx) => (
+              <div key={q.id} className="question">
+                <div className="q-title">
+                  {idx + 1}. {q.text}
                 </div>
-              ))}
-            </div>
+                <div className="options">
+                  {q.options.map((opt, oi) => (
+                    <label key={oi} className={`option ${answers[q.id] === oi ? "selected" : ""}`}>
+                      <input type="radio" name={q.id} onChange={() => setAnswers({ ...answers, [q.id]: oi })} />
+                      {opt.text}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="primary" onClick={handleSubmit} disabled={!allAnswered}>
+            Сформировать мой трек развития
+          </button>
+          {!allAnswered && <p className="meta">Заполни все ответы, чтобы кнопка стала активной.</p>}
+        </div>
+      )}
+
+      {currentTrack && (
+        <div className="card result-card">
+          <div className="card-header">Поздравляем! Твой личный трек развития готов.</div>
+          <p className="meta">Ты сейчас ближе всего к профилю: {profileTitle}.</p>
+          <p>{currentTrack.description}</p>
+          <p>{currentTrack.growth}</p>
+          <StrategyTimeline
+            steps={currentTrack.generatedTrack}
+            completedStepIds={currentTrack.completedStepIds}
+            onReset={() => {
+              setAnswers({});
+              setCurrentTrack(null);
+              onTrackReset?.();
+            }}
+          />
+          <div className="actions">
+            <button className="primary" onClick={() => navigate("/library")}>Перейти к материалам</button>
+            <button className="ghost" onClick={() => navigate("/profile")}>В профиль</button>
           </div>
         </div>
       )}
