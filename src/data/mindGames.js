@@ -5,6 +5,7 @@ export const mindGames = [
     description: "Мини-игра на логику и внимание",
     type: "logic",
     xpRewardBase: 80,
+    quickInfo: "10–15 вопросов • 5–10 минут",
     questions: [
       {
         id: "logic-1",
@@ -90,6 +91,7 @@ export const mindGames = [
     description: "Примеры из денег и финансовых решений",
     type: "finance",
     xpRewardBase: 90,
+    quickInfo: "8–12 сценариев • 5–10 минут",
     questions: [
       {
         id: "fin-1",
