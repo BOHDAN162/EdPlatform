@@ -161,12 +161,32 @@ const StrategyTimeline = ({ steps, completedStepIds, completedMaterialIds = [], 
   const completed = new Set(completedStepIds || []);
   const materialCompleted = new Set(completedMaterialIds || []);
   const doneCount = steps.filter((step) => completed.has(step.id) || materialCompleted.has(step.materialId)).length;
+  const midIndex = Math.ceil(steps.length / 2);
+  const topRow = steps.slice(0, midIndex);
+  const bottomRow = steps.slice(midIndex);
+
+  const renderStep = (step, idx) => {
+    const done = completed.has(step.id) || materialCompleted.has(step.materialId);
+    const active = !done && idx === doneCount;
+    const shortTitle = step.title?.length > 28 ? `${step.title.slice(0, 26)}…` : step.title;
+    return (
+      <Link
+        key={step.id}
+        to={`/material/${step.materialId}`}
+        className={`timeline-node ${done ? "done" : ""} ${active ? "active" : ""}`}
+      >
+        <span className="node-index">{done ? "✓" : `Этап ${idx + 1}`}</span>
+        <span className="node-title">{shortTitle}</span>
+      </Link>
+    );
+  };
+
   return (
     <div className="timeline-card">
       <div className="timeline-header">
         <div>
-          <div className="card-header">Твоя стратегия на ближайшее время</div>
-          <p className="meta">Выполнено {doneCount} из {steps.length} шагов</p>
+          <div className="card-header">Личный трек развития</div>
+          <p className="meta">Твой путь из {steps.length} шагов — от старта до первых результатов</p>
         </div>
         {onReset && (
           <button className="ghost" onClick={onReset}>
@@ -174,25 +194,22 @@ const StrategyTimeline = ({ steps, completedStepIds, completedMaterialIds = [], 
           </button>
         )}
       </div>
-      <div className="timeline">
-        {steps.map((step, idx) => {
-          const done = completed.has(step.id) || materialCompleted.has(step.materialId);
-          return (
-            <div key={step.id} className={`timeline-step ${done ? "done" : ""}`}>
-              <Link
-                to={`/material/${step.materialId}`}
-                className="timeline-circle"
-              >
-                {done ? "✓" : idx + 1}
-              </Link>
-              <div className="timeline-label">
-                <div className="small-meta">{step.materialType === "course" ? "Курс" : step.materialType === "article" ? "Статья" : "Тест"}</div>
-                <div className="timeline-title">{step.title}</div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="timeline-grid">
+        <div className="timeline-row">
+          {topRow.map((step, idx) => renderStep(step, idx))}
+        </div>
+        {bottomRow.length > 0 && (
+          <div className="timeline-connector">
+            <div className="down-connector" />
+          </div>
+        )}
+        {bottomRow.length > 0 && (
+          <div className="timeline-row">
+            {bottomRow.map((step, idx) => renderStep(step, idx + topRow.length))}
+          </div>
+        )}
       </div>
+      <p className="meta">Выполнено {doneCount} из {steps.length} шагов</p>
     </div>
   );
 };
