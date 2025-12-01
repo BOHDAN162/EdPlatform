@@ -11,8 +11,7 @@ const TrackSummaryBar = ({ track, completedMaterialIds = [] }) => {
 
   const goToMaterial = (step) => {
     if (!step) return;
-    const type = step.materialType || "article";
-    navigate(type === "test" ? `/tests/${step.materialId}` : `/library/${type}/${step.materialId}`);
+    navigate(`/material/${step.materialId}`);
   };
 
   return (

@@ -50,6 +50,60 @@ const baseEstimatedTime = (type) => {
   return "7–10 минут";
 };
 
+const contentEnhancements = {
+  "article-productivity": {
+    contentBlocks: [
+      { type: "heading", text: "Что тормозит фокус" },
+      {
+        type: "paragraph",
+        text: "Главный враг концентрации — смешивание важных задач с уведомлениями. Обрежь шум, чтобы мозгу было легче собирать энергию.",
+      },
+      { type: "highlight", text: "20 минут без отвлечений лучше, чем час в многозадачности." },
+      { type: "callout", text: "Перед стартом сессии отключи уведомления и договорись с собой о времени фокуса." },
+    ],
+    inlineQuiz: {
+      questions: [
+        {
+          id: "focus-1",
+          question: "Что помогает удерживать фокус?",
+          options: [
+            { id: "focus-1-0", label: "Часто переключаться" },
+            { id: "focus-1-1", label: "Отключить уведомления" },
+            { id: "focus-1-2", label: "Делать всё одновременно" },
+          ],
+          correctOptionId: "focus-1-1",
+        },
+        {
+          id: "focus-2",
+          question: "Как закрепить привычку работать блоками?",
+          options: [
+            { id: "focus-2-0", label: "Менять задачи каждые 2 минуты" },
+            { id: "focus-2-1", label: "Договориться о короткой сессии" },
+            { id: "focus-2-2", label: "Ничего не планировать" },
+          ],
+          correctOptionId: "focus-2-1",
+        },
+      ],
+    },
+  },
+  "article-finance": {
+    contentBlocks: [
+      { type: "heading", text: "Деньги как ресурс" },
+      { type: "paragraph", text: "У денег есть задача: поддерживать твои цели, а не исчезать без следа." },
+      { type: "highlight", text: "Бюджет — карта, которая показывает, где ты сейчас и куда идёшь." },
+      { type: "callout", text: "Раздели траты на обязательные, желаемые и инвестиции в себя." },
+    ],
+  },
+  "course-sales": {
+    contentBlocks: [
+      { type: "heading", text: "Почему продажи — это сервис" },
+      { type: "paragraph", text: "Продажи — это поиск совпадения ценности и нужды человека." },
+      { type: "quote", text: "Сначала слушай, потом предлагай." },
+      { type: "callout", text: "Собери 3 вопроса, которые задашь первому собеседнику." },
+    ],
+  },
+};
+
 export const materials = [
   ...courses.map((course) => ({
     ...course,
@@ -72,7 +126,7 @@ export const materials = [
     estimatedTime: baseEstimatedTime("test"),
     level: "базовый",
   })),
-];
+].map((material) => ({ ...material, ...(contentEnhancements[material.id] || {}) }));
 
 export const materialIndex = Object.fromEntries(materials.map((m) => [m.id, m]));
 

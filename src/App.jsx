@@ -4,6 +4,8 @@ import {
   awardForCommunityAction,
   awardForMaterial,
   awardForTest,
+  awardForInlineQuiz,
+  awardForMission,
   defaultGamification,
   getStatusByPoints,
   getLevelFromPoints,
@@ -20,11 +22,21 @@ import TrackSummaryBar from "./components/TrackSummaryBar";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import TrackQuizPage from "./TrackQuizPage";
 import { loadTrack, saveTrack } from "./trackStorage";
+import {
+  loadMissionsState,
+  saveMissionsState,
+  setMissionNotes,
+  setMissionStatus,
+  toggleMissionStep,
+  getMissionById,
+} from "./missionsData";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
 import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 import CommunityPage from "./community/CommunityPage";
+import MaterialPage from "./MaterialPage";
+import MissionsPage from "./MissionsPage";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -44,6 +56,7 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
   const links = [
     { to: "/", label: "Главная" },
     { to: "/library", label: "Библиотека" },
+    { to: "/missions", label: "Миссии" },
     { to: "/community", label: "Сообщество" },
     { to: "/profile", label: "Профиль" },
   ];
@@ -451,7 +464,7 @@ const LearningPathPage = ({ completedMaterialIds }) => {
   const goToMaterial = (materialId) => {
     const target = getMaterialById(materialId);
     if (!target) return;
-    navigate(target.type === "test" ? `/tests/${target.id}` : `/library/${target.type}/${target.id}`);
+    navigate(`/material/${target.id}`);
   };
 
   const ratio = progress.totalCount ? Math.round((progress.completedCount / progress.totalCount) * 100) : 0;
@@ -815,6 +828,7 @@ function App() {
   const [trackData, setTrackData] = useState(() => loadTrack(initialUser?.id));
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
+  const [missionsState, setMissionsState] = useState(() => loadMissionsState(initialUser?.id));
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -828,11 +842,13 @@ function App() {
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
       setActivityLog(loadActivity(user.id));
+      setMissionsState(loadMissionsState(user.id));
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
       setActivityLog(loadActivity(null));
+      setMissionsState(loadMissionsState(null));
     }
   }, [user]);
 
@@ -863,6 +879,29 @@ function App() {
   };
 
   const completedMaterialIds = progress.completedMaterialIds || [];
+  const updateMissionState = (action) => {
+    setMissionsState((prev) => {
+      const base = prev || loadMissionsState(user?.id);
+      let next = base;
+      if (action.type === "status") {
+        const previousStatus = base?.missions?.[action.missionId]?.status;
+        next = setMissionStatus(base, action.missionId, action.status);
+        if (action.status === "completed" && previousStatus !== "completed") {
+          pushActivity({ title: `Завершена миссия «${getMissionById(action.missionId)?.title || "Миссия"}»`, type: "миссия" });
+          if (user) {
+            const previousAchievements = gamification.achievements || [];
+            const res = awardForMission(user.id, gamification, action.reward || undefined);
+            applyGamificationResult(res, previousAchievements);
+          }
+        }
+      } else if (action.type === "toggleStep") {
+        next = toggleMissionStep(base, action.missionId, action.stepId);
+      } else if (action.type === "notes") {
+        next = setMissionNotes(base, action.missionId, action.text);
+      }
+      return saveMissionsState(user?.id, next);
+    });
+  };
 
   const handleFinishMaterial = (materialId, materialType) => {
     const alreadyCompleted = completedMaterialIds.includes(materialId);
@@ -881,6 +920,18 @@ function App() {
       applyGamificationResult(res, previousAchievements);
     }
     pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
+  };
+
+  const handleInlineQuizComplete = (materialId, reward) => {
+    if (!user) {
+      addToast("Войдите, чтобы получить XP за проверку себя");
+      return;
+    }
+    const previousAchievements = gamification.achievements || [];
+    const res = awardForInlineQuiz(user.id, gamification, reward || undefined);
+    applyGamificationResult(res, previousAchievements);
+    const material = getMaterialById(materialId);
+    pushActivity({ title: `Мини-тест по «${material?.title || "материалу"}»`, type: "квиз" });
   };
 
   const handleFinishTest = ({ testId }) => {
@@ -931,6 +982,7 @@ function App() {
     setTrackData(loadTrack(usr.id));
     setProgress(loadProgress(usr.id));
     setActivityLog(loadActivity(usr.id));
+    setMissionsState(loadMissionsState(usr.id));
   };
 
   const handleLogout = () => {
@@ -942,6 +994,7 @@ function App() {
     setTrackData(loadTrack(null));
     setProgress(loadProgress(null));
     setActivityLog(loadActivity(null));
+    setMissionsState(loadMissionsState(null));
   };
 
   const community = useMemo(() => {
@@ -998,9 +1051,45 @@ function App() {
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
             path="/library/:type/:id"
-            element={<MaterialDetailPage onComplete={handleFinishMaterial} completedMaterialIds={completedMaterialIds} />}
+            element={
+              <MaterialPage
+                user={user}
+                gamification={gamification}
+                progress={progress}
+                trackData={trackData}
+                onMaterialComplete={handleFinishMaterial}
+                onQuizComplete={handleInlineQuizComplete}
+              />
+            }
+          />
+          <Route
+            path="/material/:materialId"
+            element={
+              <MaterialPage
+                user={user}
+                gamification={gamification}
+                progress={progress}
+                trackData={trackData}
+                onMaterialComplete={handleFinishMaterial}
+                onQuizComplete={handleInlineQuizComplete}
+              />
+            }
           />
           <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
+          <Route
+            path="/missions"
+            element={
+              <MissionsPage
+                user={user}
+                gamification={gamification}
+                progress={progress}
+                trackData={trackData}
+                missionsState={missionsState}
+                onUpdateMissionState={updateMissionState}
+                onMissionCompleted={(mission) => addToast(`Миссия «${mission.title}» закрыта!`)}
+              />
+            }
+          />
           <Route
             path="/community"
             element={
@@ -1025,6 +1114,7 @@ function App() {
                 community={community}
                 theme={theme}
                 onToggleTheme={toggleTheme}
+                missionsState={missionsState}
               />
             }
           />

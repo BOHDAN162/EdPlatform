@@ -6,6 +6,8 @@ const extraLevelStep = 250;
 const XP_REWARDS = {
   materialCompleted: 20,
   testCompleted: 30,
+  inlineQuiz: 25,
+  missionCompleted: 80,
   communityAnswer: 10,
   communityBestAnswer: 50,
   dailyGoal: 40,
@@ -272,6 +274,8 @@ const applyDefaults = (gamification) => hydrate(gamification);
 const baseMessages = {
   material_completed: `+${XP_REWARDS.materialCompleted} XP за материал`,
   test_completed: `+${XP_REWARDS.testCompleted} XP за тест`,
+  inline_quiz: `+${XP_REWARDS.inlineQuiz} XP за проверку себя`,
+  mission_completed: `+${XP_REWARDS.missionCompleted} XP за миссию`,
   community_answer: `+${XP_REWARDS.communityAnswer} XP за помощь в сообществе`,
   community_best: `+${XP_REWARDS.communityBestAnswer} XP за лучший ответ`,
 };
@@ -339,5 +343,21 @@ export const awardForCommunityAction = (userId, current, action = {}) => {
     progress: { answers: 1, actions: 1 },
   });
 };
+
+export const awardForInlineQuiz = (userId, current, amount = XP_REWARDS.inlineQuiz) =>
+  applyGamificationEvent(userId, current, {
+    type: "inline_quiz",
+    amount,
+    progress: { actions: 1 },
+  });
+
+export const awardForMission = (userId, current, amount = XP_REWARDS.missionCompleted) =>
+  applyGamificationEvent(userId, current, {
+    type: "mission_completed",
+    amount,
+    progress: { actions: 1 },
+  });
+
+export const getXPRewards = () => XP_REWARDS;
 
 export const getXPConfig = () => XP_REWARDS;
