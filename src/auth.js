@@ -20,12 +20,13 @@ export const loadCurrentUser = () => load(CURRENT_KEY, null);
 export const saveCurrentUser = (user) => save(CURRENT_KEY, user);
 export const logoutUser = () => localStorage.removeItem(CURRENT_KEY);
 
-export const registerUser = ({ name, email, password }) => {
+export const registerUser = ({ firstName, lastName, age, email, password }) => {
   const users = loadUsers();
   if (users.some((u) => u.email === email)) {
     return { ok: false, error: "Такой email уже используется" };
   }
-  const newUser = { id: crypto.randomUUID(), name, email, password };
+  const name = `${firstName} ${lastName}`.trim();
+  const newUser = { id: crypto.randomUUID(), name, firstName, lastName, age, email, password };
   const updated = [...users, newUser];
   saveUsers(updated);
   saveCurrentUser(newUser);

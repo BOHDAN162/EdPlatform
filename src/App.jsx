@@ -50,7 +50,14 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
 
   return (
     <header className="header">
-      <div className="logo">NOESIS</div>
+      <NavLink
+        to="/"
+        end
+        className={({ isActive }) => `logo ${isActive ? "active" : ""}`}
+        onClick={() => setOpen(false)}
+      >
+        NOESIS
+      </NavLink>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -60,7 +67,7 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
             key={link.to}
             to={link.to}
             end={link.to === "/"}
-            className="nav-link"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             onClick={() => setOpen(false)}
           >
             {link.label}
@@ -188,6 +195,39 @@ const CommunityOrbit = () => (
 );
 
 const HomePage = ({ user, navigate, community, gamification }) => {
+  const quotes = useMemo(
+    () => [
+      { text: "Ответственность за жизнь начинается с твоих ежедневных решений.", author: "NOESIS" },
+      { text: "Ошибки — это топливо для роста, если ты извлекаешь уроки.", author: "NOESIS" },
+      { text: "Каждый день без действия — это день без прогресса.", author: "NOESIS" },
+      { text: "Храбрый шаг вперёд ценнее идеального плана в голове.", author: "NOESIS" },
+      { text: "Твоя команда начинается с людей, которые верят в твои идеи.", author: "NOESIS" },
+      { text: "Деньги любят тех, кто умеет считать и планировать.", author: "NOESIS" },
+      { text: "Сначала создай ценность, потом ищи признание.", author: "NOESIS" },
+      { text: "Настойчивость важнее таланта, когда речь о длинной дистанции.", author: "NOESIS" },
+      { text: "Не бойся задавать вопросы — ответы ускоряют путь.", author: "NOESIS" },
+      { text: "Сильное окружение держит тебя в тонусе, выбирай его осознанно.", author: "NOESIS" },
+      { text: "Каждый тест — это зеркало твоих пробелов и возможностей.", author: "NOESIS" },
+      { text: "Делай маленькие проекты, чтобы готовиться к большим.", author: "NOESIS" },
+      { text: "Твои навыки — самая надёжная инвестиция.", author: "NOESIS" },
+      { text: "Записывай идеи — они быстро улетают без действий.", author: "NOESIS" },
+      { text: "Учись презентовать мысли коротко и ясно.", author: "NOESIS" },
+      { text: "Слушать других — значит экономить время на своих ошибках.", author: "NOESIS" },
+      { text: "Стартуй, даже если страшно: действие рождает уверенность.", author: "NOESIS" },
+      { text: "Сравнивай себя только с тем, кем был вчера.", author: "NOESIS" },
+      { text: "План без календаря остаётся мечтой.", author: "NOESIS" },
+      { text: "Твой опыт — это сумма смелых попыток.", author: "NOESIS" },
+    ],
+    []
+  );
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => {
+      setQuoteIndex((idx) => (idx + 1) % quotes.length);
+    }, 30000);
+    return () => clearInterval(id);
+  }, [quotes.length]);
+  const currentQuote = quotes[quoteIndex];
   const top = [...community].sort((a, b) => b.points - a.points).slice(0, 3);
   return (
     <div className="page">
@@ -199,12 +239,12 @@ const HomePage = ({ user, navigate, community, gamification }) => {
             Квесты, контент, форматы, сообщество, игры мышления и персональный путь — все чтобы прокачать себя и становиться сильнее каждый день.
           </p>
           <div className="quote-panel">
-            <p className="quote-text">«Единственный способ сделать великую работу — любить то, что ты делаешь.»</p>
-            <p className="quote-author">— Стив Джобс</p>
+            <p className="quote-label">Совет дня</p>
+            <p className="quote-text">«{currentQuote.text}»</p>
+            <p className="quote-author">— {currentQuote.author}</p>
           </div>
           <div className="actions hero-actions">
             <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
-            <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
           </div>
           <div className="how-it-works">
             <div>
@@ -520,28 +560,67 @@ const LearningPathPage = ({ completedMaterialIds }) => {
 
 const AuthPage = ({ onAuth }) => {
   const [tab, setTab] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    age: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "", form: "" }));
+  };
+
+  const validateEmail = (email) => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(email);
+
   const handleSubmit = () => {
+    const nextErrors = {};
     if (tab === "register") {
-      if (!form.name || !form.email || !form.password) {
-        setError("Заполни все поля");
+      if (!form.firstName.trim()) nextErrors.firstName = "Имя обязательно";
+      if (!form.lastName.trim()) nextErrors.lastName = "Фамилия обязательна";
+      if (!form.age) nextErrors.age = "Возраст обязателен";
+      if (!form.email.trim()) nextErrors.email = "Email обязателен";
+      if (form.email && !validateEmail(form.email)) nextErrors.email = "Некорректный email";
+      if (!form.password) nextErrors.password = "Пароль обязателен";
+      if (!form.confirmPassword) nextErrors.confirmPassword = "Подтверждение пароля обязательно";
+      if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+        nextErrors.confirmPassword = "Пароли не совпадают";
+      }
+
+      if (Object.keys(nextErrors).length) {
+        setErrors(nextErrors);
         return;
       }
-      const res = registerUser({ name: form.name.trim(), email: form.email.trim(), password: form.password });
+      const res = registerUser({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        age: form.age,
+        email: form.email.trim(),
+        password: form.password,
+      });
       if (!res.ok) {
-        setError(res.error || "Ошибка регистрации");
+        setErrors({ form: res.error || "Ошибка регистрации" });
         return;
       }
       onAuth(res.user);
       navigate("/profile");
       return;
     }
+
+    if (!form.email.trim()) nextErrors.email = "Email обязателен";
+    if (!form.password) nextErrors.password = "Пароль обязателен";
+    if (Object.keys(nextErrors).length) {
+      setErrors(nextErrors);
+      return;
+    }
     const res = loginUser({ email: form.email.trim(), password: form.password });
     if (!res.ok) {
-      setError(res.error || "Неверные данные");
+      setErrors({ form: "Неверный email или пароль" });
       return;
     }
     onAuth(res.user);
@@ -549,36 +628,95 @@ const AuthPage = ({ onAuth }) => {
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>{tab === "login" ? "Вход" : "Регистрация"}</h1>
-        <div className="tabs">
-          <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>
-            Вход
-          </button>
-          <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>
-            Регистрация
-          </button>
+    <div className="page auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <div>
+            <p className="hero-kicker">NOESIS</p>
+            <h1>{tab === "login" ? "Вход" : "Регистрация"}</h1>
+          </div>
+          <div className="tabs">
+            <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>
+              Войти
+            </button>
+            <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>Регистрация</button>
+          </div>
         </div>
-      </div>
-      <div className="card">
-        <div className="form">
+
+        {tab === "register" && (
+          <p className="auth-note">Регистрация нужна, чтобы сохранять твой прогресс, XP и достижения.</p>
+        )}
+
+        <div className="form auth-form">
           {tab === "register" && (
-            <label>
-              Имя
-              <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value || "Макс" }))} />
-            </label>
+            <div className="form-grid">
+              <label>
+                Имя
+                <input
+                  value={form.firstName}
+                  onChange={(e) => handleChange("firstName", e.target.value)}
+                  placeholder="Например, Алина"
+                />
+                {errors.firstName && <span className="field-error">{errors.firstName}</span>}
+              </label>
+              <label>
+                Фамилия
+                <input
+                  value={form.lastName}
+                  onChange={(e) => handleChange("lastName", e.target.value)}
+                  placeholder="Например, Иванова"
+                />
+                {errors.lastName && <span className="field-error">{errors.lastName}</span>}
+              </label>
+              <label>
+                Возраст
+                <input
+                  type="number"
+                  min="10"
+                  max="99"
+                  value={form.age}
+                  onChange={(e) => handleChange("age", e.target.value)}
+                  placeholder="16"
+                />
+                {errors.age && <span className="field-error">{errors.age}</span>}
+              </label>
+            </div>
           )}
+
           <label>
             Email
-            <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              placeholder="you@example.com"
+            />
+            {errors.email && <span className="field-error">{errors.email}</span>}
           </label>
           <label>
             Пароль
-            <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              placeholder="Минимум 6 символов"
+            />
+            {errors.password && <span className="field-error">{errors.password}</span>}
           </label>
-          {error && <div className="error">{error}</div>}
-          <button className="primary" onClick={handleSubmit}>
+          {tab === "register" && (
+            <label>
+              Подтверждение пароля
+              <input
+                type="password"
+                value={form.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                placeholder="Повтори пароль"
+              />
+              {errors.confirmPassword && <span className="field-error">{errors.confirmPassword}</span>}
+            </label>
+          )}
+          {errors.form && <div className="error">{errors.form}</div>}
+          <button className="primary large" onClick={handleSubmit}>
             {tab === "login" ? "Войти" : "Зарегистрироваться"}
           </button>
         </div>
