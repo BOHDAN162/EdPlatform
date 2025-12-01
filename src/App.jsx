@@ -20,8 +20,7 @@ import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import TrackSummaryBar from "./components/TrackSummaryBar";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
-import TrackQuizPage from "./TrackQuizPage";
-import { loadTrack, saveTrack } from "./trackStorage";
+import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import {
   loadMissionsState,
   saveMissionsState,
@@ -37,6 +36,8 @@ import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
+import OnboardingPage from "./OnboardingPage";
+import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -202,7 +203,7 @@ const CommunityOrbit = () => (
   </div>
 );
 
-const HomePage = ({ user, navigate, community, gamification }) => {
+const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   const quotes = useMemo(
     () => [
       { text: "Ответственность за жизнь начинается с твоих ежедневных решений.", author: "NOESIS" },
@@ -236,6 +237,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
     return () => clearInterval(id);
   }, [quotes.length]);
   const currentQuote = quotes[quoteIndex];
+  const hasTrack = !!trackData?.generatedTrack?.length;
   return (
     <div className="page">
       <div className="card hero-spotlight">
@@ -243,7 +245,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           <p className="hero-kicker">Платформа развития</p>
           <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
           <p className="hero-subtitle">
-            Квесты, контент, форматы, сообщество, игры мышления и персональный путь — все чтобы прокачать себя и становиться сильнее каждый день.
+            Ответь на 10 вопросов и получи личный маршрут: профиль, миссии и первый урок. Всегда можно начать заново и обновить трек.
           </p>
           <div className="quote-panel">
             <p className="quote-label">Совет дня</p>
@@ -251,7 +253,12 @@ const HomePage = ({ user, navigate, community, gamification }) => {
             <p className="quote-author">— {currentQuote.author}</p>
           </div>
           <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate("/track")}>Старт</button>
+            <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/missions" : "/onboarding")}>
+              {hasTrack ? "Продолжить" : "Начать"}
+            </button>
+            {hasTrack && (
+              <button className="ghost" onClick={() => navigate("/onboarding")}>Перепройти опрос</button>
+            )}
           </div>
           <div className="how-it-works">
             <div>
@@ -829,6 +836,7 @@ function App() {
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
   const [missionsState, setMissionsState] = useState(() => loadMissionsState(initialUser?.id));
+  const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -843,12 +851,14 @@ function App() {
       setProgress(loadProgress(user.id));
       setActivityLog(loadActivity(user.id));
       setMissionsState(loadMissionsState(user.id));
+      setCommunityState(loadCommunityState(user) || { ...baseCommunityState });
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
       setActivityLog(loadActivity(null));
       setMissionsState(loadMissionsState(null));
+      setCommunityState(loadCommunityState(null) || { ...baseCommunityState });
     }
   }, [user]);
 
@@ -861,6 +871,11 @@ function App() {
   };
 
   const addToasts = (messages) => messages.forEach((m) => addToast(m));
+
+  const updateCommunityState = (nextState) => {
+    setCommunityState(nextState);
+    saveCommunityState(user, nextState);
+  };
 
   const pushActivity = (entry) => {
     setActivityLog((prev) => addActivityEntry(user?.id, entry, prev));
@@ -976,6 +991,38 @@ function App() {
     }
   };
 
+  const appendCommunityPost = (payload) => {
+    const { state } = createCommunityPost(user, payload);
+    updateCommunityState(state);
+    if (user) {
+      handleCommunityAction({ type: "post-create" });
+    }
+    return state.posts[0];
+  };
+
+  const handleMissionShare = (mission, message) => {
+    if (!mission) return;
+    appendCommunityPost({
+      type: "mission_share",
+      title: `Миссия выполнена: ${mission.title}`,
+      content: message?.trim() || `Я завершил(а) миссию “${mission.title}” (+${mission.xpReward} XP).`,
+      relatedMissionId: mission.id,
+      xpGained: mission.xpReward,
+    });
+    addToast("Пост отправлен в сообщество");
+  };
+
+  const handleMaterialQuestion = (material, body) => {
+    if (!material || !body?.trim()) return;
+    appendCommunityPost({
+      type: "question",
+      title: `Вопрос по уроку “${material.title}”`,
+      content: body.trim(),
+      relatedMaterialId: material.id,
+    });
+    addToast("Вопрос отправлен в сообщество");
+  };
+
   const handleAuth = (usr) => {
     setUser(usr);
     setGamification(loadGamification(usr.id));
@@ -1039,7 +1086,7 @@ function App() {
 
   const HomeRoute = () => {
     const navigate = useNavigate();
-    return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} />;
+    return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} trackData={trackData} />;
   };
 
   return (
@@ -1059,6 +1106,7 @@ function App() {
                 trackData={trackData}
                 onMaterialComplete={handleFinishMaterial}
                 onQuizComplete={handleInlineQuizComplete}
+                onAskCommunity={handleMaterialQuestion}
               />
             }
           />
@@ -1086,6 +1134,8 @@ function App() {
                 trackData={trackData}
                 missionsState={missionsState}
                 onUpdateMissionState={updateMissionState}
+                communityPosts={communityState.posts}
+                onMissionShare={handleMissionShare}
                 onMissionCompleted={(mission) => addToast(`Миссия «${mission.title}» закрыта!`)}
               />
             }
@@ -1121,7 +1171,17 @@ function App() {
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
-            element={<TrackQuizPage savedTrack={trackData} materials={materials} onTrackSave={handleTrackSave} />}
+            element={<OnboardingPage user={user} trackData={trackData} onSaveTrack={handleTrackSave} onRetake={() => {
+              clearTrack(user?.id);
+              setTrackData(null);
+            }} />}
+          />
+          <Route
+            path="/onboarding"
+            element={<OnboardingPage user={user} trackData={trackData} onSaveTrack={handleTrackSave} onRetake={() => {
+              clearTrack(user?.id);
+              setTrackData(null);
+            }} />}
           />
         </Routes>
       </Layout>
