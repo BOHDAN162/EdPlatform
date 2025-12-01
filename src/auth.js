@@ -1,7 +1,10 @@
 const USERS_KEY = "ep_users";
 const CURRENT_KEY = "ep_current_user";
 
+const canUseStorage = () => typeof localStorage !== "undefined";
+
 const load = (key, fallback) => {
+  if (!canUseStorage()) return fallback;
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
@@ -12,13 +15,28 @@ const load = (key, fallback) => {
   }
 };
 
-const save = (key, value) => localStorage.setItem(key, JSON.stringify(value));
+const save = (key, value) => {
+  if (!canUseStorage()) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error("save", key, e);
+  }
+};
+
+const generateId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `user_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
 export const loadUsers = () => load(USERS_KEY, []);
 export const saveUsers = (users) => save(USERS_KEY, users);
 export const loadCurrentUser = () => load(CURRENT_KEY, null);
 export const saveCurrentUser = (user) => save(CURRENT_KEY, user);
-export const logoutUser = () => localStorage.removeItem(CURRENT_KEY);
+export const logoutUser = () => {
+  if (!canUseStorage()) return;
+  localStorage.removeItem(CURRENT_KEY);
+};
 
 export const registerUser = ({ firstName, lastName, age, email, password }) => {
   const users = loadUsers();
@@ -26,7 +44,7 @@ export const registerUser = ({ firstName, lastName, age, email, password }) => {
     return { ok: false, error: "Такой email уже используется" };
   }
   const name = `${firstName} ${lastName}`.trim();
-  const newUser = { id: crypto.randomUUID(), name, firstName, lastName, age, email, password };
+  const newUser = { id: generateId(), name, firstName, lastName, age, email, password };
   const updated = [...users, newUser];
   saveUsers(updated);
   saveCurrentUser(newUser);
