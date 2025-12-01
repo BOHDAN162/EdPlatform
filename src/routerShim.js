@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 const RouterContext = createContext({ path: "/", navigate: () => {} });
 const ParamsContext = createContext({});
@@ -32,18 +32,38 @@ export function BrowserRouter({ children }) {
   };
 
   const [path, setPath] = useState(getPath);
+  const historyRef = useRef([getPath()]);
   useEffect(() => {
-    const handler = () => setPath(getPath());
+    const handler = () => {
+      const next = getPath();
+      const existingIndex = historyRef.current.lastIndexOf(next);
+      if (existingIndex >= 0) {
+        historyRef.current = historyRef.current.slice(0, existingIndex + 1);
+      } else {
+        historyRef.current.push(next);
+      }
+      setPath(next);
+    };
     window.addEventListener("hashchange", handler);
     return () => window.removeEventListener("hashchange", handler);
   }, []);
   const navigate = (to) => {
     if (typeof to === "number") {
+      if (to < 0 && historyRef.current.length > 1) {
+        historyRef.current.pop();
+        const target = historyRef.current[historyRef.current.length - 1];
+        window.location.hash = target;
+        setPath(target);
+        return;
+      }
       window.history.go(to);
       return;
     }
     if (to === path) return;
     const next = normalizePath(to);
+    if (historyRef.current[historyRef.current.length - 1] !== next) {
+      historyRef.current.push(next);
+    }
     window.location.hash = next;
     setPath(next);
   };
