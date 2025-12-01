@@ -26,6 +26,7 @@ import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
+import UiMockupIllustration from "./UiMockupIllustration";
 import ProfileDashboard from "./ProfileDashboard";
 import { clearActivityLog, useActivityLog } from "./hooks/useActivityLog";
 import CommunityPage from "./community/CommunityPage";
@@ -51,67 +52,15 @@ const typeFilterOptions = [
   { id: "game", label: "Игры" },
 ];
 
-const DeviceMock = ({ title, items }) => (
-  <div className="device-mock">
-    <div className="device-header">
-      <div className="pill" style={{ width: 120 }} />
-      <div className="device-meta">Активно • 5 модулей</div>
-    </div>
-    <div className="device-body">
-      <div className="device-title">{title}</div>
-      <div className="device-list">
-        {items.map((item) => (
-          <div key={item} className="device-pill">
-            {item}
-          </div>
-        ))}
-      </div>
-      <div className="device-line" />
-      <div className="device-label-line">Доступно на мобильном и десктопе</div>
-    </div>
+const HeroStat = ({ title, value, caption }) => (
+  <div className="hero-stat">
+    <p className="hero-stat-title">{title}</p>
+    <p className="hero-stat-value">{value}</p>
+    <p className="hero-stat-caption">{caption}</p>
   </div>
 );
 
-const TrackPreview = () => (
-  <div className="track-preview">
-    {["Осознание", "Финансы", "Проект", "Комьюнити"].map((label, idx) => (
-      <div key={label} className={`track-chip ${idx === 0 ? "active" : ""}`}>
-        <span className="track-index">{idx + 1}</span>
-        <div>
-          <div className="track-label">{label}</div>
-          <div className="track-sub">Шаг {idx + 1}</div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-const BadgeOrbit = () => (
-  <div className="badge-orbit">
-    <div className="orbit-center">
-      <span className="badge">Уровень 3</span>
-      <span className="badge-label">до статуса Сенсей</span>
-    </div>
-    <div className="orbit-ring">+1200 XP</div>
-    <div className="orbit-ring">+800 XP</div>
-    <div className="orbit-ring">+400 XP</div>
-  </div>
-);
-
-const CommunityOrbit = () => (
-  <div className="community-orbit">
-    {["Алия", "Рома", "Милена", "Тимур"].map((name, idx) => (
-      <div key={name} className={`orbit-card orbit-${idx}`}>
-        <div className="avatar bubble">{name[0]}</div>
-        <div className="orbit-meta">{name}</div>
-      </div>
-    ))}
-    <div className="orbit-core">
-      Живые созвоны
-      <span className="orbit-chip">каждую неделю</span>
-    </div>
-  </div>
-);
+const HeroBadge = ({ label }) => <span className="hero-badge">{label}</span>;
 
 const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   const quotes = useMemo(
@@ -150,36 +99,39 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   const hasTrack = !!trackData?.generatedTrack?.length;
   return (
     <div className="page">
-      <div className="card hero-spotlight">
-        <div className="hero-inner">
-          <p className="hero-kicker">Платформа развития</p>
-          <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
-          <p className="hero-subtitle">
-            Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
-          </p>
-          <div className="quote-panel">
-            <p className="quote-label">Совет дня</p>
-            <p className="quote-text">«{currentQuote.text}»</p>
-            <p className="quote-author">— {currentQuote.author}</p>
+      <div className="landing-hero wide">
+        <div className="hero-grid-modern">
+          <div className="hero-copy">
+            <p className="hero-kicker">Личный рост без скучных уроков</p>
+            <h1 className="hero-title">NOESIS — платформа развития для подростков и детей предпринимателей</h1>
+            <p className="hero-subtitle">
+              Опрос → персональный трек → миссии и XP → память и комьюнити. Не просто курсы, а система, которая держит тебя в фокусе и показывает рост.
+            </p>
+            <div className="hero-badges">
+              {["Трек по твоим целям", "XP и статусы", "Миссии каждый день", "Память и мини-игры"].map((label) => (
+                <HeroBadge key={label} label={label} />
+              ))}
+            </div>
+            <div className="hero-actions">
+              <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
+                {hasTrack ? "Продолжить трек" : "Пройти стартовый трек"}
+              </button>
+              <button className="ghost hero-secondary" onClick={() => navigate("/library")}>
+                Посмотреть библиотеку
+              </button>
+            </div>
+            <div className="hero-meta-grid">
+              <HeroStat title="Старт за 10 минут" value="Опрос → план" caption="Сразу видишь шаги и материалы" />
+              <HeroStat title="XP за действия" value="+50 XP" caption="каждый урок, тест и запись в Памяти" />
+              <HeroStat title="Комьюнити" value="Лиги и клубы" caption="челленджи с друзьями и городами" />
+            </div>
+            <div className="quote-carousel visible">
+              <p className="quote-text">«{currentQuote.text}»</p>
+              <p className="quote-author">— {currentQuote.author}</p>
+            </div>
           </div>
-          <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
-              {hasTrack ? "Продолжить" : "Начать"}
-            </button>
-          </div>
-          <div className="how-it-works">
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Пройди короткую регистрацию</span>
-            </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Активируй подписку и выбери трек</span>
-            </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Учись, проходи тесты и собирай очки</span>
-            </div>
+          <div className="hero-visual">
+            <UiMockupIllustration variant="hero" />
           </div>
         </div>
       </div>
@@ -187,119 +139,119 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
       <div className="landing-flow">
         <LandingSection
           kicker="Почему NOESIS"
-          title="Платформа роста для подростков и детей предпринимателей"
-          subtitle="Мы не просто даём уроки. Мы собираем твой маршрут, мотивируем наградами и создаём среду, где хочется двигаться вперёд."
+          title="Платформа развития, а не просто курсы"
+          subtitle="Мы строим маршрут под твои цели и добавляем игру, чтобы хотелось возвращаться. Фокус на мышлении, деньгах, проектах и софтовых навыках."
           bullets={[
-            "Личный трек под твои цели",
-            "Геймификация и награды за активность",
-            "Фокус на мышлении, деньгах, проектах",
-            "Комьюнити, которое поддержит и не даст слиться",
+            "Личный трек вместо случайных уроков",
+            "XP и статусы вместо самодисциплины через силу",
+            "Практика: мини-проекты, тесты, разборы",
+            "Комьюнити подростков и детей предпринимателей",
           ]}
           childrenIllustration={<MascotIllustration />}
         />
 
         <LandingSection
-          kicker="Личный маршрут"
-          title="Твой трек развития"
-          subtitle="Ответь на вопросы, получи профиль и двигайся по понятной цепочке шагов: курсы, статьи, тесты и челленджи."
+          kicker="Личный трек развития"
+          title="Профиль, шаги и прогресс на одной линии"
+          subtitle="Ответь на вопросы — получишь карту пути по пяти направлениям: мышление, деньги, коммуникации, лидерство, эффективность."
           bullets={[
-            "Фокус и ясные приоритеты",
-            "План по 5 направлениям: мышление, деньги, коммуникации, лидерство, эффективность",
-            "Видимый прогресс и чекпоинты",
-            "Мотивация за закрытие каждого шага",
+            "Диагностика и профиль за 10 минут",
+            "Чёткие шаги: курсы, статьи, тесты, мини-игры",
+            "Видно, что закрыто и что дальше",
+            "Мотивация через XP и чекпоинты",
           ]}
           reverse
-          childrenIllustration={<TrackPreview />}
+          childrenIllustration={<UiMockupIllustration variant="track" />}
         />
 
         <LandingSection
-          kicker="Геймификация"
-          title="Очки, статусы и достижения"
-          subtitle="Получай баллы за действия, открывай уровни и собирай коллекцию достижений. Видно, как ты растёшь."
+          kicker="Миссии и геймификация"
+          title="Каждый день — миссия, XP и статусы"
+          subtitle="Закрывай задания, держи серию дней и поднимайся в уровнях. Баллы начисляются за материалы, тесты, память и активность в комьюнити."
           bullets={[
-            "Баллы за материалы, тесты и челленджи",
-            "Статусы за серию дней и общее количество очков",
-            "Челленджи с друзьями и группами",
-            "Вся статистика в профиле без лишних кликов",
+            "Дневные и недельные миссии",
+            "Серии дней, статусы и уровни",
+            "Челленджи с друзьями и клубами",
+            "Прозрачная статистика в профиле",
           ]}
-          childrenIllustration={<BadgeOrbit />}
+          childrenIllustration={<UiMockupIllustration variant="missions" />}
         />
 
         <LandingSection
-          kicker="Библиотека"
-          title="Курсы, статьи и тесты в одном месте"
-          subtitle="Подборка материалов по пяти темам: предпринимательское мышление, деньги, коммуникации, лидерство и эффективность."
+          kicker="Библиотека NOESIS"
+          title="Курсы, статьи, тесты и MindGames"
+          subtitle="Вся база знаний в одном месте. Пять тем: мышление, деньги, коммуникации, лидерство, эффективность. Каждую неделю — новые материалы."
           bullets={[
-            "Курсы по запуску проектов и управлению ресурсами",
-            "Статьи и лонгриды, которые можно пройти на бегу",
-            "Тесты после каждого блока, чтобы закрепить знания",
-            "Новые материалы каждую неделю",
+            "Курсы по предпринимательству и проектам",
+            "Лонгриды и короткие статьи",
+            "Тесты и мини-игры, чтобы закрепить",
+            "Персональные рекомендации под трек",
           ]}
           reverse
-          childrenIllustration={
-            <DeviceMock
-              title="Библиотека NOESIS"
-              items={["Курс", "Статья", "Тест", "Разбор"]}
-            />
-          }
+          childrenIllustration={<UiMockupIllustration variant="library" />}
+        />
+
+        <LandingSection
+          kicker="Память и метавселенная"
+          title="Твой город памяти"
+          subtitle="Фиксируй идеи, инсайты и выводы. Записи связываются с курсами и прогрессом, превращаясь в карту твоего опыта."
+          bullets={[
+            "Личные заметки и выводы по материалам",
+            "3D-метафора города памяти",
+            "Связь с треком и тестами",
+            "XP за осознанность и рефлексию",
+          ]}
+          childrenIllustration={<UiMockupIllustration variant="memory" />}
+        />
+
+        <LandingSection
+          kicker="Комьюнити и челленджи"
+          title="Лиги, клубы и еженедельные спринты"
+          subtitle="Встречи по городам и интересам, рейтинги, совместные челленджи: «Клуб Волгоград», «Финансовый спринт» и другие."
+          bullets={[
+            "Лиги с рейтингами и статусы",
+            "Клубы по городам и темам",
+            "Челленджи и проектные спринты",
+            "Аватарки друзей рядом с твоим прогрессом",
+          ]}
+          reverse
+          childrenIllustration={<UiMockupIllustration variant="community" />}
         />
 
         <LandingSection
           kicker="Для кого"
-          title="13–20 лет: ребята, которые хотят большего"
-          subtitle="Подходит подросткам и детям предпринимателей. Родители получают систему развития, подростки — живую среду и понятный маршрут."
+          title="Подросткам 13–20 и родителям-предпринимателям"
+          subtitle="Подросток получает игру и ясный маршрут. Родитель — систему развития без микроменеджмента."
           bullets={[
-            "Гибкие форматы под занятый график",
-            "Общение с наставниками и сверстниками",
-            "Практика на реальных мини-проектах",
-            "Прозрачные отчёты для родителей",
+            "Для подростка: XP, миссии, друзья и проекты",
+            "Для родителя: прозрачные отчёты и прогресс",
+            "Гибкий график под учёбу и спорт",
+            "Наставники, которые говорят на одном языке",
           ]}
-          childrenIllustration={<CommunityOrbit />}
+          childrenIllustration={<UiMockupIllustration variant="audience" />}
         />
 
         <LandingSection
           kicker="Как это работает"
-          title="4 шага до результатов"
-          subtitle="Первые шаги занимают меньше 10 минут. Дальше — движение по треку с понятными точками роста."
-          bullets={[
-            "Ответить на вопросы и зафиксировать цели",
-            "Получить персональный трек",
-            "Проходить материалы и собирать награды",
-            "Видеть прогресс и праздновать уровни",
-          ]}
+          title="4 шага к результату"
+          subtitle="Старт за 10 минут, дальше — движение по треку с сериями и наградами."
+          bullets={["Ответить на вопросы", "Получить персональный трек", "Проходить материалы и миссии", "Следить за XP и сериями"]}
           reverse
-          childrenIllustration={<DeviceMock title="Стартовый маршрут" items={["Опрос", "Трек", "Челлендж", "Статус"]} />}
-        />
-
-        <LandingSection
-          kicker="Среда"
-          title="Комьюнити, события и челленджи"
-          subtitle="Окружение активных ребят, живые созвоны, проектные спринты и дружеские соревнования."
-          bullets={[
-            "Чат и встречи по темам",
-            "Совместные челленджи на неделю",
-            "Поддержка наставников и комьюнити-менеджеров",
-            "Видно, кто рядом и кто помогает",
-          ]}
-          childrenIllustration={<MascotIllustration mood="joy" />}
-        />
-
-        <LandingSection
-          kicker="Призыв"
-          title="Готов начать путь в NOESIS?"
-          subtitle="Собери свой трек, получи первые очки и познакомься с комьюнити."
-          reverse
-          childrenIllustration={<BadgeOrbit />}
+          childrenIllustration={<UiMockupIllustration variant="flow" />}
         >
           <div className="cta-actions">
             <button className="primary hero-cta" onClick={() => navigate("/track-quiz")}>
-              Апгрейд
+              Пройти стартовый трек
+            </button>
+            <button className="ghost hero-secondary" onClick={() => navigate("/missions")}>
+              Посмотреть миссии
             </button>
           </div>
         </LandingSection>
       </div>
     </div>
   );
+
 };
 
 const LibraryPage = ({
