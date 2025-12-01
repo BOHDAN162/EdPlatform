@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "./routerShim";
 import { missions, getMissionProgress, missionThemeLabel, linkToMaterial } from "./missionsData";
 import { getMaterialById, themeLabels } from "./libraryData";
-import { getLevelFromXP, getRoleFromLevel } from "./gamification";
+import { defaultGamification, getLevelFromXP, getRoleFromLevel } from "./gamification";
 import { relativeTime } from "./communityState";
 
 const ProgressLine = ({ value }) => (
@@ -229,6 +229,7 @@ const MissionsPage = ({
   onMissionShare,
 }) => {
   const navigate = useNavigate();
+  const safeGamification = gamification || defaultGamification;
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
   const steps = trackData?.generatedTrack || [];
   const doneMainSteps = steps.filter((s) => completedSet.has(s.materialId)).length;
@@ -243,7 +244,7 @@ const MissionsPage = ({
   const [shareMission, setShareMission] = useState(null);
   const [shareComment, setShareComment] = useState("");
 
-  const levelInfo = getLevelFromXP(gamification.totalPoints);
+  const levelInfo = getLevelFromXP(safeGamification.totalPoints || 0);
   const roleLabel = getRoleFromLevel(levelInfo.level);
 
   const relatedPosts = useMemo(
@@ -255,12 +256,38 @@ const MissionsPage = ({
     [communityPosts, selectedMissionId]
   );
 
+  const missionHighlight = useMemo(() => {
+    const preferred = trackData?.recommendedMissionId ? getMissionById(trackData.recommendedMissionId) : null;
+    const preferredProgress = preferred ? getMissionProgress(preferred, missionsState) : null;
+    if (preferred && preferredProgress?.status !== "completed") return { mission: preferred, progress: preferredProgress };
+
+    const nextAvailable = missions.find((mission) => getMissionProgress(mission, missionsState).status !== "completed");
+    return nextAvailable ? { mission: nextAvailable, progress: getMissionProgress(nextAvailable, missionsState) } : null;
+  }, [missionsState, trackData]);
+
+  const primaryMaterial = nextMaterial || (trackData?.firstMaterialId ? getMaterialById(trackData.firstMaterialId) : null);
+  const missionStatusLabel =
+    missionHighlight?.progress?.status === "completed"
+      ? "Завершена"
+      : missionHighlight?.progress?.status === "in_progress"
+      ? "В процессе"
+      : "Не начата";
+
   const handleOpenMaterial = (materialId) => {
     navigate(`/material/${materialId}`);
   };
 
   const changeMissionState = (nextState) => {
     if (onUpdateMissionState) onUpdateMissionState(nextState);
+  };
+
+  const openMissionFromHighlight = (mission) => {
+    if (!mission) return;
+    setSelectedMissionId(mission.id);
+    const status = getMissionProgress(mission, missionsState).status;
+    if (status === "not_started") {
+      changeMissionState({ type: "status", missionId: mission.id, status: "in_progress" });
+    }
   };
 
   const startMission = () => {
@@ -302,6 +329,35 @@ const MissionsPage = ({
         </button>
       </div>
 
+      <div className="card focus next-step">
+        <div className="card-header">Твой ближайший шаг</div>
+        {missionHighlight ? (
+          <div className="next-step-body">
+            <div>
+              <div className="pill filled">Миссия</div>
+              <h3>{missionHighlight.mission.title}</h3>
+              <p className="meta">{missionHighlight.mission.description}</p>
+              <div className="meta subtle">{missionHighlight.mission.estimatedTime} · +{missionHighlight.mission.xpReward} XP</div>
+            </div>
+            <div className="next-actions">
+              <button className="primary large" onClick={() => openMissionFromHighlight(missionHighlight.mission)}>
+                {missionHighlight.progress?.status === "in_progress" ? "Продолжить миссию" : "Начать миссию"}
+              </button>
+              <span className="meta subtle">Статус: {missionStatusLabel}</span>
+            </div>
+          </div>
+        ) : primaryMaterial ? (
+          <NextStepCard
+            material={primaryMaterial}
+            onStart={(m) => handleOpenMaterial(m.id)}
+            doneCount={doneMainSteps}
+            totalSteps={steps.length}
+          />
+        ) : (
+          <p className="meta">Собери трек через опрос, чтобы получить первый шаг.</p>
+        )}
+      </div>
+
       <div className="missions-hero">
         <div className="card hero-card">
           <div className="card-header">Активность</div>
@@ -318,7 +374,7 @@ const MissionsPage = ({
             </div>
             <div>
               <div className="meta subtle">Серия</div>
-              <div className="big-number">{gamification.streakCount || 0}</div>
+              <div className="big-number">{safeGamification.streakCount || 0}</div>
               <div className="meta">дней подряд</div>
             </div>
           </div>
@@ -327,7 +383,7 @@ const MissionsPage = ({
           )}
         </div>
 
-        <GoalsCard goals={gamification.goals} />
+        <GoalsCard goals={safeGamification.goals} />
       </div>
 
       <div className="card tab-card">
