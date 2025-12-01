@@ -40,7 +40,7 @@ const MissionCard = ({ mission, progress, onSelect, onPrimary }) => {
     : `${progress?.currentValue || 0} / ${mission.targetValue}`;
 
   return (
-    <div className="mission-card-v2" onClick={onSelect}>
+    <div className="mission-card-v2" onClick={onSelect} data-mission-id={mission.id}>
       <div className="mission-card-top">
         <Badge label={category.label} color={category.color} />
         <div className="mission-card-badges">
