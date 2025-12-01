@@ -1,10 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
-import MemoryMap from "./components/MemoryMap";
+import MemoryMiniMap from "./components/MemoryMiniMap";
 import MemorySidebar from "./components/MemorySidebar";
 import MemoryEntryForm from "./components/MemoryEntryForm";
 import { useMemory } from "./hooks/useMemory";
 import { materialIndex } from "./libraryData";
-import { memoryCategories } from "./memoryLandmarks";
+import { memoryCategories } from "./data/memoryLandmarks";
 
 const MemoryPage = ({ user }) => {
   const {
@@ -162,12 +162,12 @@ const MemoryPage = ({ user }) => {
       )}
 
       <div className="memory-layout">
-        <MemoryMap
+        <MemoryMiniMap
           landmarks={filteredLandmarks}
-          selectedId={selectedLandmark?.id}
+          selectedLandmarkId={selectedLandmark?.id}
           entries={entries}
           highlightedLandmarkIds={highlightedLandmarks}
-          onSelect={selectLandmark}
+          onSelectLandmark={selectLandmark}
         />
         <MemorySidebar
           landmark={selectedLandmark}

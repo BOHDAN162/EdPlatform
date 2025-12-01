@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { memoryLandmarks } from "../memoryLandmarks";
+import { memoryLandmarks } from "../data/memoryLandmarks";
 
 const getStorageKey = (userId) => `noesis_memory_${userId || "default"}`;
 
