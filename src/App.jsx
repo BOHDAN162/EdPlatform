@@ -163,6 +163,26 @@ const DeviceMock = ({ title, items }) => (
   </div>
 );
 
+const typeFilterOptions = [
+  { id: "all", label: "Все" },
+  { id: "course", label: "Курсы" },
+  { id: "article", label: "Лонгриды" },
+  { id: "test", label: "Тесты" },
+  { id: "game", label: "Игры" },
+];
+
+const statusFromProgress = (materialId, completedSet, activeMaterialId) => {
+  if (completedSet.has(materialId)) return "completed";
+  if (materialId === activeMaterialId) return "inProgress";
+  return "new";
+};
+
+const statusProgressValue = {
+  new: 8,
+  inProgress: 55,
+  completed: 100,
+};
+
 const BadgeOrbit = () => (
   <div className="badge-orbit">
     <div className="badge bubble">Очки +120</div>
@@ -398,13 +418,42 @@ const LibraryPage = ({
   onRetakeTrack,
 }) => {
   const navigate = useNavigate();
+  const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [themeFilter, setThemeFilter] = useState("all");
+
+  const activeTrackMaterialId = useMemo(() => {
+    if (!trackData?.trackSteps?.length) return null;
+    const firstIncomplete = trackData.trackSteps.find((step) => {
+      const candidate = step.materialId || step.materials?.[0];
+      return candidate && !completedSet.has(candidate);
+    });
+    return firstIncomplete?.materialId || firstIncomplete?.materials?.[0] || null;
+  }, [trackData, completedSet]);
+
+  const filteredMaterials = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return materials.filter((material) => {
+      if (typeFilter !== "all" && material.type !== typeFilter) return false;
+      if (themeFilter !== "all" && material.theme !== themeFilter) return false;
+      if (!query) return true;
+      return (
+        material.title.toLowerCase().includes(query) ||
+        material.description?.toLowerCase().includes(query)
+      );
+    });
+  }, [search, typeFilter, themeFilter]);
+
   const groupedMaterials = useMemo(
     () =>
-      materialThemes.map((theme) => ({
-        ...theme,
-        items: materials.filter((m) => m.theme === theme.id),
-      })),
-    []
+      materialThemes
+        .map((theme) => ({
+          ...theme,
+          items: filteredMaterials.filter((m) => m.theme === theme.id),
+        }))
+        .filter((theme) => theme.items.length > 0),
+    [filteredMaterials]
   );
 
   const handleRetake = () => {
@@ -417,7 +466,57 @@ const LibraryPage = ({
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
-          <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
+          <p className="meta large">
+            Курсы, лонгриды, тесты и игры для прокачки мышления, финансов и навыков.
+          </p>
+        </div>
+      </div>
+
+      <div className="library-controls card">
+        <div className="library-controls-row">
+          <div className="control-block">
+            <label className="meta subtle">Поиск</label>
+            <input
+              type="search"
+              placeholder="Поиск по материалам…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="control-block">
+            <label className="meta subtle">Тип</label>
+            <div className="chip-row wrap">
+              {typeFilterOptions.map((option) => (
+                <button
+                  key={option.id}
+                  className={`chip ${typeFilter === option.id ? "active" : ""}`}
+                  onClick={() => setTypeFilter(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="control-block">
+            <label className="meta subtle">Тема</label>
+            <div className="chip-row wrap">
+              <button
+                className={`chip ${themeFilter === "all" ? "active" : ""}`}
+                onClick={() => setThemeFilter("all")}
+              >
+                Все
+              </button>
+              {materialThemes.map((theme) => (
+                <button
+                  key={theme.id}
+                  className={`chip ${themeFilter === theme.id ? "active" : ""}`}
+                  onClick={() => setThemeFilter(theme.id)}
+                >
+                  {theme.title}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -450,9 +549,13 @@ const LibraryPage = ({
           <div className="card-header">{theme.title}</div>
           <p className="meta">{theme.description}</p>
           <div className="material-grid">
-            {theme.items.map((material) => (
-              <MaterialCard key={material.id} material={material} completed={completedMaterialIds.includes(material.id)} />
-            ))}
+            {theme.items.map((material) => {
+              const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
+              const progress = statusProgressValue[status];
+              return (
+                <MaterialCard key={material.id} material={material} status={status} progress={progress} />
+              );
+            })}
           </div>
         </div>
       ))}
