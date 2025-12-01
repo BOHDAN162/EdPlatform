@@ -50,14 +50,9 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
 
   return (
     <header className="header">
-      <NavLink
-        to="/"
-        end
-        className={({ isActive }) => `logo ${isActive ? "active" : ""}`}
-        onClick={() => setOpen(false)}
-      >
+      <Link to="/" className="logo" onClick={() => setOpen(false)}>
         NOESIS
-      </NavLink>
+      </Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -228,7 +223,6 @@ const HomePage = ({ user, navigate, community, gamification }) => {
     return () => clearInterval(id);
   }, [quotes.length]);
   const currentQuote = quotes[quoteIndex];
-  const top = [...community].sort((a, b) => b.points - a.points).slice(0, 3);
   return (
     <div className="page">
       <div className="card hero-spotlight">
@@ -260,44 +254,6 @@ const HomePage = ({ user, navigate, community, gamification }) => {
               <span>Учись, проходи тесты и собирай очки</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="grid hero-grid">
-        <div className="card track-highlight">
-          <div className="card-header">Личный трек развития</div>
-          <p className="meta">Определи направление, собери подборку материалов и двигайся по персональному маршруту.</p>
-          <div className="track-steps">
-            <div className="pill">Осознание болей</div>
-            <div className="pill">Определение сильных сторон</div>
-            <div className="pill">Грамотное использование ресурсов</div>
-          </div>
-          <p className="meta">Это пригодится в любых направлениях — учёбе, бизнесе, работе и настройке своей головы.</p>
-          <div className="track-actions">
-            <button className="primary outline" onClick={() => navigate("/track")}>Пройти тест и собрать трек</button>
-            <button className="ghost" onClick={() => navigate("/library")}>Посмотреть материалы</button>
-          </div>
-        </div>
-        <GamificationSummary gamification={gamification} />
-      </div>
-
-      <div className="card">
-        <div className="card-header">ТОП сообщества</div>
-        <div className="grid columns-3">
-          {top.map((u) => (
-            <div key={u.id} className="mini-card">
-              <div className="avatar large">{u.name[0]}</div>
-              <div className="user-name">{u.name}</div>
-              <div className="meta">{u.points} очков • {u.status}</div>
-              <div className="badges">
-                {u.achievements.slice(0, 2).map((a) => (
-                  <span key={a} className="tag">
-                    {a}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -1067,6 +1023,8 @@ function App() {
                 trackData={trackData}
                 activityLog={activityLog}
                 community={community}
+                theme={theme}
+                onToggleTheme={toggleTheme}
               />
             }
           />
