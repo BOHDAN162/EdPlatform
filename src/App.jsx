@@ -16,7 +16,7 @@ import {
 import { tests } from "./data";
 import { communityParticipants } from "./communityData";
 import { learningPaths, materialThemes, materials, getMaterialById, themeLabels } from "./libraryData";
-import { getMaterialStatus, getPathProgress, loadProgress, markMaterialCompleted, markMaterialStarted } from "./progress";
+import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import TrackSummaryBar from "./components/TrackSummaryBar";
@@ -396,7 +396,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   );
 };
 
-const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete, progress }) => {
+const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete }) => {
   const navigate = useNavigate();
   const groupedMaterials = useMemo(
     () =>
@@ -440,12 +440,7 @@ const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete
           <p className="meta">{theme.description}</p>
           <div className="material-grid">
             {theme.items.map((material) => (
-              <MaterialCard
-                key={material.id}
-                material={material}
-                status={getMaterialStatus(material.id, progress)}
-                onOpen={() => navigate(`/material/${material.id}`)}
-              />
+              <MaterialCard key={material.id} material={material} completed={completedMaterialIds.includes(material.id)} />
             ))}
           </div>
         </div>
@@ -712,17 +707,11 @@ const AuthPage = ({ onAuth }) => {
   );
 };
 
-const MaterialDetailPage = ({ onComplete, completedMaterialIds, onStart }) => {
+const MaterialDetailPage = ({ onComplete, completedMaterialIds }) => {
   const { type, id } = useParams();
   const navigate = useNavigate();
   const material = getMaterialById(id);
   const backToLibrary = () => navigate("/library");
-
-  useEffect(() => {
-    if (material) {
-      onStart?.(material.id);
-    }
-  }, [material, onStart]);
 
   if (!material) {
     return (
@@ -784,7 +773,7 @@ const MaterialDetailPage = ({ onComplete, completedMaterialIds, onStart }) => {
   );
 };
 
-const TestPage = ({ onComplete, completedMaterialIds, onStart }) => {
+const TestPage = ({ onComplete, completedMaterialIds }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const test = tests.find((t) => t.id === id);
@@ -792,12 +781,6 @@ const TestPage = ({ onComplete, completedMaterialIds, onStart }) => {
   const [result, setResult] = useState(null);
   const completed = completedMaterialIds?.includes(id);
   const backToLibrary = () => navigate("/library");
-
-  useEffect(() => {
-    if (test) {
-      onStart?.(test.id);
-    }
-  }, [onStart, test]);
 
   if (!test) {
     return (
@@ -969,11 +952,6 @@ function App() {
       applyGamificationResult(res, previousAchievements);
     }
     pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
-  };
-
-  const handleStartMaterial = (materialId) => {
-    const updatedProgress = markMaterialStarted(user?.id, materialId, progress);
-    setProgress(updatedProgress);
   };
 
   const handleInlineQuizComplete = (materialId, reward) => {
@@ -1156,7 +1134,6 @@ function App() {
                 trackData={trackData}
                 user={user}
                 onMindGameComplete={handleMindGameComplete}
-                progress={progress}
               />
             }
           />
@@ -1170,7 +1147,6 @@ function App() {
                 progress={progress}
                 trackData={trackData}
                 onMaterialComplete={handleFinishMaterial}
-                onMaterialStart={handleStartMaterial}
                 onQuizComplete={handleInlineQuizComplete}
                 onAskCommunity={handleMaterialQuestion}
               />
@@ -1185,15 +1161,11 @@ function App() {
                 progress={progress}
                 trackData={trackData}
                 onMaterialComplete={handleFinishMaterial}
-                onMaterialStart={handleStartMaterial}
                 onQuizComplete={handleInlineQuizComplete}
               />
             }
           />
-          <Route
-            path="/tests/:id"
-            element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} onStart={handleStartMaterial} />}
-          />
+          <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
           <Route
             path="/missions"
             element={
