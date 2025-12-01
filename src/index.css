@@ -3137,6 +3137,127 @@ body {
   min-width: 240px;
 }
 
+.community-top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin: 18px 0 12px;
+}
+
+.status-card {
+  display: grid;
+  gap: 12px;
+}
+
+.status-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.stat-pill {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-pill .label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stat-pill .value {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 4px 0;
+}
+
+.stat-pill .caption {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.status-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mini-league-card {
+  display: grid;
+  gap: 10px;
+}
+
+.mini-league-list {
+  display: grid;
+  gap: 8px;
+}
+
+.mini-league-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.mini-league-row.current {
+  border-color: #7c3aed;
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.18);
+}
+
+.mini-left {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mini-right {
+  display: flex;
+  align-items: center;
+}
+
+.mini-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.community-benefits {
+  display: grid;
+  gap: 10px;
+}
+
+.benefits-list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.mission-highlight {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: rgba(124, 58, 237, 0.06);
+}
+
+.chip-column {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 .tab-bar {
   display: flex;
   gap: 8px;
@@ -3202,6 +3323,33 @@ body {
 
 .tab-header h2 {
   margin: 0;
+}
+
+.community-section {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.section-subhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.teams-strip {
+  display: grid;
+  gap: 10px;
 }
 
 .post-card {
@@ -3296,6 +3444,11 @@ body {
 
 .ranking-left { display: flex; gap: 10px; align-items: center; }
 .ranking-right { display: flex; gap: 8px; align-items: center; }
+
+.league-note {
+  display: grid;
+  gap: 6px;
+}
 
 .question-card { cursor: pointer; }
 
