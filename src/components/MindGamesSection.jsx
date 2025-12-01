@@ -67,13 +67,15 @@ const MindGamesSection = ({ userId, onGameComplete }) => {
   return (
     <div className="card mindgames-card">
       <div className="card-header">Игры мышления (MindGames)</div>
-      <p className="meta">Логические и финансовые мини-игры, чтобы прокачать мозг и деньги в формате игры.</p>
+      <p className="meta">Короткие логические и финансовые мини-игры, чтобы прокачать мозг и отношение к деньгам в формате игры.</p>
       <div className="mindgame-grid">
         {mindGames.map((game) => (
           <MindGameCard
             key={game.id}
             title={game.title}
             description={game.description}
+            quickInfo={game.quickInfo}
+            xpReward={game.xpRewardBase}
             bestResult={history.best?.[game.id]}
             lastPlayed={history.lastPlayed?.[game.id]}
             onPlay={() => handlePlay(game.id)}

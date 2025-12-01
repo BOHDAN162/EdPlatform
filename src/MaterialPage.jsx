@@ -205,6 +205,7 @@ const MaterialPage = ({
   progress,
   trackData,
   onMaterialComplete,
+  onMaterialStart,
   onQuizComplete,
   onAskCommunity,
 }) => {
@@ -228,7 +229,10 @@ const MaterialPage = ({
   useEffect(() => {
     if (!material) return;
     document.title = `${material.title} — NOESIS`;
-  }, [material]);
+    if (onMaterialStart) {
+      onMaterialStart(material.id);
+    }
+  }, [material, onMaterialStart]);
 
   if (!material) {
     return (
