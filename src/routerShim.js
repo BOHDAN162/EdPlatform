@@ -130,8 +130,13 @@ export function useNavigate() {
   return navigate;
 }
 
+export function useLocation() {
+  const { path } = useContext(RouterContext);
+  return { pathname: path };
+}
+
 export function useParams() {
   return useContext(ParamsContext);
 }
 
-export default { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams };
+export default { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams, useLocation };

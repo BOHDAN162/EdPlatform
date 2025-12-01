@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "./routerShim";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams, useLocation } from "./routerShim";
 import {
   awardForCommunityAction,
   awardForMaterial,
@@ -37,8 +37,10 @@ import AppLayout from "./components/layout/AppLayout";
 import { statusFromProgress, statusProgressValue } from "./utils/materialStatus";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
-import CommandPalette from "./components/common/CommandPalette";
-import { memoryLandmarks } from "./data/memoryLandmarks";
+import CommandPalette from "./components/CommandPalette";
+import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
+import { navLinks } from "./utils/navigation";
+import { useMemory } from "./hooks/useMemory";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -975,6 +977,8 @@ function App() {
   const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
   const [isPaletteOpen, setPaletteOpen] = useState(false);
 
+  const lastVisit = useLastVisit(user?.id);
+
   const missionsApi = useMissions(user?.id, { onMissionCompleted: handleMissionComplete });
   const {
     missions,
@@ -1002,18 +1006,15 @@ function App() {
   }, [user]);
 
   useEffect(() => {
-    const listener = (e) => {
-      const isK = e.key?.toLowerCase?.() === "k";
-      if ((e.metaKey || e.ctrlKey) && isK) {
+    const handler = (e) => {
+      const isCommand = (e.metaKey || e.ctrlKey) && e.key?.toLowerCase() === "k";
+      if (isCommand) {
         e.preventDefault();
-        setPaletteOpen((open) => !open);
-      }
-      if (e.key === "Escape") {
-        setPaletteOpen(false);
+        setPaletteOpen((prev) => !prev);
       }
     };
-    window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
 
   const updateCommunityState = (nextState) => {
@@ -1226,6 +1227,48 @@ function App() {
     [gamification.streakCount, gamification.lastActivityDate]
   );
 
+  const staticCommands = useMemo(() => {
+    const commands = navLinks.map((link) => ({
+      id: `nav-${link.to}`,
+      title: `Открыть: ${link.label}`,
+      description: "Быстрый переход по разделам",
+      category: "Навигация",
+      priority: 10,
+      action: { type: "navigate", to: link.to },
+    }));
+
+    commands.push({
+      id: "start-track",
+      title: trackData?.generatedTrack?.length ? "Открыть твой трек" : "Собрать трек развития",
+      description: trackData?.generatedTrack?.length
+        ? "Посмотреть следующий шаг и прогресс"
+        : "Ответить на вопросы и получить план",
+      category: "Трек",
+      priority: 12,
+      action: { type: "navigate", to: trackData?.generatedTrack?.length ? "/library" : "/track-quiz" },
+    });
+
+    commands.push({
+      id: "view-streak",
+      title: `Серия ${streak.count || 0} дней`,
+      description: "Не теряй темп — отметь любое действие",
+      category: "Геймификация",
+      priority: 8,
+      action: { type: "navigate", to: "/profile" },
+    });
+
+    commands.push({
+      id: "toggle-theme",
+      title: theme === "dark" ? "Переключить на светлую тему" : "Включить тёмную тему",
+      description: "Сменить оформление без перезагрузки",
+      category: "Настройки",
+      priority: 6,
+      action: () => toggleTheme(),
+    });
+
+    return commands;
+  }, [streak.count, theme, toggleTheme, trackData?.generatedTrack?.length]);
+
   const handleTrackSave = (payload) => {
     const saved = saveTrack(user?.id, { ...payload, updatedAt: new Date().toISOString() });
     setTrackData(saved);
@@ -1244,20 +1287,39 @@ function App() {
     setTrackData(null);
   };
 
-  const PaletteBridge = (props) => {
+  const CommandCenter = () => {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
+    const { entries: memoryEntries } = useMemory(user?.id);
+    const smartCommands = useSmartCommands({
+      currentRoute: pathname,
+      trackData,
+      progress,
+      missions,
+      missionProgress,
+      gamification,
+      activityLog,
+      memoryEntries,
+      lastVisit,
+    });
+
+    const runCommand = (command) => {
+      const action = command?.action;
+      if (typeof action === "function") {
+        action();
+      } else if (action?.type === "navigate" && action.to) {
+        navigate(action.to);
+      }
+      setPaletteOpen(false);
+    };
+
     return (
       <CommandPalette
-        {...props}
-        navigate={navigate}
-        theme={theme}
-        toggleTheme={toggleTheme}
-        materials={materials}
-        missions={missions}
-        memoryLandmarks={memoryLandmarks}
-        trackData={trackData}
-        completedMaterialIds={completedMaterialIds}
-        addToast={addToast}
+        isOpen={isPaletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        smartCommands={smartCommands}
+        staticCommands={staticCommands}
+        onSelect={runCommand}
       />
     );
   };
@@ -1277,7 +1339,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <PaletteBridge open={isPaletteOpen} onClose={() => setPaletteOpen(false)} />
+      <CommandCenter />
       <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
