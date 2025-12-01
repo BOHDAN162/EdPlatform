@@ -19,7 +19,8 @@ import { learningPaths, materialThemes, materials, getMaterialById, themeLabels 
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
-import TrackSummaryBar from "./components/TrackSummaryBar";
+import TrackQuizPage from "./TrackQuizPage";
+import LibraryTrackView from "./components/LibraryTrackView";
 import MindGamesSection from "./components/MindGamesSection";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
@@ -31,7 +32,6 @@ import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
 import { useMissions } from "./hooks/useMissions";
-import OnboardingPage from "./OnboardingPage";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
 
@@ -250,7 +250,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
             <p className="quote-author">— {currentQuote.author}</p>
           </div>
           <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/missions" : "/onboarding")}>
+            <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
               {hasTrack ? "Продолжить" : "Начать"}
             </button>
           </div>
@@ -379,7 +379,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
           childrenIllustration={<BadgeOrbit />}
         >
           <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate("/onboarding")}>
+            <button className="primary hero-cta" onClick={() => navigate("/track-quiz")}>
               Апгрейд
             </button>
           </div>
@@ -389,7 +389,14 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   );
 };
 
-const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete }) => {
+const LibraryPage = ({
+  completedMaterialIds,
+  trackData,
+  user,
+  onMindGameComplete,
+  onTrackUpdate,
+  onRetakeTrack,
+}) => {
   const navigate = useNavigate();
   const groupedMaterials = useMemo(
     () =>
@@ -400,6 +407,11 @@ const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete
     []
   );
 
+  const handleRetake = () => {
+    onRetakeTrack?.();
+    navigate("/track-quiz");
+  };
+
   return (
     <div className="page">
       <div className="page-header">
@@ -409,7 +421,13 @@ const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete
         </div>
       </div>
 
-      <TrackSummaryBar track={trackData} completedMaterialIds={completedMaterialIds} />
+      <LibraryTrackView
+        track={trackData}
+        materials={materials}
+        completedMaterialIds={completedMaterialIds}
+        onUpdateSteps={(steps) => onTrackUpdate?.({ trackSteps: steps, generatedTrack: steps })}
+        onRetake={handleRetake}
+      />
 
       <div className="card">
         <div className="card-header">Твои дорожки</div>
@@ -1100,10 +1118,21 @@ function App() {
   );
 
   const handleTrackSave = (payload) => {
-    const saved = saveTrack(user?.id, payload);
+    const saved = saveTrack(user?.id, { ...payload, updatedAt: new Date().toISOString() });
     setTrackData(saved);
     addToast("Трек сохранён");
     updateProgressByKey("track_completed", 1);
+  };
+
+  const handleTrackUpdate = (next) => {
+    const saved = saveTrack(user?.id, { ...(trackData || {}), ...next, updatedAt: new Date().toISOString() });
+    setTrackData(saved);
+    addToast("Трек обновлён");
+  };
+
+  const handleTrackRetake = () => {
+    clearTrack(user?.id);
+    setTrackData(null);
   };
 
   const Layout = ({ children }) => (
@@ -1132,6 +1161,10 @@ function App() {
                 trackData={trackData}
                 user={user}
                 onMindGameComplete={handleMindGameComplete}
+                onTrackUpdate={handleTrackUpdate}
+                onRetakeTrack={() => {
+                  handleTrackRetake();
+                }}
               />
             }
           />
@@ -1215,17 +1248,15 @@ function App() {
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
-            element={<OnboardingPage user={user} trackData={trackData} onSaveTrack={handleTrackSave} onRetake={() => {
-              clearTrack(user?.id);
-              setTrackData(null);
-            }} />}
+            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
           />
           <Route
             path="/onboarding"
-            element={<OnboardingPage user={user} trackData={trackData} onSaveTrack={handleTrackSave} onRetake={() => {
-              clearTrack(user?.id);
-              setTrackData(null);
-            }} />}
+            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
+          />
+          <Route
+            path="/track-quiz"
+            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
           />
         </Routes>
       </Layout>

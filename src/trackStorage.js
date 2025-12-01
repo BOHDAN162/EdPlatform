@@ -2,11 +2,34 @@ const baseKey = "ep_track_";
 
 const resolveKey = (userId) => `${baseKey}${userId || "guest"}`;
 
+const normalizeTrack = (data) => {
+  if (!data) return null;
+  const steps = data.trackSteps || data.generatedTrack || [];
+  const profileResult =
+    data.profileResult ||
+    (data.profileType
+      ? {
+          profileKey: data.profileKey,
+          profileType: data.profileType,
+          summary: data.description,
+          strengths: data.summary,
+          comparison: data.comparison || [],
+        }
+      : null);
+  return {
+    ...data,
+    profileResult,
+    generatedTrack: steps,
+    trackSteps: steps,
+    completedStepIds: data.completedStepIds || [],
+  };
+};
+
 export const loadTrack = (userId) => {
   try {
     const raw = localStorage.getItem(resolveKey(userId));
     if (!raw) return null;
-    return JSON.parse(raw);
+    return normalizeTrack(JSON.parse(raw));
   } catch (e) {
     console.error("load track", e);
     return null;
@@ -14,7 +37,7 @@ export const loadTrack = (userId) => {
 };
 
 export const saveTrack = (userId, data) => {
-  const payload = { ...data, completedStepIds: data.completedStepIds || [] };
+  const payload = normalizeTrack({ ...data, completedStepIds: data.completedStepIds || [] });
   localStorage.setItem(resolveKey(userId), JSON.stringify(payload));
   return payload;
 };
@@ -28,7 +51,7 @@ export const markStepCompleted = (userId, stepId) => {
   if (!current) return null;
   const completed = new Set(current.completedStepIds || []);
   completed.add(stepId);
-  const updated = { ...current, completedStepIds: Array.from(completed) };
+  const updated = normalizeTrack({ ...current, completedStepIds: Array.from(completed) });
   localStorage.setItem(resolveKey(userId), JSON.stringify(updated));
   return updated;
 };
