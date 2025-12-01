@@ -716,6 +716,7 @@ const MaterialDetailPage = ({ onComplete, completedMaterialIds, onStart }) => {
   const { type, id } = useParams();
   const navigate = useNavigate();
   const material = getMaterialById(id);
+  const backToLibrary = () => navigate("/library");
 
   useEffect(() => {
     if (material) {
@@ -728,7 +729,7 @@ const MaterialDetailPage = ({ onComplete, completedMaterialIds, onStart }) => {
       <div className="page">
         <div className="card">
           <p>Материал не найден.</p>
-          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+          <button className="ghost" onClick={backToLibrary}>Назад</button>
         </div>
       </div>
     );
@@ -741,12 +742,18 @@ const MaterialDetailPage = ({ onComplete, completedMaterialIds, onStart }) => {
 
   return (
     <div className="page">
+      <div className="back-link-row">
+        <Link className="back-link" to="/library">
+          <span aria-hidden>←</span>
+          <span>Назад в библиотеку</span>
+        </Link>
+      </div>
       <div className="page-header">
         <div>
           <h1>{material.title}</h1>
           <p className="meta">Тема: {theme.title || material.theme}</p>
         </div>
-        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        <button className="ghost" onClick={backToLibrary}>Назад</button>
       </div>
       <div className="card">
         <div className="chip-row">
@@ -784,6 +791,7 @@ const TestPage = ({ onComplete, completedMaterialIds, onStart }) => {
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const completed = completedMaterialIds?.includes(id);
+  const backToLibrary = () => navigate("/library");
 
   useEffect(() => {
     if (test) {
@@ -796,7 +804,7 @@ const TestPage = ({ onComplete, completedMaterialIds, onStart }) => {
       <div className="page">
         <div className="card">
           <p>Тест не найден.</p>
-          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+          <button className="ghost" onClick={backToLibrary}>Назад</button>
         </div>
       </div>
     );
@@ -814,13 +822,19 @@ const TestPage = ({ onComplete, completedMaterialIds, onStart }) => {
 
   return (
     <div className="page">
+      <div className="back-link-row">
+        <Link className="back-link" to="/library">
+          <span aria-hidden>←</span>
+          <span>Назад в библиотеку</span>
+        </Link>
+      </div>
       <div className="page-header">
         <div>
           <h1>{test.title}</h1>
           <p className="meta">{test.description}</p>
           {completed && <p className="meta success">Тест уже завершён — результат можно улучшить</p>}
         </div>
-        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        <button className="ghost" onClick={backToLibrary}>Назад</button>
       </div>
       <div className="card">
         <div className="test-grid">
