@@ -8,6 +8,7 @@ import {
   awardForMission,
   awardForMindGame,
   defaultGamification,
+  getXPConfig,
   getStatusByPoints,
   getLevelFromPoints,
   loadGamification,
@@ -26,7 +27,7 @@ import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
-import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
+import { clearActivityLog, useActivityLog } from "./hooks/useActivityLog";
 import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
@@ -969,11 +970,12 @@ function App() {
   const { theme, toggleTheme } = useTheme();
   const { toasts, addToast, addToasts } = useToasts();
   const initialUser = loadCurrentUser();
+  const xpConfig = useMemo(() => getXPConfig(), []);
   const [user, setUser] = useState(() => initialUser);
   const [gamification, setGamification] = useState(() => loadGamification(initialUser?.id));
   const [trackData, setTrackData] = useState(() => loadTrack(initialUser?.id));
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
-  const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
+  const activityLogApi = useActivityLog(user?.id);
   const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
   const [isPaletteOpen, setPaletteOpen] = useState(false);
 
@@ -989,21 +991,28 @@ function App() {
     completedThisWeek,
   } = missionsApi;
 
+  const { activityByDate, activityFeed, logActivity, streakInfo, getActivityForMonth, activeDaysThisMonth } = activityLogApi;
+
   useEffect(() => {
     if (user) {
       setGamification(loadGamification(user.id));
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
-      setActivityLog(loadActivity(user.id));
       setCommunityState(loadCommunityState(user) || { ...baseCommunityState });
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
-      setActivityLog(loadActivity(null));
       setCommunityState(loadCommunityState(null) || { ...baseCommunityState });
     }
   }, [user]);
+
+  useEffect(() => {
+    const result = logActivity("sessionStarted", { title: "Вход в платформу" });
+    if (result?.isFirstActive) {
+      updateProgressByKey("login_days", 1);
+    }
+  }, [logActivity, updateProgressByKey, user?.id]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -1022,26 +1031,24 @@ function App() {
     saveCommunityState(user, nextState);
   };
 
-  const pushActivity = (entry) => {
-    setActivityLog((prev) => addActivityEntry(user?.id, entry, prev));
+  const pushActivity = (eventType, payload = {}) => {
+    logActivity(eventType, payload);
   };
 
   const applyGamificationResult = (result, previousAchievements = []) => {
     setGamification(result.gamification);
     if (result.goalCompletions?.length) {
-      result.goalCompletions.forEach((goal) =>
-        pushActivity({ title: `Цель выполнена: ${goal.title}`, type: "цель" })
-      );
+      result.goalCompletions.forEach((goal) => pushActivity("meta", { title: `Цель выполнена: ${goal.title}` }));
     }
     const newAchievements = result.gamification.achievements.filter((a) => !previousAchievements.includes(a));
-    newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+    newAchievements.forEach((ach) => pushActivity("meta", { title: `Достижение: ${ach}` }));
     addToasts(result.messages || []);
   };
 
   const completedMaterialIds = progress.completedMaterialIds || [];
   function handleMissionComplete(mission) {
     if (!mission) return;
-    pushActivity({ title: `Завершена миссия «${mission.title}»`, type: "миссия" });
+    pushActivity("missionCompleted", { title: `Завершена миссия «${mission.title}»`, xp: mission.xpRewardBase });
     addToast(`Миссия «${mission.title}» закрыта!`);
     if (user) {
       const previousAchievements = gamification.achievements || [];
@@ -1073,7 +1080,10 @@ function App() {
       updateProgressByKey("library_mindset_completed", 1);
     }
     updateProgressByKey("library_items_completed", 1);
-    pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
+    pushActivity("materialCompleted", {
+      title: `Закрыт материал «${material?.title || "Материал"}»`,
+      xp: xpConfig.materialCompleted,
+    });
   };
 
   const handleInlineQuizComplete = (materialId, reward) => {
@@ -1085,7 +1095,10 @@ function App() {
     const res = awardForInlineQuiz(user.id, gamification, reward || undefined);
     applyGamificationResult(res, previousAchievements);
     const material = getMaterialById(materialId);
-    pushActivity({ title: `Мини-тест по «${material?.title || "материалу"}»`, type: "квиз" });
+    pushActivity("inlineQuizCompleted", {
+      title: `Мини-тест по «${material?.title || "материалу"}»`,
+      xp: reward || xpConfig.inlineQuiz,
+    });
   };
 
   const handleFinishTest = ({ testId }) => {
@@ -1104,7 +1117,10 @@ function App() {
       const res = awardForTest(user.id, gamification);
       applyGamificationResult(res, previousAchievements);
     }
-    pushActivity({ title: `Пройден тест «${test?.title || "Тест"}»`, type: "тест" });
+    pushActivity("testCompleted", {
+      title: `Пройден тест «${test?.title || "Тест"}»`,
+      xp: xpConfig.testCompleted,
+    });
   };
 
   const handleCommunityAction = (action) => {
@@ -1116,19 +1132,19 @@ function App() {
     const res = awardForCommunityAction(user.id, gamification, action);
     applyGamificationResult(res, previousAchievements);
     if (action?.type === "post-create") {
-      pushActivity({ title: "Новый пост в сообществе", type: "сообщество" });
+      pushActivity("communityAction", { title: "Новый пост в сообществе", xp: xpConfig.communityAnswer });
     } else if (action?.type === "answer") {
-      pushActivity({ title: "Ответ в вопросах", type: "сообщество" });
+      pushActivity("communityAction", { title: "Ответ в вопросах", xp: xpConfig.communityAnswer });
       updateProgressByKey("community_replies", 1);
     } else if (action?.type === "message") {
-      pushActivity({ title: "Сообщение в чате", type: "сообщество" });
+      pushActivity("communityAction", { title: "Сообщение в чате" });
     } else if (action?.type === "best-answer") {
-      pushActivity({ title: "Лучший ответ", type: "сообщество" });
+      pushActivity("communityAction", { title: "Лучший ответ", xp: xpConfig.communityBestAnswer });
       updateProgressByKey("community_replies", 1);
     } else if (action?.type === "club-join") {
-      pushActivity({ title: "Присоединился к клубу", type: "сообщество" });
+      pushActivity("communityAction", { title: "Присоединился к клубу" });
     } else if (action?.type === "question") {
-      pushActivity({ title: "Новый вопрос", type: "сообщество" });
+      pushActivity("communityAction", { title: "Новый вопрос", xp: xpConfig.communityAnswer });
     }
   };
 
@@ -1177,7 +1193,15 @@ function App() {
     });
     applyGamificationResult(res, previousAchievements);
     updateProgressByKey("mindgames_played", 1);
-    pushActivity({ title: `${title}: ${result.correct}/${result.total}`, type: "mindgame" });
+    pushActivity("mindgameCompleted", {
+      title: `${title}: ${result.correct}/${result.total}`,
+      xp: result.xpGained,
+    });
+  };
+
+  const handleMemoryEntryAdded = () => {
+    updateProgressByKey("memory_notes_created", 1);
+    logActivity("memoryEntryCreated", { title: "Запись в Памяти", xp: 10 });
   };
 
   const handleAuth = (usr) => {
@@ -1185,19 +1209,17 @@ function App() {
     setGamification(loadGamification(usr.id));
     setTrackData(loadTrack(usr.id));
     setProgress(loadProgress(usr.id));
-    setActivityLog(loadActivity(usr.id));
     setMissionsState(loadMissionsState(usr.id));
   };
 
   const handleLogout = () => {
     const currentId = user?.id;
     logoutUser();
-    clearActivity(currentId);
+    clearActivityLog(currentId);
     setUser(null);
     setGamification({ ...defaultGamification });
     setTrackData(loadTrack(null));
     setProgress(loadProgress(null));
-    setActivityLog(loadActivity(null));
     setMissionsState(loadMissionsState(null));
   };
 
@@ -1223,8 +1245,8 @@ function App() {
   }, [user, gamification]);
 
   const streak = useMemo(
-    () => ({ count: gamification.streakCount || 0, lastDate: gamification.lastActivityDate }),
-    [gamification.streakCount, gamification.lastActivityDate]
+    () => ({ count: streakInfo?.current || 0, best: streakInfo?.best || 0, lastDate: streakInfo?.lastActiveDate }),
+    [streakInfo]
   );
 
   const staticCommands = useMemo(() => {
@@ -1298,7 +1320,7 @@ function App() {
       missions,
       missionProgress,
       gamification,
-      activityLog,
+      activityLog: activityFeed,
       memoryEntries,
       lastVisit,
     });
@@ -1398,12 +1420,15 @@ function App() {
                 setMissionStatus={setMissionStatus}
                 updateProgressByKey={updateProgressByKey}
                 completedThisWeek={completedThisWeek}
+                activityByDate={activityByDate}
+                streakInfo={streakInfo}
+                getActivityForMonth={getActivityForMonth}
               />
             }
           />
           <Route
             path="/memory"
-            element={<MemoryPage user={user} onEntryAdded={() => updateProgressByKey("memory_notes_created", 1)} />}
+            element={<MemoryPage user={user} onEntryAdded={handleMemoryEntryAdded} />}
           />
           <Route
             path="/community"
@@ -1425,7 +1450,11 @@ function App() {
                 progress={progress}
                 streak={streak}
                 trackData={trackData}
-                activityLog={activityLog}
+                activityLog={activityFeed}
+                activityByDate={activityByDate}
+                streakInfo={streakInfo}
+                getActivityForMonth={getActivityForMonth}
+                activeDaysThisMonth={activeDaysThisMonth}
                 community={community}
                 theme={theme}
                 onToggleTheme={toggleTheme}
