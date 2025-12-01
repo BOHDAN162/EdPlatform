@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "./routerShim";
 import { missions, getMissionProgress, missionThemeLabel, linkToMaterial } from "./missionsData";
 import { getMaterialById, themeLabels } from "./libraryData";
-import { getLevelFromXP, getRoleFromLevel } from "./gamification";
+import { defaultGamification, getLevelFromXP, getRoleFromLevel } from "./gamification";
 import { relativeTime } from "./communityState";
 
 const ProgressLine = ({ value }) => (
@@ -229,6 +229,7 @@ const MissionsPage = ({
   onMissionShare,
 }) => {
   const navigate = useNavigate();
+  const safeGamification = gamification || defaultGamification;
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
   const steps = trackData?.generatedTrack || [];
   const doneMainSteps = steps.filter((s) => completedSet.has(s.materialId)).length;
@@ -243,7 +244,7 @@ const MissionsPage = ({
   const [shareMission, setShareMission] = useState(null);
   const [shareComment, setShareComment] = useState("");
 
-  const levelInfo = getLevelFromXP(gamification.totalPoints);
+  const levelInfo = getLevelFromXP(safeGamification.totalPoints || 0);
   const roleLabel = getRoleFromLevel(levelInfo.level);
 
   const relatedPosts = useMemo(
@@ -373,7 +374,7 @@ const MissionsPage = ({
             </div>
             <div>
               <div className="meta subtle">Серия</div>
-              <div className="big-number">{gamification.streakCount || 0}</div>
+              <div className="big-number">{safeGamification.streakCount || 0}</div>
               <div className="meta">дней подряд</div>
             </div>
           </div>
@@ -382,7 +383,7 @@ const MissionsPage = ({
           )}
         </div>
 
-        <GoalsCard goals={gamification.goals} />
+        <GoalsCard goals={safeGamification.goals} />
       </div>
 
       <div className="card tab-card">

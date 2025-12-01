@@ -256,9 +256,6 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
             <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/missions" : "/onboarding")}>
               {hasTrack ? "Продолжить" : "Начать"}
             </button>
-            {hasTrack && (
-              <button className="ghost" onClick={() => navigate("/onboarding")}>Пройти опрос заново</button>
-            )}
           </div>
           <div className="how-it-works">
             <div>
@@ -385,7 +382,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
           childrenIllustration={<BadgeOrbit />}
         >
           <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/profile" : "/auth")}>
+            <button className="primary hero-cta" onClick={() => navigate("/onboarding")}>
               Апгрейд
             </button>
           </div>
