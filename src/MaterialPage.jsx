@@ -212,6 +212,7 @@ const MaterialPage = ({
   const { materialId } = useParams();
   const navigate = useNavigate();
   const material = getMaterialById(materialId);
+  const goBackToLibrary = () => navigate("/library");
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
   const [reflection, setReflection] = useReflection(materialId);
   const [questionOpen, setQuestionOpen] = useState(false);
@@ -239,7 +240,7 @@ const MaterialPage = ({
       <div className="page">
         <div className="card">
           <p>Материал не найден.</p>
-          <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+          <button className="ghost" onClick={goBackToLibrary}>Назад</button>
         </div>
       </div>
     );
@@ -274,13 +275,19 @@ const MaterialPage = ({
 
   return (
     <div className="page material-page">
+      <div className="back-link-row">
+        <Link className="back-link" to="/library">
+          <span aria-hidden>←</span>
+          <span>Назад в библиотеку</span>
+        </Link>
+      </div>
       <div className="page-header">
         <div>
           <p className="meta subtle">{trackBreadcrumb || "Самостоятельный материал"}</p>
           <h1>{material.title}</h1>
           <p className="meta">{material.description}</p>
         </div>
-        <button className="ghost" onClick={() => navigate(-1)}>Назад</button>
+        <button className="ghost" onClick={goBackToLibrary}>Назад</button>
       </div>
 
       <div className="material-layout">

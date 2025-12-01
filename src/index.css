@@ -206,6 +206,23 @@ body {
   gap: 16px;
 }
 
+.back-link-row {
+  margin: 4px 0 8px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
 .page-header {
   display: flex;
   align-items: center;
