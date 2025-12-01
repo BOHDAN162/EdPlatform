@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "./routerShim";
-import { missions, getMissionProgress, missionThemeLabel, linkToMaterial } from "./missionsData";
+import { missions, getMissionProgress, missionThemeLabel, linkToMaterial, getMissionById } from "./missionsData";
 import { getMaterialById, themeLabels } from "./libraryData";
 import { defaultGamification, getLevelFromXP, getRoleFromLevel } from "./gamification";
 import { relativeTime } from "./communityState";
