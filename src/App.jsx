@@ -23,7 +23,6 @@ import { loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
-import { loadStreak, resetStreak, updateStreakOnActivity } from "./streak";
 import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 import CommunityPage from "./community/CommunityPage";
 
@@ -859,7 +858,6 @@ function App() {
   const [gamification, setGamification] = useState(() => loadGamification(initialUser?.id));
   const [trackData, setTrackData] = useState(() => loadTrack(initialUser?.id));
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
-  const [streak, setStreak] = useState(() => loadStreak(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
   const [toasts, setToasts] = useState([]);
 
@@ -873,13 +871,11 @@ function App() {
       setGamification(loadGamification(user.id));
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
-      setStreak(loadStreak(user.id));
       setActivityLog(loadActivity(user.id));
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
-      setStreak(loadStreak(null));
       setActivityLog(loadActivity(null));
     }
   }, [user]);
@@ -898,6 +894,18 @@ function App() {
     setActivityLog((prev) => addActivityEntry(user?.id, entry, prev));
   };
 
+  const applyGamificationResult = (result, previousAchievements = []) => {
+    setGamification(result.gamification);
+    if (result.goalCompletions?.length) {
+      result.goalCompletions.forEach((goal) =>
+        pushActivity({ title: `Цель выполнена: ${goal.title}`, type: "цель" })
+      );
+    }
+    const newAchievements = result.gamification.achievements.filter((a) => !previousAchievements.includes(a));
+    newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+    addToasts(result.messages || []);
+  };
+
   const completedMaterialIds = progress.completedMaterialIds || [];
 
   const handleFinishMaterial = (materialId, materialType) => {
@@ -914,13 +922,8 @@ function App() {
     } else {
       const previousAchievements = gamification.achievements || [];
       const res = awardForMaterial(user.id, gamification);
-      setGamification(res.gamification);
-      addToasts(res.messages);
-      const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
-      newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+      applyGamificationResult(res, previousAchievements);
     }
-    const updatedStreak = updateStreakOnActivity(user?.id, streak);
-    setStreak(updatedStreak);
     pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
   };
 
@@ -938,13 +941,8 @@ function App() {
     } else {
       const previousAchievements = gamification.achievements || [];
       const res = awardForTest(user.id, gamification);
-      setGamification(res.gamification);
-      addToasts(res.messages);
-      const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
-      newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+      applyGamificationResult(res, previousAchievements);
     }
-    const updatedStreak = updateStreakOnActivity(user?.id, streak);
-    setStreak(updatedStreak);
     pushActivity({ title: `Пройден тест «${test?.title || "Тест"}»`, type: "тест" });
   };
 
@@ -955,10 +953,7 @@ function App() {
     }
     const previousAchievements = gamification.achievements || [];
     const res = awardForCommunityAction(user.id, gamification, action);
-    setGamification(res.gamification);
-    addToasts(res.messages);
-    const newAchievements = res.gamification.achievements.filter((a) => !previousAchievements.includes(a));
-    newAchievements.forEach((ach) => pushActivity({ title: `Достижение: ${ach}`, type: "достижение" }));
+    applyGamificationResult(res, previousAchievements);
     if (action?.type === "post-create") {
       pushActivity({ title: "Новый пост в сообществе", type: "сообщество" });
     } else if (action?.type === "answer") {
@@ -979,20 +974,17 @@ function App() {
     setGamification(loadGamification(usr.id));
     setTrackData(loadTrack(usr.id));
     setProgress(loadProgress(usr.id));
-    setStreak(loadStreak(usr.id));
     setActivityLog(loadActivity(usr.id));
   };
 
   const handleLogout = () => {
     const currentId = user?.id;
     logoutUser();
-    resetStreak(currentId);
     clearActivity(currentId);
     setUser(null);
     setGamification({ ...defaultGamification });
     setTrackData(loadTrack(null));
     setProgress(loadProgress(null));
-    setStreak(loadStreak(null));
     setActivityLog(loadActivity(null));
   };
 
@@ -1016,6 +1008,11 @@ function App() {
     };
     return [me, ...base.filter((p) => p.id !== me.id)];
   }, [user, gamification]);
+
+  const streak = useMemo(
+    () => ({ count: gamification.streakCount || 0, lastDate: gamification.lastActivityDate }),
+    [gamification.streakCount, gamification.lastActivityDate]
+  );
 
   const handleTrackSave = (payload) => {
     const saved = saveTrack(user?.id, payload);
