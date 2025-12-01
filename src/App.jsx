@@ -16,9 +16,10 @@ import { learningPaths, materialThemes, materials, getMaterialById, themeLabels 
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
+import TrackSummaryBar from "./components/TrackSummaryBar";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
-import DevelopmentTrackPage from "./DevelopmentTrackPage";
-import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
+import TrackQuizPage from "./TrackQuizPage";
+import { loadTrack, saveTrack } from "./trackStorage";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
@@ -244,7 +245,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
             <p className="quote-author">— {currentQuote.author}</p>
           </div>
           <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
+            <button className="primary hero-cta" onClick={() => navigate("/track")}>Старт</button>
           </div>
           <div className="how-it-works">
             <div>
@@ -409,8 +410,9 @@ const HomePage = ({ user, navigate, community, gamification }) => {
           childrenIllustration={<BadgeOrbit />}
         >
           <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
-            <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
+            <button className="primary hero-cta" onClick={() => navigate(user ? "/profile" : "/auth")}>
+              Апгрейд
+            </button>
           </div>
         </LandingSection>
       </div>
@@ -418,7 +420,7 @@ const HomePage = ({ user, navigate, community, gamification }) => {
   );
 };
 
-const LibraryPage = ({ completedMaterialIds }) => {
+const LibraryPage = ({ completedMaterialIds, trackData }) => {
   const navigate = useNavigate();
   const groupedMaterials = useMemo(
     () =>
@@ -437,6 +439,8 @@ const LibraryPage = ({ completedMaterialIds }) => {
           <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
         </div>
       </div>
+
+      <TrackSummaryBar track={trackData} completedMaterialIds={completedMaterialIds} />
 
       <div className="card">
         <div className="card-header">Твои дорожки</div>
@@ -1019,12 +1023,6 @@ function App() {
     addToast("Трек сохранён");
   };
 
-  const handleTrackReset = () => {
-    clearTrack(user?.id);
-    setTrackData(null);
-    addToast("Трек сброшен");
-  };
-
   const Layout = ({ children }) => (
     <div className={`app ${theme}`}>
       <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
@@ -1043,7 +1041,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
+          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} trackData={trackData} />} />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
             path="/library/:type/:id"
@@ -1078,16 +1076,7 @@ function App() {
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
-            element={
-              <DevelopmentTrackPage
-                libraryMaterials={materials}
-                userId={user?.id}
-                savedTrack={trackData}
-                completedMaterialIds={completedMaterialIds}
-                onTrackSave={handleTrackSave}
-                onTrackReset={handleTrackReset}
-              />
-            }
+            element={<TrackQuizPage savedTrack={trackData} materials={materials} onTrackSave={handleTrackSave} />}
           />
         </Routes>
       </Layout>

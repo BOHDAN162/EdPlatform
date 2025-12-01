@@ -4,6 +4,7 @@ const roleMap = {
   founder: "Будущий основатель бизнеса",
   strategist: "Исследователь и стратег",
   leader: "Лидер команды и коммуникатор",
+  creator: "Создатель проектов",
 };
 
 const defaultRoles = [roleMap.founder, roleMap.leader, roleMap.strategist];
