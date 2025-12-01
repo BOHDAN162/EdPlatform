@@ -12,153 +12,109 @@ const ProgressLine = ({ value }) => (
   </div>
 );
 
-const HeroCard = ({ profile, levelInfo, roleLabel, streak, gamification }) => (
-  <div className="card profile-hero modern">
-    <div className="hero-main">
-      <div className="avatar huge gradient">{profile.avatar}</div>
-      <div>
-        <div className="hero-name">{profile.name}</div>
-        <div className="meta">{profile.role}</div>
-        <div className="meta subtle">Уровень {levelInfo.level} · роль: {roleLabel}</div>
+const AvatarSelectorModal = ({ open, onClose, onSelect, currentAvatar }) => {
+  const avatars = ["🚀", "🦊", "🐉", "🎧", "🛰️", "🌌", "⚡", "🧠", "🌿", "🎮", "🦄", "🔥"];
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-card">
+        <div className="modal-header">
+          <div>
+            <div className="card-header">Выбери аватар</div>
+            <p className="meta">Подбери тотем, который будет рядом с тобой в каждом действии.</p>
+          </div>
+          <button className="ghost" onClick={onClose}>
+            Закрыть
+          </button>
+        </div>
+        <div className="avatar-grid">
+          {avatars.map((icon) => (
+            <button
+              key={icon}
+              className={`avatar-option ${currentAvatar === icon ? "active" : ""}`}
+              onClick={() => onSelect(icon)}
+            >
+              {icon}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
-    <div className="hero-stats">
-      <div className="stat-block">
-        <div className="stat-top">
-          <span className="pill outline">XP</span>
-          <span className="meta">{gamification.totalPoints} XP</span>
+  );
+};
+
+const NextActionCard = ({ onAction }) => (
+  <div className="next-action-card">
+    <div className="meta subtle">Твой следующий шаг</div>
+    <h3>Сегодня: Пройди 1 MindGame и дочитай модуль по финансам</h3>
+    <p className="meta">Короткая, понятная цель на день, чтобы серия не прерывалась.</p>
+    <button className="primary giant" onClick={onAction}>
+      Перейти к действию
+    </button>
+  </div>
+);
+
+const HeroCard = ({ profile, levelInfo, roleLabel, streak, gamification, onAvatarClick, onAction }) => (
+  <div className="profile-hero modern">
+    <div className="hero-left">
+      <button className="avatar huge gradient interactive" onClick={onAvatarClick}>
+        {profile.avatar}
+      </button>
+      <div className="hero-meta">
+        <div className="hero-name-row">
+          <div>
+            <div className="hero-name">{profile.name}</div>
+            <div className="meta subtle">{profile.role}</div>
+          </div>
+          <span className="status-pill">{roleLabel}</span>
+        </div>
+        <div className="level-line">
+          <div className="level-title">Уровень {levelInfo.level}</div>
+          <span className="meta subtle">{gamification.totalPoints} XP</span>
         </div>
         <ProgressLine value={levelInfo.progress} />
-        <div className="meta">До следующего уровня: {levelInfo.toNext} XP</div>
-      </div>
-      <div className="stat-chips">
-        <div className={`chip streak ${streak?.count >= 3 ? "hot" : ""}`}>
-          🔥 Серия: {streak?.count || 0} дней
+        <div className="level-footer">
+          <div className={`chip streak ${streak?.count >= 3 ? "hot" : ""}`}>
+            🔥 Серия: {streak?.count || 0} дней
+          </div>
+          <div className="meta subtle">До следующего уровня: {levelInfo.toNext} XP</div>
         </div>
-        <div className="chip">Материалы: {gamification.completedMaterialsCount || 0}</div>
-        <div className="chip">Тесты: {gamification.completedTestsCount || 0}</div>
       </div>
     </div>
+    <NextActionCard onAction={onAction} />
   </div>
 );
 
-const NextStepCard = ({ material, onStart, onFallback, doneCount, totalSteps }) => {
-  const remaining = Math.max((totalSteps || 0) - doneCount, 0);
-  return (
-    <div className="card focus next-step">
-      <div className="card-header">Твой следующий шаг</div>
-      <p className="meta">
-        Мы выбрали действие, которое лучше всего продвинет тебя вперёд сегодня. Открой и сделай его прямо сейчас.
-      </p>
-    {material ? (
-      <div className="next-step-body">
-        <div>
-          <div className="pill filled">{material.type === "test" ? "Тест" : material.type === "article" ? "Статья" : "Курс"}</div>
-          <h3>{material.title}</h3>
-          <p className="meta">{material.description || "Материал из твоего трека"}</p>
-          <div className="meta subtle">~ {material.estimatedTime || "15 минут"} · {material.level || "базовый"}</div>
-        </div>
-        <div className="next-actions">
-          <button className="primary large" onClick={() => onStart(material)}>Перейти к шагу</button>
-          {totalSteps ? (
-            <span className="meta subtle">До финиша: {remaining} шагов · всего {totalSteps}</span>
-          ) : (
-            <span className="meta subtle">Собери свой маршрут в опросе трека</span>
-          )}
-        </div>
-      </div>
-    ) : (
-      <div className="next-step-body">
-        <div>
-          <h3>Основной трек завершён!</h3>
-          <p className="meta">Выбери новые направления в библиотеке или собери другой трек.</p>
-        </div>
-        <div className="next-actions">
-          <button className="primary large" onClick={onFallback}>Посмотреть новые треки</button>
-        </div>
-      </div>
-    )}
-  </div>
-  );
-};
-
-const MainTrackCard = ({ steps, completedSet, onOpenMaterial }) => {
-  const doneCount = steps.filter((s) => completedSet.has(s.materialId)).length;
-  const ratio = steps.length ? Math.round((doneCount / steps.length) * 100) : 0;
-  return (
-    <div className="card main-track path-card">
-      <div className="card-header">Основной трек</div>
-      {steps.length ? (
-        <>
-          <p className="meta">Прогресс: {doneCount} из {steps.length} · {ratio}%</p>
-          <div className="track-path">
-            {steps.map((step, idx) => {
-              const done = completedSet.has(step.materialId);
-              const active = !done && idx === doneCount;
-              return (
-                <button
-                  key={step.id}
-                  className={`path-node ${done ? "done" : ""} ${active ? "active" : ""}`}
-                  onClick={() => onOpenMaterial(step.materialId, step.materialType)}
-                >
-                  <span className="path-index">{done ? "✓" : idx + 1}</span>
-                  <span className="path-title">{step.title}</span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        <div className="empty">Пока нет трека. Создай его через опрос.</div>
-      )}
-    </div>
-  );
-};
-
-const PathPreviewCard = ({ path, progress, onOpen }) => {
-  const theme = themeLabels[path.theme] || { accent: "#7c3aed", title: path.theme };
+const TrackCard = ({ path, progress, onOpen }) => {
   const ratio = progress.totalCount ? Math.round((progress.completedCount / progress.totalCount) * 100) : 0;
   const status =
-    progress.completedCount === 0
-      ? "Не начат"
-      : progress.completedCount === progress.totalCount
-      ? "Завершён"
-      : "В процессе";
+    ratio === 0 ? "Не начат" : ratio === 100 ? "Завершён" : progress.onHold ? "На паузе" : "В процессе";
+  const steps = Math.min(5, Math.max(1, Math.round((ratio || 1) / 20)));
+  const statusClass = status.replace(/\s+/g, "-");
   return (
-    <div className="mini-path modern" style={{ borderColor: `${theme.accent}30` }}>
-      <div className="mini-path-head">
-        <div className="pill" style={{ background: `${theme.accent}18`, color: theme.accent }}>
-          {theme.title}
+    <div className="track-card">
+      <div className="track-card-top">
+        <div>
+          <div className="meta subtle">{themeLabels[path.theme]?.title || "Трек"}</div>
+          <div className="track-title">{path.title}</div>
+          <div className="meta">{progress.completedCount} / {progress.totalCount} материалов · {ratio}%</div>
         </div>
-        <span className="meta">{status}</span>
+        <span className={`status-chip status-${statusClass}`}>{status}</span>
       </div>
-      <div className="mini-path-title">{path.title}</div>
-      <p className="meta subtle">{path.description}</p>
-      <ProgressLine value={ratio} />
-      <div className="mini-path-footer">
-        <span className="meta">{progress.completedCount} / {progress.totalCount} материалов</span>
-        <button className="ghost" onClick={onOpen}>{progress.completedCount ? "Продолжить" : "Начать"}</button>
+      <div className="track-indicator" aria-hidden>
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <span key={idx} className={`dot ${idx < steps ? "filled" : ""}`} />
+        ))}
+      </div>
+      <div className="track-card-actions">
+        <ProgressLine value={ratio} />
+        <button className="primary outline" onClick={onOpen}>
+          {ratio === 100 ? "Пересобрать" : "Продолжить"}
+        </button>
       </div>
     </div>
   );
 };
-
-const TracksOverview = ({ progress, navigate }) => (
-  <div className="card">
-    <div className="card-header">Твои треки</div>
-    <p className="meta">Посмотри, какие направления продвигаются быстрее всего.</p>
-    <div className="path-grid compact">
-      {learningPaths.slice(0, 4).map((path) => (
-        <PathPreviewCard
-          key={path.id}
-          path={path}
-          progress={getPathProgress(path, progress?.completedMaterialIds)}
-          onOpen={() => navigate(`/library/paths/${path.slug}`)}
-        />
-      ))}
-    </div>
-  </div>
-);
 
 const XPCard = ({ gamification, levelInfo, roleLabel, streak }) => (
   <div className="card xp-card clear">
@@ -226,6 +182,76 @@ const GoalsCard = ({ goals = [] }) => {
   );
 };
 
+const ActiveDaysCard = ({ activeDaysSet, monthLabel }) => {
+  const now = new Date();
+  const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const startOffset = new Date(now.getFullYear(), now.getMonth(), 1).getDay() || 7;
+  const cells = Array.from({ length: startOffset - 1 + totalDays }, (_, idx) => idx - (startOffset - 2));
+  return (
+    <div className="insight-card">
+      <div className="insight-title">Активные дни</div>
+      <div className="meta subtle">{monthLabel}</div>
+      <div className="calendar-grid">
+        {cells.map((day) => (
+          <div key={day} className={`calendar-cell ${day > 0 && activeDaysSet.has(day) ? "active" : ""}`}>
+            {day > 0 ? day : ""}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const MissionsCard = ({ completed = 0, active = 0 }) => {
+  const total = completed + active;
+  return (
+    <div className="insight-card">
+      <div className="insight-title">Миссии выполнено</div>
+      <div className="mission-value">
+        <span className="number">{completed}</span>
+        <span className="meta subtle">из {total} в прогрессе</span>
+      </div>
+      <div className="mission-meta">Активные: {active}</div>
+    </div>
+  );
+};
+
+const MaterialsCard = ({ materialsCompleted = 0, testsCompleted = 0 }) => {
+  const total = materialsCompleted + testsCompleted || 1;
+  const matPercent = Math.round((materialsCompleted / total) * 100);
+  const testPercent = 100 - matPercent;
+  return (
+    <div className="insight-card">
+      <div className="insight-title">Материалы пройдены</div>
+      <div className="bars">
+        <div className="bar" style={{ width: `${matPercent}%` }} />
+        <div className="bar alt" style={{ width: `${testPercent}%` }} />
+      </div>
+      <div className="insight-footer">
+        <span className="meta">Материалы: {materialsCompleted}</span>
+        <span className="meta">Тесты: {testsCompleted}</span>
+      </div>
+    </div>
+  );
+};
+
+const TracksSection = ({ progress, navigate }) => (
+  <div className="card tracks-card">
+    <div className="card-header">Твои треки</div>
+    <p className="meta">Минималистичные карточки как в Linear: выбери и продолжи свой путь.</p>
+    <div className="tracks-grid">
+      {learningPaths.slice(0, 3).map((path) => (
+        <TrackCard
+          key={path.id}
+          path={path}
+          progress={getPathProgress(path, progress?.completedMaterialIds)}
+          onOpen={() => navigate(`/library/paths/${path.slug}`)}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 const relativeLabel = (dateString) => {
   if (!dateString) return "Недавно";
   const date = new Date(dateString);
@@ -238,19 +264,31 @@ const relativeLabel = (dateString) => {
 };
 
 const ActivityCard = ({ activityLog = [] }) => (
-  <div className="card">
+  <div className="card activity-card">
     <div className="card-header">История активности</div>
     {activityLog.length === 0 && <p className="meta">Пока нет событий — открой материалы, тесты или сообщество.</p>}
     <div className="activity-list">
-      {activityLog.slice(0, 7).map((item) => (
-        <div key={item.id} className="activity-item">
-          <div className="activity-dot" />
-          <div>
-            <div className="activity-title">{item.title}</div>
-            <div className="meta">{relativeLabel(item.createdAt)} · {item.type || "действие"}</div>
+      {activityLog.slice(0, 7).map((item) => {
+        const icon =
+          item.type === "test"
+            ? "🧠"
+            : item.type === "material"
+            ? "📘"
+            : item.type === "memory"
+            ? "📓"
+            : item.type === "community"
+            ? "🤝"
+            : "✨";
+        return (
+          <div key={item.id} className="activity-item">
+            <div className="activity-icon">{icon}</div>
+            <div>
+              <div className="activity-title">{item.title}</div>
+              <div className="meta subtle">{relativeLabel(item.createdAt)} · {item.type || "действие"}</div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   </div>
 );
@@ -319,7 +357,7 @@ const FAQItem = ({ question, answer, open, onToggle }) => (
   </div>
 );
 
-const SettingsSection = ({ theme, onToggleTheme }) => {
+const SettingsSection = ({ theme, onToggleTheme, onClose, inModal }) => {
   const [form, setForm] = useState({ current: "", next: "", confirm: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -391,9 +429,18 @@ const SettingsSection = ({ theme, onToggleTheme }) => {
   };
 
   return (
-    <div className="card settings-card">
-      <div className="card-header">Настройки</div>
-      <p className="meta">Управляй безопасностью, темой и ответами на популярные вопросы прямо в профиле.</p>
+    <div className={`card settings-card ${inModal ? "modal-layout" : ""}`}>
+      <div className="settings-title-row">
+        <div>
+          <div className="card-header">Настройки</div>
+          <p className="meta">Управляй безопасностью, темой и ответами на популярные вопросы прямо в профиле.</p>
+        </div>
+        {onClose && (
+          <button className="ghost" onClick={onClose}>
+            Закрыть
+          </button>
+        )}
+      </div>
       <div className="settings-grid">
         <div className="settings-block">
           <div className="settings-block-header">Сменить пароль</div>
@@ -464,6 +511,17 @@ const SettingsSection = ({ theme, onToggleTheme }) => {
   );
 };
 
+const SettingsModal = ({ open, onClose, theme, onToggleTheme }) => {
+  if (!open) return null;
+  return (
+    <div className="modal-backdrop settings-backdrop">
+      <div className="modal-card wide">
+        <SettingsSection theme={theme} onToggleTheme={onToggleTheme} onClose={onClose} inModal />
+      </div>
+    </div>
+  );
+};
+
 const ProfileDashboard = ({
   user,
   gamification,
@@ -479,10 +537,18 @@ const ProfileDashboard = ({
   getMissionProgress,
 }) => {
   const navigate = useNavigate();
+  const [avatarChoice, setAvatarChoice] = useState(() => localStorage.getItem("ep_avatar_choice") || "");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   const profile = useUserProfile(user, trackData);
+  const profileWithAvatar = { ...profile, avatar: avatarChoice || profile.avatar };
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
 
   const mainTrackSteps = trackData?.generatedTrack || [];
+  const nextTrackStep = useMemo(
+    () => mainTrackSteps.find((s) => !completedSet.has(s.materialId)) || mainTrackSteps[0],
+    [mainTrackSteps, completedSet]
+  );
   const doneMainSteps = mainTrackSteps.filter((s) => completedSet.has(s.materialId)).length;
   const trackProgressLabel = mainTrackSteps.length
     ? `${doneMainSteps} из ${mainTrackSteps.length} шагов`
@@ -513,6 +579,38 @@ const ProfileDashboard = ({
   const levelInfo = getLevelFromXP(gamification.totalPoints);
   const roleLabel = getRoleFromLevel(levelInfo.level);
 
+  const activeDaysSet = useMemo(() => {
+    const now = new Date();
+    const set = new Set();
+    (activityLog || []).forEach((item) => {
+      const d = new Date(item.createdAt);
+      if (!Number.isNaN(d) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+        set.add(d.getDate());
+      }
+    });
+    return set;
+  }, [activityLog]);
+
+  const monthLabel = useMemo(() => {
+    const now = new Date();
+    return now.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
+  }, []);
+
+  const handleNextAction = () => {
+    if (nextTrackStep) {
+      const materialType = nextTrackStep.materialType || materials.find((m) => m.id === nextTrackStep.materialId)?.type || "material";
+      navigate(`/library/${materialType}/${nextTrackStep.materialId}`);
+      return;
+    }
+    navigate("/missions");
+  };
+
+  const handleAvatarSelect = (icon) => {
+    setAvatarChoice(icon);
+    localStorage.setItem("ep_avatar_choice", icon);
+    setShowAvatarModal(false);
+  };
+
   if (!user) {
     return (
       <div className="page profile-dashboard new-profile">
@@ -527,7 +625,26 @@ const ProfileDashboard = ({
 
   return (
     <div className="page profile-dashboard new-profile">
-      <HeroCard profile={profile} levelInfo={levelInfo} roleLabel={roleLabel} streak={streak} gamification={gamification} />
+      <HeroCard
+        profile={profileWithAvatar}
+        levelInfo={levelInfo}
+        roleLabel={roleLabel}
+        streak={streak}
+        gamification={gamification}
+        onAvatarClick={() => setShowAvatarModal(true)}
+        onAction={handleNextAction}
+      />
+
+      <TracksSection progress={progress} navigate={navigate} />
+
+      <div className="insights-row">
+        <ActiveDaysCard activeDaysSet={activeDaysSet} monthLabel={monthLabel} />
+        <MissionsCard completed={missionStats.completed} active={missionStats.active} />
+        <MaterialsCard
+          materialsCompleted={gamification.completedMaterialsCount || 0}
+          testsCompleted={gamification.completedTestsCount || 0}
+        />
+      </div>
 
       <div className="profile-columns">
         <div className="profile-main">
@@ -561,19 +678,35 @@ const ProfileDashboard = ({
 
         <div className="profile-side">
           <XPCard gamification={gamification} levelInfo={levelInfo} roleLabel={roleLabel} streak={streak} />
-          <LeagueSnippet community={community} currentUserName={profile.name} />
+          <LeagueSnippet community={community} currentUserName={profileWithAvatar.name} />
           <div className="card">
             <div className="card-header">Быстрые действия</div>
             <div className="quick-actions">
               <button className="ghost" onClick={() => navigate("/missions")}>Миссии и проекты</button>
               <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+              <button className="ghost" onClick={() => navigate("/memory")}>Память</button>
               <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
             </div>
+          </div>
+          <div className="card settings-entry">
+            <div>
+              <div className="card-header">Настройки</div>
+              <p className="meta">Тема, пароль, FAQ и выход — в отдельном чистом экране.</p>
+            </div>
+            <button className="primary" onClick={() => setShowSettings(true)}>
+              Открыть настройки
+            </button>
           </div>
         </div>
       </div>
 
-      <SettingsSection theme={theme} onToggleTheme={onToggleTheme} />
+      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} theme={theme} onToggleTheme={onToggleTheme} />
+      <AvatarSelectorModal
+        open={showAvatarModal}
+        currentAvatar={profileWithAvatar.avatar}
+        onClose={() => setShowAvatarModal(false)}
+        onSelect={handleAvatarSelect}
+      />
     </div>
   );
 };
