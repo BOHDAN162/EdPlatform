@@ -35,6 +35,8 @@ import AppLayout from "./components/layout/AppLayout";
 import { statusFromProgress, statusProgressValue } from "./utils/materialStatus";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
+import CommandPalette from "./components/common/CommandPalette";
+import { memoryLandmarks } from "./data/memoryLandmarks";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -903,6 +905,7 @@ function App() {
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
   const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
+  const [isPaletteOpen, setPaletteOpen] = useState(false);
 
   const missionsApi = useMissions(user?.id, { onMissionCompleted: handleMissionComplete });
   const {
@@ -929,6 +932,21 @@ function App() {
       setCommunityState(loadCommunityState(null) || { ...baseCommunityState });
     }
   }, [user]);
+
+  useEffect(() => {
+    const listener = (e) => {
+      const isK = e.key?.toLowerCase?.() === "k";
+      if ((e.metaKey || e.ctrlKey) && isK) {
+        e.preventDefault();
+        setPaletteOpen((open) => !open);
+      }
+      if (e.key === "Escape") {
+        setPaletteOpen(false);
+      }
+    };
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
 
   const updateCommunityState = (nextState) => {
     setCommunityState(nextState);
@@ -1158,6 +1176,24 @@ function App() {
     setTrackData(null);
   };
 
+  const PaletteBridge = (props) => {
+    const navigate = useNavigate();
+    return (
+      <CommandPalette
+        {...props}
+        navigate={navigate}
+        theme={theme}
+        toggleTheme={toggleTheme}
+        materials={materials}
+        missions={missions}
+        memoryLandmarks={memoryLandmarks}
+        trackData={trackData}
+        completedMaterialIds={completedMaterialIds}
+        addToast={addToast}
+      />
+    );
+  };
+
   const HomeRoute = () => {
     const navigate = useNavigate();
     return <HomePage navigate={navigate} trackData={trackData} theme={theme} />;
@@ -1165,6 +1201,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PaletteBridge open={isPaletteOpen} onClose={() => setPaletteOpen(false)} />
       <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
         <Routes>
           <Route path="/" element={<HomeRoute />} />

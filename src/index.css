@@ -3479,6 +3479,145 @@ body {
 }
 .track-edit-panel textarea { resize: vertical; }
 
+.command-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 16px;
+  z-index: 50;
+}
+
+.command-shell {
+  width: min(760px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+  color: var(--fg);
+  animation: pop-in 0.16s ease;
+}
+
+.command-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.command-input-row input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 15px;
+}
+
+.command-list {
+  max-height: 520px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+.command-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 0.15s ease, border 0.15s ease, transform 0.15s ease;
+}
+
+.command-item:hover {
+  border-color: var(--border);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.command-item.active {
+  border-color: var(--accent);
+  background: rgba(124, 58, 237, 0.12);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  transform: translateY(-1px);
+}
+
+.command-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.command-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.command-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.command-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.command-category {
+  font-size: 12px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.accent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
+@media (max-width: 720px) {
+  .command-overlay {
+    align-items: flex-start;
+    padding: 18px 10px;
+  }
+  .command-shell {
+    height: calc(100vh - 24px);
+    max-height: calc(100vh - 24px);
+    border-radius: 14px;
+    width: 100%;
+  }
+  .command-list {
+    max-height: calc(100vh - 120px);
+  }
+  .command-input-row input {
+    font-size: 16px;
+  }
+}
+
 @keyframes pop-in {
   from { transform: scale(0.98); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
