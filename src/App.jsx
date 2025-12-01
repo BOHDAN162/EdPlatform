@@ -6,6 +6,7 @@ import {
   awardForTest,
   awardForInlineQuiz,
   awardForMission,
+  awardForMindGame,
   defaultGamification,
   getStatusByPoints,
   getLevelFromPoints,
@@ -19,6 +20,7 @@ import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress
 import PathCard from "./components/PathCard";
 import MaterialCard from "./components/MaterialCard";
 import TrackSummaryBar from "./components/TrackSummaryBar";
+import MindGamesSection from "./components/MindGamesSection";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import {
@@ -394,7 +396,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   );
 };
 
-const LibraryPage = ({ completedMaterialIds, trackData }) => {
+const LibraryPage = ({ completedMaterialIds, trackData, user, onMindGameComplete }) => {
   const navigate = useNavigate();
   const groupedMaterials = useMemo(
     () =>
@@ -429,6 +431,8 @@ const LibraryPage = ({ completedMaterialIds, trackData }) => {
           ))}
         </div>
       </div>
+
+      <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
 
       {groupedMaterials.map((theme) => (
         <div key={theme.id} className="card">
@@ -1022,6 +1026,21 @@ function App() {
     addToast("Вопрос отправлен в сообщество");
   };
 
+  const handleMindGameComplete = (result) => {
+    const title = result.gameId === "finance" ? "Финансовая игра" : "Логическая игра";
+    if (!user) {
+      addToast("Войдите, чтобы получить XP за мини-игры");
+      return;
+    }
+    const previousAchievements = gamification.achievements || [];
+    const res = awardForMindGame(user.id, gamification, result.xpGained, {
+      label: `+${result.xpGained} XP за ${title}`,
+      gameId: result.gameId,
+    });
+    applyGamificationResult(res, previousAchievements);
+    pushActivity({ title: `${title}: ${result.correct}/${result.total}`, type: "mindgame" });
+  };
+
   const handleAuth = (usr) => {
     setUser(usr);
     setGamification(loadGamification(usr.id));
@@ -1093,7 +1112,17 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} trackData={trackData} />} />
+          <Route
+            path="/library"
+            element={
+              <LibraryPage
+                completedMaterialIds={completedMaterialIds}
+                trackData={trackData}
+                user={user}
+                onMindGameComplete={handleMindGameComplete}
+              />
+            }
+          />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
             path="/library/:type/:id"

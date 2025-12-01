@@ -992,6 +992,111 @@ body {
 .path-step-title { font-weight: 700; }
 .path-step-meta { font-size: 13px; color: var(--muted); }
 
+.mindgames-card { margin-top: 16px; }
+
+.mindgame-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  margin-top: 12px;
+}
+
+.mindgame-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(59, 130, 246, 0.06));
+  box-shadow: var(--shadow);
+}
+
+.mindgame-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.mindgame-card-title { font-size: 18px; font-weight: 800; }
+.mindgame-card-sub { color: var(--muted); }
+
+.mindgame-card-meta {
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+  text-align: right;
+}
+
+.mindgame-card .meta-label { color: var(--muted); font-size: 12px; }
+.mindgame-card .meta-value { font-weight: 700; text-align: right; }
+
+.mindgame-card .primary { width: fit-content; }
+
+.mindgame-shell { display: grid; gap: 16px; }
+.mindgame-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.mindgame-kicker { text-transform: uppercase; letter-spacing: 0.08em; color: #a78bfa; font-weight: 700; margin: 0; }
+.mindgame-title { margin: 4px 0; font-size: 24px; }
+.mindgame-sub { margin: 0; color: var(--muted); }
+.mindgame-result { font-weight: 800; color: #7c3aed; font-size: 18px; }
+.mindgame-stat { text-align: right; }
+
+.mindgame-question-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 12px;
+}
+
+.mindgame-question { font-weight: 700; font-size: 16px; }
+
+.mindgame-options { display: grid; gap: 10px; }
+
+.mindgame-option {
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border 0.2s ease;
+}
+
+.mindgame-option:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(124, 58, 237, 0.16); border-color: #7c3aed; }
+
+.mindgame-feedback {
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.mindgame-feedback.success { border-color: rgba(52, 211, 153, 0.4); color: #10b981; }
+.mindgame-feedback.error { border-color: rgba(239, 68, 68, 0.4); color: #ef4444; }
+
+.mindgame-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.mindgame-modal .modal-card { width: min(820px, 100%); }
+.mindgame-modal .close-button { position: absolute; top: 12px; right: 12px; }
+.mindgame-modal-card { position: relative; padding-top: 44px; }
+.mindgame-modal .progress-shell { background: rgba(124, 58, 237, 0.18); border-color: transparent; }
+
+@media (max-width: 768px) {
+  .mindgame-card-head { flex-direction: column; }
+  .mindgame-head { flex-direction: column; }
+  .mindgame-card-meta { width: 100%; text-align: left; }
+  .mindgame-modal .modal-card { height: 100%; overflow: auto; }
+}
+
 /* Landing */
 .landing-flow {
   display: flex;
