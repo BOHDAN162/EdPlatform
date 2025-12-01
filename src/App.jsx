@@ -38,6 +38,7 @@ import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
 import OnboardingPage from "./OnboardingPage";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
+import MemoryPage from "./MemoryPage";
 
 const Toast = ({ messages }) => {
   if (!messages.length) return null;
@@ -58,6 +59,7 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
     { to: "/", label: "Главная" },
     { to: "/library", label: "Библиотека" },
     { to: "/missions", label: "Миссии" },
+    { to: "/memory", label: "Память" },
     { to: "/community", label: "Сообщество" },
     { to: "/profile", label: "Профиль" },
   ];
@@ -1137,6 +1139,7 @@ function App() {
               />
             }
           />
+          <Route path="/memory" element={<MemoryPage user={user} />} />
           <Route
             path="/community"
             element={
