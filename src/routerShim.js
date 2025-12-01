@@ -38,6 +38,10 @@ export function BrowserRouter({ children }) {
     return () => window.removeEventListener("hashchange", handler);
   }, []);
   const navigate = (to) => {
+    if (typeof to === "number") {
+      window.history.go(to);
+      return;
+    }
     if (to === path) return;
     const next = normalizePath(to);
     window.location.hash = next;
