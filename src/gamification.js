@@ -278,6 +278,8 @@ const baseMessages = {
   mission_completed: `+${XP_REWARDS.missionCompleted} XP за миссию`,
   community_answer: `+${XP_REWARDS.communityAnswer} XP за помощь в сообществе`,
   community_best: `+${XP_REWARDS.communityBestAnswer} XP за лучший ответ`,
+  mindgame_logic: "+XP за логическую игру",
+  mindgame_finance: "+XP за финансовую игру",
 };
 
 export const applyGamificationEvent = (userId, current, event = {}) => {
@@ -356,6 +358,14 @@ export const awardForMission = (userId, current, amount = XP_REWARDS.missionComp
     type: "mission_completed",
     amount,
     progress: { actions: 1 },
+  });
+
+export const awardForMindGame = (userId, current, amount = 0, meta = {}) =>
+  applyGamificationEvent(userId, current, {
+    type: meta.gameId === "finance" ? "mindgame_finance" : "mindgame_logic",
+    amount,
+    progress: { actions: 1 },
+    label: meta.label,
   });
 
 export const getXPRewards = () => XP_REWARDS;
