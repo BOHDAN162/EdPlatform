@@ -11,9 +11,6 @@ const MemoryMiniMap = ({ landmarks, selectedLandmarkId, entries, highlightedLand
     [entries]
   );
 
-  const gridRows = useMemo(() => Math.max(...landmarks.map((item) => item.position.row), 4), [landmarks]);
-  const gridCols = useMemo(() => Math.max(...landmarks.map((item) => item.position.col), 3), [landmarks]);
-
   return (
     <div className="memory-map card">
       <div className="memory-map-header">
@@ -32,13 +29,7 @@ const MemoryMiniMap = ({ landmarks, selectedLandmarkId, entries, highlightedLand
       </div>
 
       <div className="mini-map-frame">
-        <div
-          className="mini-map-grid"
-          style={{
-            gridTemplateRows: `repeat(${gridRows}, minmax(72px, 1fr))`,
-            gridTemplateColumns: `repeat(${gridCols}, minmax(82px, 1fr))`,
-          }}
-        >
+        <div className="mini-map-grid">
           {landmarks.map((landmark) => (
             <LandmarkTile
               key={landmark.id}
