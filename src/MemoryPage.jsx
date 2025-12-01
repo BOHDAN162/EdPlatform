@@ -6,7 +6,7 @@ import { useMemory } from "./hooks/useMemory";
 import { materialIndex } from "./libraryData";
 import { memoryCategories } from "./data/memoryLandmarks";
 
-const MemoryPage = ({ user }) => {
+const MemoryPage = ({ user, onEntryAdded }) => {
   const {
     landmarks,
     entries,
@@ -71,14 +71,17 @@ const MemoryPage = ({ user }) => {
       tags: ["быстро"],
       relatedMaterialIds: [],
     };
-    addEntry(selectedLandmark?.id, placeholder);
+    const entry = addEntry(selectedLandmark?.id, placeholder);
+    if (onEntryAdded) onEntryAdded(entry);
   };
 
   const handleSave = (payload) => {
     if (editingEntry) {
       updateEntry(editingEntry.id, payload);
+      if (onEntryAdded) onEntryAdded({ ...editingEntry, ...payload });
     } else {
-      addEntry(selectedLandmark?.id, payload);
+      const entry = addEntry(selectedLandmark?.id, payload);
+      if (onEntryAdded) onEntryAdded(entry);
     }
     setShowForm(false);
     setEditingEntry(null);

@@ -23,14 +23,6 @@ import TrackSummaryBar from "./components/TrackSummaryBar";
 import MindGamesSection from "./components/MindGamesSection";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
-import {
-  loadMissionsState,
-  saveMissionsState,
-  setMissionNotes,
-  setMissionStatus,
-  toggleMissionStep,
-  getMissionById,
-} from "./missionsData";
 import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
@@ -38,6 +30,7 @@ import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
+import { useMissions } from "./hooks/useMissions";
 import OnboardingPage from "./OnboardingPage";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
@@ -852,9 +845,18 @@ function App() {
   const [trackData, setTrackData] = useState(() => loadTrack(initialUser?.id));
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
-  const [missionsState, setMissionsState] = useState(() => loadMissionsState(initialUser?.id));
   const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
   const [toasts, setToasts] = useState([]);
+
+  const missionsApi = useMissions(user?.id, { onMissionCompleted: handleMissionComplete });
+  const {
+    missions,
+    progress: missionProgress,
+    getMissionProgress,
+    updateProgressByKey,
+    setMissionStatus,
+    completedThisWeek,
+  } = missionsApi;
 
   useEffect(() => {
     document.body.dataset.theme = theme;
@@ -867,14 +869,12 @@ function App() {
       setTrackData(loadTrack(user.id));
       setProgress(loadProgress(user.id));
       setActivityLog(loadActivity(user.id));
-      setMissionsState(loadMissionsState(user.id));
       setCommunityState(loadCommunityState(user) || { ...baseCommunityState });
     } else {
       setGamification({ ...defaultGamification });
       setTrackData(loadTrack(null));
       setProgress(loadProgress(null));
       setActivityLog(loadActivity(null));
-      setMissionsState(loadMissionsState(null));
       setCommunityState(loadCommunityState(null) || { ...baseCommunityState });
     }
   }, [user]);
@@ -911,29 +911,16 @@ function App() {
   };
 
   const completedMaterialIds = progress.completedMaterialIds || [];
-  const updateMissionState = (action) => {
-    setMissionsState((prev) => {
-      const base = prev || loadMissionsState(user?.id);
-      let next = base;
-      if (action.type === "status") {
-        const previousStatus = base?.missions?.[action.missionId]?.status;
-        next = setMissionStatus(base, action.missionId, action.status);
-        if (action.status === "completed" && previousStatus !== "completed") {
-          pushActivity({ title: `Завершена миссия «${getMissionById(action.missionId)?.title || "Миссия"}»`, type: "миссия" });
-          if (user) {
-            const previousAchievements = gamification.achievements || [];
-            const res = awardForMission(user.id, gamification, action.reward || undefined);
-            applyGamificationResult(res, previousAchievements);
-          }
-        }
-      } else if (action.type === "toggleStep") {
-        next = toggleMissionStep(base, action.missionId, action.stepId);
-      } else if (action.type === "notes") {
-        next = setMissionNotes(base, action.missionId, action.text);
-      }
-      return saveMissionsState(user?.id, next);
-    });
-  };
+  function handleMissionComplete(mission) {
+    if (!mission) return;
+    pushActivity({ title: `Завершена миссия «${mission.title}»`, type: "миссия" });
+    addToast(`Миссия «${mission.title}» закрыта!`);
+    if (user) {
+      const previousAchievements = gamification.achievements || [];
+      const res = awardForMission(user.id, gamification, mission.xpRewardBase || undefined);
+      applyGamificationResult(res, previousAchievements);
+    }
+  }
 
   const handleFinishMaterial = (materialId, materialType) => {
     const alreadyCompleted = completedMaterialIds.includes(materialId);
@@ -951,6 +938,13 @@ function App() {
       const res = awardForMaterial(user.id, gamification);
       applyGamificationResult(res, previousAchievements);
     }
+    if (material?.theme === "finance") {
+      updateProgressByKey("library_finance_completed", 1);
+    }
+    if (material?.theme === "mindset") {
+      updateProgressByKey("library_mindset_completed", 1);
+    }
+    updateProgressByKey("library_items_completed", 1);
     pushActivity({ title: `Закрыт материал «${material?.title || "Материал"}»`, type: materialType || material?.type || "материал" });
   };
 
@@ -997,10 +991,12 @@ function App() {
       pushActivity({ title: "Новый пост в сообществе", type: "сообщество" });
     } else if (action?.type === "answer") {
       pushActivity({ title: "Ответ в вопросах", type: "сообщество" });
+      updateProgressByKey("community_replies", 1);
     } else if (action?.type === "message") {
       pushActivity({ title: "Сообщение в чате", type: "сообщество" });
     } else if (action?.type === "best-answer") {
       pushActivity({ title: "Лучший ответ", type: "сообщество" });
+      updateProgressByKey("community_replies", 1);
     } else if (action?.type === "club-join") {
       pushActivity({ title: "Присоединился к клубу", type: "сообщество" });
     } else if (action?.type === "question") {
@@ -1052,6 +1048,7 @@ function App() {
       gameId: result.gameId,
     });
     applyGamificationResult(res, previousAchievements);
+    updateProgressByKey("mindgames_played", 1);
     pushActivity({ title: `${title}: ${result.correct}/${result.total}`, type: "mindgame" });
   };
 
@@ -1106,6 +1103,7 @@ function App() {
     const saved = saveTrack(user?.id, payload);
     setTrackData(saved);
     addToast("Трек сохранён");
+    updateProgressByKey("track_completed", 1);
   };
 
   const Layout = ({ children }) => (
@@ -1170,19 +1168,20 @@ function App() {
             path="/missions"
             element={
               <MissionsPage
-                user={user}
                 gamification={gamification}
-                progress={progress}
-                trackData={trackData}
-                missionsState={missionsState}
-                onUpdateMissionState={updateMissionState}
-                communityPosts={communityState.posts}
-                onMissionShare={handleMissionShare}
-                onMissionCompleted={(mission) => addToast(`Миссия «${mission.title}» закрыта!`)}
+                missions={missions}
+                missionProgress={missionProgress}
+                getMissionProgress={getMissionProgress}
+                setMissionStatus={setMissionStatus}
+                updateProgressByKey={updateProgressByKey}
+                completedThisWeek={completedThisWeek}
               />
             }
           />
-          <Route path="/memory" element={<MemoryPage user={user} />} />
+          <Route
+            path="/memory"
+            element={<MemoryPage user={user} onEntryAdded={() => updateProgressByKey("memory_notes_created", 1)} />}
+          />
           <Route
             path="/community"
             element={
@@ -1207,7 +1206,9 @@ function App() {
                 community={community}
                 theme={theme}
                 onToggleTheme={toggleTheme}
-                missionsState={missionsState}
+                missions={missions}
+                missionProgress={missionProgress}
+                getMissionProgress={getMissionProgress}
               />
             }
           />

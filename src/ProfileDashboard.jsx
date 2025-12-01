@@ -4,7 +4,7 @@ import useUserProfile from "./useUserProfile";
 import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
 import { getMaterialById, learningPaths, materials, themeLabels } from "./libraryData";
 import { getPathProgress } from "./progress";
-import { missions, getMissionProgress } from "./missionsData";
+import { missions as missionList } from "./data/missions";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -474,7 +474,9 @@ const ProfileDashboard = ({
   community = [],
   theme,
   onToggleTheme,
-  missionsState,
+  missions = missionList,
+  missionProgress,
+  getMissionProgress,
 }) => {
   const navigate = useNavigate();
   const profile = useUserProfile(user, trackData);
@@ -487,12 +489,15 @@ const ProfileDashboard = ({
     : "Трек ещё не собран";
 
   const missionStats = useMemo(() => {
-    const statuses = missions.map((mission) => getMissionProgress(mission, missionsState));
+    const statuses = (missions || []).map((mission) => {
+      const progressEntry = getMissionProgress ? getMissionProgress(mission.id) : missionProgress?.[mission.id];
+      return progressEntry || {};
+    });
     return {
       completed: statuses.filter((s) => s.status === "completed").length,
-      active: statuses.filter((s) => s.status === "in_progress").length,
+      active: statuses.filter((s) => s.status === "inProgress" || s.status === "in_progress").length,
     };
-  }, [missionsState]);
+  }, [missions, missionProgress, getMissionProgress]);
 
   const goalsSummary = useMemo(() => {
     const dailyGoals = gamification.goals?.filter((g) => g.type === "daily") || [];
