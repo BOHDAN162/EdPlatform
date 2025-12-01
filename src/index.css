@@ -2404,11 +2404,11 @@ body {
 
 .mini-map-frame { position: relative; border-radius: 14px; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(124,58,237,0.06)); min-height: 340px; }
 .mini-map-frame::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(to right, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 68px 68px; opacity: 0.45; pointer-events: none; }
-.mini-map-grid { position: relative; display: grid; gap: 12px; padding: 18px; width: 100%; height: 100%; }
-.landmark-tile { position: relative; border: none; background: transparent; cursor: pointer; text-align: left; transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease; }
+.mini-map-grid { position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; padding: 18px; width: 100%; height: 100%; align-items: stretch; justify-items: stretch; max-width: 1100px; margin: 0 auto; }
+.landmark-tile { position: relative; border: none; background: transparent; cursor: pointer; text-align: left; transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease; border-radius: 18px; box-shadow: 0 8px 20px rgba(124,58,237,0.08); outline: none; }
 .landmark-tile .tile-base { position: relative; width: 100%; min-height: 96px; display: grid; align-items: end; }
 .landmark-tile .tile-top { position: absolute; inset: 8px 10px auto 10px; height: 20px; background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.1)); border-radius: 12px 12px 10px 10px; transform: skewY(-4deg) translateY(-4px); box-shadow: 0 10px 18px rgba(0,0,0,0.08); opacity: 0.9; }
-.landmark-tile .tile-front { position: relative; padding: 14px 12px; background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.78)); border-radius: 14px; border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 10px 25px rgba(0,0,0,0.18); transform: translateY(4px) skewY(-2deg); display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; color: #0f172a; }
+.landmark-tile .tile-front { position: relative; padding: 14px 12px; background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.78)); border-radius: 14px; border: 2px solid rgba(255,255,255,0.8); box-shadow: 0 10px 25px rgba(0,0,0,0.18); transform: translateY(4px) skewY(-2deg); display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; color: #0f172a; transition: transform 0.2s ease, box-shadow 0.2s ease; }
 [data-theme="dark"] .landmark-tile .tile-front { background: linear-gradient(180deg, rgba(30,27,75,0.75), rgba(30,27,75,0.9)); border-color: rgba(255,255,255,0.08); color: #e5e7eb; box-shadow: 0 14px 34px rgba(0,0,0,0.45); }
 .landmark-tile .tile-icon { font-size: 22px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
 .landmark-tile .tile-labels { display: grid; gap: 4px; }
@@ -2416,10 +2416,9 @@ body {
 .landmark-tile .tile-category { font-size: 12px; color: #475569; text-transform: capitalize; }
 [data-theme="dark"] .landmark-tile .tile-category { color: #cbd5f5; }
 .landmark-tile .tile-count { position: absolute; top: -6px; right: -6px; background: var(--tile-color, #7c3aed); color: #fff; border-radius: 999px; padding: 6px 10px; font-size: 12px; box-shadow: 0 10px 24px rgba(124,58,237,0.35); border: 1px solid rgba(255,255,255,0.35); }
-.landmark-tile .tile-tooltip { position: absolute; inset: auto 8px -46px 8px; background: var(--card); border: 1px solid var(--border); color: var(--fg); border-radius: 10px; padding: 8px; font-size: 12px; opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity 0.2s ease, transform 0.2s ease; box-shadow: 0 12px 30px rgba(0,0,0,0.18); }
-.landmark-tile .tooltip-name { font-weight: 700; }
-.landmark-tile .tooltip-meta { color: var(--muted); margin-top: 2px; }
-.landmark-tile:hover .tile-tooltip { opacity: 1; transform: translateY(0); }
+.landmark-tile:hover, .landmark-tile:focus-visible { transform: translateY(-4px) scale(1.02); filter: drop-shadow(0 14px 32px rgba(124,58,237,0.18)); box-shadow: 0 12px 26px rgba(124,58,237,0.12); }
+.landmark-tile:hover .tile-front, .landmark-tile:focus-visible .tile-front { box-shadow: 0 18px 34px rgba(124,58,237,0.22); transform: translateY(0) skewY(-1deg); }
+.landmark-tile:focus-visible { outline: 2px solid rgba(124,58,237,0.35); outline-offset: 4px; }
 .landmark-tile.has-records .tile-front { border-color: var(--tile-color, #7c3aed); box-shadow: 0 16px 28px rgba(124,58,237,0.16); }
 [data-theme="dark"] .landmark-tile.has-records .tile-front { border-color: rgba(124,58,237,0.6); }
 .landmark-tile.selected { transform: translateY(-4px) scale(1.02); filter: drop-shadow(0 10px 30px rgba(124,58,237,0.25)); }

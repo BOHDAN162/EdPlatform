@@ -9,9 +9,9 @@ const LandmarkTile = ({ landmark, count = 0, selected, highlighted, onSelect }) 
       className={`landmark-tile ${selected ? "selected" : ""} ${hasRecords ? "has-records" : ""} ${
         highlighted ? "highlighted" : ""
       }`}
-      style={{ gridRow: landmark.position.row, gridColumn: landmark.position.col, "--tile-color": landmark.color || "#7c3aed" }}
+      style={{ "--tile-color": landmark.color || "#7c3aed" }}
       onClick={() => onSelect(landmark.id)}
-      title={`${landmark.name} • ${landmark.category}`}
+      aria-label={`${landmark.name} — ${landmark.category}`}
     >
       <div className="tile-base">
         <div className="tile-top" />
@@ -23,10 +23,6 @@ const LandmarkTile = ({ landmark, count = 0, selected, highlighted, onSelect }) 
           </div>
         </div>
         {count > 0 && <span className="tile-count">{count}</span>}
-      </div>
-      <div className="tile-tooltip">
-        <div className="tooltip-name">{landmark.name}</div>
-        <div className="tooltip-meta">{landmark.district ? `${landmark.district} • ` : ""}{landmark.category}</div>
       </div>
     </button>
   );
