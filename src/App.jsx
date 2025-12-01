@@ -18,14 +18,11 @@ import { communityParticipants } from "./communityData";
 import { learningPaths, materialThemes, materials, getMaterialById, themeLabels } from "./libraryData";
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
-import MaterialCard from "./components/MaterialCard";
 import TrackQuizPage from "./TrackQuizPage";
 import LibraryTrackView from "./components/LibraryTrackView";
 import MindGamesSection from "./components/MindGamesSection";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
-import LandingSection from "./LandingSection";
-import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
 import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
 import CommunityPage from "./community/CommunityPage";
@@ -39,66 +36,6 @@ import { statusFromProgress, statusProgressValue } from "./utils/materialStatus"
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
 
-const GamificationSummary = ({ gamification }) => {
-  const status = getStatusByPoints(gamification.totalPoints);
-  const { next, progress } = progressToNextStatus(gamification.totalPoints);
-  const achievementsMap = {
-    "first-test": "Первый тест",
-    "tests-3": "3 теста подряд",
-    "materials-5": "5 материалов",
-    "points-100": "100 очков",
-    "points-300": "300 очков",
-    "community-first-post": "Первый пост в сообществе",
-    "community-5-answers": "5 ответов в сообществе",
-    "community-3-best": "3 лучших ответа",
-    "community-10-messages": "10 сообщений в чатах",
-  };
-
-  return (
-    <div className="card">
-      <div className="card-header">Твоя геймификация</div>
-      <div className="big-number">{gamification.totalPoints} очков</div>
-      <p className="meta">Статус: {status}</p>
-      {next && (
-        <div className="progress-line">
-          <div className="bar" style={{ width: `${progress}%` }} />
-        </div>
-      )}
-      {next && <p className="meta">До уровня «{next}» осталось {100 - progress}%</p>}
-      <div className="badges">
-        {gamification.achievements.length === 0 && <span className="tag">Пока без наград</span>}
-        {gamification.achievements.map((a) => (
-          <span key={a} className="tag">
-            {achievementsMap[a] || a}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const DeviceMock = ({ title, items }) => (
-  <div className="device-mock">
-    <div className="device-top">
-      <span className="device-dot" />
-      <span className="device-dot" />
-      <span className="device-dot" />
-    </div>
-    <div className="device-body">
-      <div className="device-title">{title}</div>
-      <div className="device-items">
-        {items.map((item, idx) => (
-          <div key={idx} className="device-item">
-            <div className="device-pill" />
-            <div className="device-line" style={{ width: `${70 - idx * 8}%` }} />
-            <div className="device-label-line">{item}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
 const typeFilterOptions = [
   { id: "all", label: "Все" },
   { id: "course", label: "Курсы" },
@@ -107,44 +44,47 @@ const typeFilterOptions = [
   { id: "game", label: "Игры" },
 ];
 
-const BadgeOrbit = () => (
-  <div className="badge-orbit">
-    <div className="badge bubble">Очки +120</div>
-    <div className="badge bubble">Новый статус</div>
-    <div className="badge bubble">Серия 7 дней</div>
-    <div className="badge bubble">Тест закрыт</div>
-  </div>
-);
-
-const TrackPreview = () => (
-  <div className="track-preview">
-    {["Осознание", "Финансы", "Проект", "Комьюнити"].map((label, idx) => (
-      <div key={label} className={`track-chip ${idx === 0 ? "active" : ""}`}>
-        <span className="track-index">{idx + 1}</span>
-        <div>
-          <div className="track-label">{label}</div>
-          <div className="track-sub">Шаг {idx + 1}</div>
+const LandingMock = ({ theme }) => (
+  <div className={`hero-visual ${theme}`}>
+    <div className="mock-window">
+      <div className="mock-header">
+        <span className="mock-dot" />
+        <span className="mock-dot" />
+        <span className="mock-dot" />
+        <div className="mock-title">NOESIS workspace</div>
+      </div>
+      <div className="mock-body">
+        <div className="mock-panel">
+          <div className="panel-label">Твой прогресс</div>
+          {["Миссии", "Библиотека", "Память"].map((pill) => (
+            <div key={pill} className="panel-row">
+              <div className="panel-pill">{pill}</div>
+              <div className="panel-line" />
+              <span className="panel-meta">В фокусе</span>
+            </div>
+          ))}
+        </div>
+        <div className="mock-card-grid">
+          {["Вопросы", "Модуль", "Челлендж"].map((title, idx) => (
+            <div key={title} className="mock-card">
+              <div className="mock-card-top">
+                <span className="mock-badge">{idx + 1} шаг</span>
+                <span className="mock-chip">10 минут</span>
+              </div>
+              <div className="mock-card-title">{title}</div>
+              <div className="mock-progress">
+                <div className="mock-progress-fill" style={{ width: `${50 + idx * 10}%` }} />
+              </div>
+              <div className="mock-meta">Активно • без отвлечений</div>
+            </div>
+          ))}
         </div>
       </div>
-    ))}
-  </div>
-);
-
-const CommunityOrbit = () => (
-  <div className="community-orbit">
-    {["Алия", "Рома", "Милена", "Тимур"].map((name, idx) => (
-      <div key={name} className={`orbit-card orbit-${idx}`}>
-        <div className="avatar bubble">{name[0]}</div>
-        <div className="orbit-meta">{name}</div>
-      </div>
-    ))}
-    <div className="orbit-core">Живые созвоны
-      <span className="orbit-chip">каждую неделю</span>
     </div>
   </div>
 );
 
-const HomePage = ({ user, navigate, community, gamification, trackData }) => {
+const HomePage = ({ navigate, trackData, theme }) => {
   const quotes = useMemo(
     () => [
       { text: "Ответственность за жизнь начинается с твоих ежедневных решений.", author: "NOESIS" },
@@ -171,164 +111,120 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
     []
   );
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [quoteVisible, setQuoteVisible] = useState(true);
   useEffect(() => {
     const id = setInterval(() => {
-      setQuoteIndex((idx) => (idx + 1) % quotes.length);
+      setQuoteVisible(false);
+      setTimeout(() => {
+        setQuoteIndex((idx) => (idx + 1) % quotes.length);
+        setQuoteVisible(true);
+      }, 250);
     }, 30000);
     return () => clearInterval(id);
   }, [quotes.length]);
   const currentQuote = quotes[quoteIndex];
   const hasTrack = !!trackData?.generatedTrack?.length;
+
+  const howSteps = [
+    {
+      title: "Пройди короткий трек развития",
+      description: "Всего 5 минут, чтобы зафиксировать цели и стартовать.",
+      icon: "⚡",
+    },
+    {
+      title: "Получи план и миссии",
+      description: "Мы собираем маршрут с материалами, челленджами и контрольными точками.",
+      icon: "🧭",
+    },
+    {
+      title: "Прокачивайся через курсы и мини-игры",
+      description: "Учись в удобном темпе, подключай сообщество и фиксируй прогресс.",
+      icon: "🎯",
+    },
+  ];
+
+  const insideCards = [
+    { title: "Миссии", description: "Серия заданий и чекпоинтов", to: "/missions" },
+    { title: "Библиотека", description: "Курсы, лонгриды, тесты", to: "/library" },
+    { title: "Память", description: "Метавселенная твоих заметок", to: "/memory" },
+  ];
+
   return (
-    <div className="page">
-      <div className="card hero-spotlight">
-        <div className="hero-inner">
-          <p className="hero-kicker">Платформа развития</p>
-          <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
-          <p className="hero-subtitle">
-            Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
-          </p>
-          <div className="quote-panel">
-            <p className="quote-label">Совет дня</p>
-            <p className="quote-text">«{currentQuote.text}»</p>
-            <p className="quote-author">— {currentQuote.author}</p>
-          </div>
-          <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
-              {hasTrack ? "Продолжить" : "Начать"}
-            </button>
-          </div>
-          <div className="how-it-works">
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Пройди короткую регистрацию</span>
+    <div className="page home-page">
+      <section className="card landing-hero">
+        <div className="hero-grid-modern">
+          <div className="hero-copy">
+            <p className="hero-kicker">Платформа роста NOESIS</p>
+            <h1 className="hero-title">Собери свой маршрут и двигайся без перегруза</h1>
+            <p className="hero-subtitle">
+              Минималистичная среда, которая помогает выбрать приоритеты, пройти трек и подключить комьюнити. Без лишнего шума — только прогресс.
+            </p>
+            <div className="hero-actions">
+              <button
+                className="primary hero-cta"
+                onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}
+              >
+                Начать трек развития (5 минут)
+              </button>
+              <button className="ghost text-link" onClick={() => navigate("/library")}>
+                Посмотреть библиотеку
+              </button>
             </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Активируй подписку и выбери трек</span>
-            </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Учись, проходи тесты и собирай очки</span>
+            <div className={`quote-carousel ${quoteVisible ? "visible" : "hidden"}`}>
+              <p className="quote-text">«{currentQuote.text}»</p>
+              <p className="quote-author">— {currentQuote.author}</p>
             </div>
           </div>
+          <LandingMock theme={theme} />
         </div>
-      </div>
+      </section>
 
-      <div className="landing-flow">
-        <LandingSection
-          kicker="Почему NOESIS"
-          title="Платформа роста для подростков и детей предпринимателей"
-          subtitle="Мы не просто даём уроки. Мы собираем твой маршрут, мотивируем наградами и создаём среду, где хочется двигаться вперёд."
-          bullets={[
-            "Личный трек под твои цели",
-            "Геймификация и награды за активность",
-            "Фокус на мышлении, деньгах, проектах",
-            "Комьюнити, которое поддержит и не даст слиться",
-          ]}
-          childrenIllustration={<MascotIllustration />}
-        />
+      <section className="card section how-section">
+        <div className="section-header">
+          <p className="section-kicker">Как это работает</p>
+          <h2>Простой путь к результатам</h2>
+          <p className="meta large">Три шага, которые занимают меньше 30 секунд внимания каждый.</p>
+        </div>
+        <div className="feature-grid">
+          {howSteps.map((step) => (
+            <div key={step.title} className="feature-card">
+              <div className="icon-circle" aria-hidden>
+                {step.icon}
+              </div>
+              <div>
+                <h3>{step.title}</h3>
+                <p className="meta">{step.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        <LandingSection
-          kicker="Личный маршрут"
-          title="Твой трек развития"
-          subtitle="Ответь на вопросы, получи профиль и двигайся по понятной цепочке шагов: курсы, статьи, тесты и челленджи."
-          bullets={[
-            "Фокус и ясные приоритеты",
-            "План по 5 направлениям: мышление, деньги, коммуникации, лидерство, эффективность",
-            "Видимый прогресс и чекпоинты",
-            "Мотивация за закрытие каждого шага",
-          ]}
-          reverse
-          childrenIllustration={<TrackPreview />}
-        />
-
-        <LandingSection
-          kicker="Геймификация"
-          title="Очки, статусы и достижения"
-          subtitle="Получай баллы за действия, открывай уровни и собирай коллекцию достижений. Видно, как ты растёшь."
-          bullets={[
-            "Баллы за материалы, тесты и челленджи",
-            "Статусы за серию дней и общее количество очков",
-            "Челленджи с друзьями и группами",
-            "Вся статистика в профиле без лишних кликов",
-          ]}
-          childrenIllustration={<BadgeOrbit />}
-        />
-
-        <LandingSection
-          kicker="Библиотека"
-          title="Курсы, статьи и тесты в одном месте"
-          subtitle="Подборка материалов по пяти темам: предпринимательское мышление, деньги, коммуникации, лидерство и эффективность."
-          bullets={[
-            "Курсы по запуску проектов и управлению ресурсами",
-            "Статьи и лонгриды, которые можно пройти на бегу",
-            "Тесты после каждого блока, чтобы закрепить знания",
-            "Новые материалы каждую неделю",
-          ]}
-          reverse
-          childrenIllustration={
-            <DeviceMock
-              title="Библиотека NOESIS"
-              items={["Курс", "Статья", "Тест", "Разбор"]}
-            />
-          }
-        />
-
-        <LandingSection
-          kicker="Для кого"
-          title="13–20 лет: ребята, которые хотят большего"
-          subtitle="Подходит подросткам и детям предпринимателей. Родители получают систему развития, подростки — живую среду и понятный маршрут."
-          bullets={[
-            "Гибкие форматы под занятый график",
-            "Общение с наставниками и сверстниками",
-            "Практика на реальных мини-проектах",
-            "Прозрачные отчёты для родителей",
-          ]}
-          childrenIllustration={<CommunityOrbit />}
-        />
-
-        <LandingSection
-          kicker="Как это работает"
-          title="4 шага до результатов"
-          subtitle="Первые шаги занимают меньше 10 минут. Дальше — движение по треку с понятными точками роста."
-          bullets={[
-            "Ответить на вопросы и зафиксировать цели",
-            "Получить персональный трек",
-            "Проходить материалы и собирать награды",
-            "Видеть прогресс и праздновать уровни",
-          ]}
-          reverse
-          childrenIllustration={<DeviceMock title="Стартовый маршрут" items={["Опрос", "Трек", "Челлендж", "Статус"]} />}
-        />
-
-        <LandingSection
-          kicker="Среда"
-          title="Комьюнити, события и челленджи"
-          subtitle="Окружение активных ребят, живые созвоны, проектные спринты и дружеские соревнования."
-          bullets={[
-            "Чат и встречи по темам",
-            "Совместные челленджи на неделю",
-            "Поддержка наставников и комьюнити-менеджеров",
-            "Видно, кто рядом и кто помогает",
-          ]}
-          childrenIllustration={<MascotIllustration mood="joy" />}
-        />
-
-        <LandingSection
-          kicker="Призыв"
-          title="Готов начать путь в NOESIS?"
-          subtitle="Собери свой трек, получи первые очки и познакомься с комьюнити."
-          reverse
-          childrenIllustration={<BadgeOrbit />}
-        >
-          <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate("/track-quiz")}>
-              Апгрейд
-            </button>
-          </div>
-        </LandingSection>
-      </div>
+      <section className="card section inside-section">
+        <div className="section-header">
+          <p className="section-kicker">Что внутри</p>
+          <h2>Твой набор инструментов</h2>
+          <p className="meta large">Кликни и переходи сразу в нужный раздел — навигация остаётся плавной.</p>
+        </div>
+        <div className="inside-grid">
+          {insideCards.map((item) => (
+            <Link key={item.title} to={item.to} className="inside-card" onClick={() => navigate(item.to)}>
+              <div className="inside-top">
+                <span className="inside-dot" />
+                <span className="inside-dot" />
+                <span className="inside-dot" />
+              </div>
+              <div className="inside-body">
+                <div className="inside-title-row">
+                  <h3>{item.title}</h3>
+                  <span aria-hidden>→</span>
+                </div>
+                <p className="meta">{item.description}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };
@@ -346,6 +242,15 @@ const LibraryPage = ({
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [scopeFilter, setScopeFilter] = useState(trackData?.trackSteps?.length ? "track" : "all");
+  const [selectedId, setSelectedId] = useState(null);
+
+  const trackMaterials = useMemo(() => {
+    const steps = trackData?.trackSteps || [];
+    const ids = steps.flatMap((step) => step.materialId || step.materials || []);
+    return new Set(ids.filter(Boolean));
+  }, [trackData]);
 
   const activeTrackMaterialId = useMemo(() => {
     if (!trackData?.trackSteps?.length) return null;
@@ -359,25 +264,32 @@ const LibraryPage = ({
   const filteredMaterials = useMemo(() => {
     const query = search.trim().toLowerCase();
     return materials.filter((material) => {
+      if (scopeFilter === "track" && trackMaterials.size && !trackMaterials.has(material.id)) return false;
       if (typeFilter !== "all" && material.type !== typeFilter) return false;
       if (themeFilter !== "all" && material.theme !== themeFilter) return false;
+      const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
+      if (statusFilter !== "all" && status !== statusFilter) return false;
       if (!query) return true;
       return (
         material.title.toLowerCase().includes(query) ||
         material.description?.toLowerCase().includes(query)
       );
     });
-  }, [search, typeFilter, themeFilter]);
+  }, [search, typeFilter, themeFilter, statusFilter, scopeFilter, completedSet, activeTrackMaterialId, trackMaterials]);
 
-  const groupedMaterials = useMemo(
-    () =>
-      materialThemes
-        .map((theme) => ({
-          ...theme,
-          items: filteredMaterials.filter((m) => m.theme === theme.id),
-        }))
-        .filter((theme) => theme.items.length > 0),
-    [filteredMaterials]
+  useEffect(() => {
+    if (filteredMaterials.length === 0) {
+      setSelectedId(null);
+      return;
+    }
+    if (!filteredMaterials.find((m) => m.id === selectedId)) {
+      setSelectedId(filteredMaterials[0].id);
+    }
+  }, [filteredMaterials, selectedId]);
+
+  const selectedMaterial = useMemo(
+    () => filteredMaterials.find((m) => m.id === selectedId) || null,
+    [filteredMaterials, selectedId]
   );
 
   const handleRetake = () => {
@@ -385,8 +297,17 @@ const LibraryPage = ({
     navigate("/track-quiz");
   };
 
+  const statusOptions = [
+    { id: "all", label: "Все" },
+    { id: "new", label: "Новое" },
+    { id: "inProgress", label: "В процессе" },
+    { id: "completed", label: "Завершено" },
+  ];
+
+  const openMaterial = (materialId) => navigate(`/material/${materialId}`);
+
   return (
-    <div className="page">
+    <div className="page library-page">
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
@@ -396,20 +317,11 @@ const LibraryPage = ({
         </div>
       </div>
 
-      <div className="library-controls card">
-        <div className="library-controls-row">
-          <div className="control-block">
-            <label className="meta subtle">Поиск</label>
-            <input
-              type="search"
-              placeholder="Поиск по материалам…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="control-block">
-            <label className="meta subtle">Тип</label>
-            <div className="chip-row wrap">
+      <div className="library-layout">
+        <aside className="library-sidebar card">
+          <div className="filter-group">
+            <p className="filter-title">Типы</p>
+            <div className="filter-chips">
               {typeFilterOptions.map((option) => (
                 <button
                   key={option.id}
@@ -421,9 +333,10 @@ const LibraryPage = ({
               ))}
             </div>
           </div>
-          <div className="control-block">
-            <label className="meta subtle">Тема</label>
-            <div className="chip-row wrap">
+
+          <div className="filter-group">
+            <p className="filter-title">Темы</p>
+            <div className="filter-chips column">
               <button
                 className={`chip ${themeFilter === "all" ? "active" : ""}`}
                 onClick={() => setThemeFilter("all")}
@@ -441,48 +354,146 @@ const LibraryPage = ({
               ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      <LibraryTrackView
-        track={trackData}
-        materials={materials}
-        completedMaterialIds={completedMaterialIds}
-        onUpdateSteps={(steps) => onTrackUpdate?.({ trackSteps: steps, generatedTrack: steps })}
-        onRetake={handleRetake}
-      />
-
-      <div className="card">
-        <div className="card-header">Твои дорожки</div>
-        <div className="path-grid">
-          {learningPaths.map((path) => (
-            <PathCard
-              key={path.id}
-              path={path}
-              progress={getPathProgress(path, completedMaterialIds)}
-              onOpen={() => navigate(`/library/paths/${path.slug}`)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
-
-      {groupedMaterials.map((theme) => (
-        <div key={theme.id} className="card">
-          <div className="card-header">{theme.title}</div>
-          <p className="meta">{theme.description}</p>
-          <div className="material-grid">
-            {theme.items.map((material) => {
-              const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
-              const progress = statusProgressValue[status];
-              return (
-                <MaterialCard key={material.id} material={material} status={status} progress={progress} />
-              );
-            })}
+          <div className="filter-group">
+            <p className="filter-title">Область</p>
+            <div className="chip-row">
+              <button
+                className={`chip ${scopeFilter === "track" ? "active" : ""}`}
+                onClick={() => setScopeFilter("track")}
+              >
+                Только в моём треке
+              </button>
+              <button
+                className={`chip ${scopeFilter === "all" ? "active" : ""}`}
+                onClick={() => setScopeFilter("all")}
+              >
+                Все материалы
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        </aside>
+
+        <section className="library-main">
+          <div className="library-toolbar card">
+            <div className="search-block">
+              <label className="meta subtle" htmlFor="library-search">Поиск</label>
+              <input
+                id="library-search"
+                type="search"
+                placeholder="Поиск по материалам…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="toolbar-actions">
+              <div className="chip-row">
+                {statusOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`chip ${statusFilter === option.id ? "active" : ""}`}
+                    onClick={() => setStatusFilter(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <button className="ghost focus-btn">Пройти сессию фокуса (20 минут)</button>
+            </div>
+          </div>
+
+          <LibraryTrackView
+            track={trackData}
+            materials={materials}
+            completedMaterialIds={completedMaterialIds}
+            onUpdateSteps={(steps) => onTrackUpdate?.({ trackSteps: steps, generatedTrack: steps })}
+            onRetake={handleRetake}
+          />
+
+          <div className="library-split">
+            <div className="card list-card">
+              <div className="list-head">
+                <span>Название</span>
+                <span>Тип</span>
+                <span>Тема</span>
+                <span>Статус</span>
+                <span>Длительность</span>
+              </div>
+              <div className="material-list">
+                {filteredMaterials.map((material) => {
+                  const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
+                  return (
+                    <button
+                      key={material.id}
+                      className={`material-row ${selectedId === material.id ? "active" : ""}`}
+                      onClick={() => setSelectedId(material.id)}
+                    >
+                      <div className="material-cell">
+                        <div className="material-title-row">
+                          <span className="material-name">{material.title}</span>
+                          {trackMaterials.has(material.id) && <span className="pill outline">Трек</span>}
+                        </div>
+                        <p className="meta">{material.description}</p>
+                      </div>
+                      <span className="badge subtle">{typeFilterOptions.find((t) => t.id === material.type)?.label || "Материал"}</span>
+                      <span className="badge theme">{themeLabels[material.theme]?.title || "Тема"}</span>
+                      <span className={`badge status ${status}`}>{status === "new" ? "Новое" : status === "inProgress" ? "В процессе" : "Завершено"}</span>
+                      <span className="badge subtle">{material.estimatedTime || "15 минут"}</span>
+                    </button>
+                  );
+                })}
+                {filteredMaterials.length === 0 && (
+                  <div className="empty-state">
+                    <p>Нет материалов по выбранным фильтрам.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedMaterial && (
+              <div className="card detail-card">
+                <div className="panel-header">
+                  <div>
+                    <p className="section-kicker">Детали</p>
+                    <h3>{selectedMaterial.title}</h3>
+                  </div>
+                  <button className="ghost" onClick={() => openMaterial(selectedMaterial.id)}>Открыть полностью</button>
+                </div>
+                <div className="chip-row">
+                  <span className="material-badge" style={{ background: `${(themeLabels[selectedMaterial.theme]?.accent || "#7c3aed")}20`, color: themeLabels[selectedMaterial.theme]?.accent || "#7c3aed" }}>
+                    {themeLabels[selectedMaterial.theme]?.title || "Тема"}
+                  </span>
+                  <span className="material-badge outline">{selectedMaterial.type === "course" ? "Курс" : selectedMaterial.type === "article" ? "Лонгрид" : "Тест"}</span>
+                  <span className="material-badge outline">{selectedMaterial.estimatedTime || "15 минут"}</span>
+                </div>
+                <p className="meta">{selectedMaterial.description}</p>
+                <div className="detail-actions">
+                  <button className="primary" onClick={() => openMaterial(selectedMaterial.id)}>
+                    Начать / продолжить
+                  </button>
+                  <button className="ghost" onClick={() => navigate("/")}>На главную</button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <div className="card-header">Твои дорожки</div>
+            <div className="path-grid">
+              {learningPaths.map((path) => (
+                <PathCard
+                  key={path.id}
+                  path={path}
+                  progress={getPathProgress(path, completedMaterialIds)}
+                  onOpen={() => navigate(`/library/paths/${path.slug}`)}
+                />
+              ))}
+            </div>
+          </div>
+
+          <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
+        </section>
+      </div>
     </div>
   );
 };
@@ -1149,7 +1160,7 @@ function App() {
 
   const HomeRoute = () => {
     const navigate = useNavigate();
-    return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} trackData={trackData} />;
+    return <HomePage navigate={navigate} trackData={trackData} theme={theme} />;
   };
 
   return (
