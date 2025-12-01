@@ -59,6 +59,18 @@ const MemoryPage = ({ user, onEntryAdded }) => {
     }
   }, [categoryFilter, filteredLandmarks, selectLandmark, selectedLandmark]);
 
+  useEffect(() => {
+    const focusLandmark = sessionStorage.getItem("ep_memory_focus");
+    if (focusLandmark) {
+      sessionStorage.removeItem("ep_memory_focus");
+      selectLandmark(focusLandmark);
+      setTimeout(() => {
+        const el = document.querySelector(`[data-landmark-id="${focusLandmark}"]`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 200);
+    }
+  }, [selectLandmark]);
+
   const handleAdd = () => {
     setEditingEntry(null);
     setShowForm(true);

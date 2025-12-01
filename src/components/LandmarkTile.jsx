@@ -12,6 +12,7 @@ const LandmarkTile = ({ landmark, count = 0, selected, highlighted, onSelect }) 
       style={{ "--tile-color": landmark.color || "#7c3aed" }}
       onClick={() => onSelect(landmark.id)}
       aria-label={`${landmark.name} — ${landmark.category}`}
+      data-landmark-id={landmark.id}
     >
       <div className="tile-base">
         <div className="tile-top" />

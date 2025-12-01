@@ -65,7 +65,7 @@ const MindGamesSection = ({ userId, onGameComplete }) => {
   const progress = getProgress();
 
   return (
-    <div className="card mindgames-card">
+    <div className="card mindgames-card" id="mindgames-section">
       <div className="card-header">Игры мышления (MindGames)</div>
       <p className="meta">Логические и финансовые мини-игры, чтобы прокачать мозг и деньги в формате игры.</p>
       <div className="mindgame-grid">
