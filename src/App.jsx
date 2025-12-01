@@ -19,8 +19,6 @@ import MaterialCard from "./components/MaterialCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import DevelopmentTrackPage from "./DevelopmentTrackPage";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
-import LandingSection from "./LandingSection";
-import MascotIllustration from "./MascotIllustration";
 import ProfileDashboard from "./ProfileDashboard";
 import { loadStreak, resetStreak, updateStreakOnActivity } from "./streak";
 import { addActivityEntry, clearActivity, loadActivity } from "./activityLog";
@@ -50,7 +48,9 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
 
   return (
     <header className="header">
-      <div className="logo">NOESIS</div>
+      <Link to="/" className="logo" onClick={() => setOpen(false)}>
+        NOESIS
+      </Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
         ☰
       </button>
@@ -60,7 +60,7 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
             key={link.to}
             to={link.to}
             end={link.to === "/"}
-            className="nav-link"
+            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
             onClick={() => setOpen(false)}
           >
             {link.label}
@@ -71,10 +71,14 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
         <button className="ghost" onClick={toggleTheme}>
           {theme === "dark" ? "Тёмная" : "Светлая"}
         </button>
-        {!user && <Link to="/auth" className="primary">Войти</Link>}
+        {!user && (
+          <Link to="/login" className="primary" onClick={() => setOpen(false)}>
+            Войти
+          </Link>
+        )}
         {user && (
           <div className="user-chip">
-            <Link to="/profile" className="avatar">
+            <Link to="/profile" className="avatar" onClick={() => setOpen(false)}>
               {user.name?.[0] || "Я"}
             </Link>
             <div className="user-meta">
@@ -89,6 +93,18 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
     </header>
   );
 };
+
+const Footer = () => (
+  <footer className="footer">
+    <div className="footer-brand">NOESIS · платформа развития</div>
+    <div className="footer-links">
+      <Link to="/">О платформе</Link>
+      <a href="#privacy">Политика конфиденциальности</a>
+      <a href="#contacts">Контакты</a>
+    </div>
+    <p className="meta">Мы создаём безопасное пространство, где подростки растут через практику, игры и поддержку сообщества.</p>
+  </footer>
+);
 
 const GamificationSummary = ({ gamification }) => {
   const status = getStatusByPoints(gamification.totalPoints);
@@ -190,216 +206,206 @@ const CommunityOrbit = () => (
 const HomePage = ({ user, navigate, community, gamification }) => {
   const top = [...community].sort((a, b) => b.points - a.points).slice(0, 3);
   return (
-    <div className="page">
-      <div className="card hero-spotlight">
-        <div className="hero-inner">
-          <p className="hero-kicker">Платформа развития</p>
-          <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
+    <div className="page landing">
+      <section className="hero">
+        <div className="hero-copy">
+          <p className="hero-kicker">НОВАЯ ВЕРСИЯ NOESIS</p>
+          <h1>
+            Платформа развития для подростков и детей предпринимателей
+          </h1>
           <p className="hero-subtitle">
-            Квесты, контент, форматы, сообщество, игры мышления и персональный путь — все чтобы прокачать себя и становиться сильнее каждый день.
+            Треки, комьюнити и геймификация. Помогаем за 5–7 секунд понять, зачем ты здесь: чтобы расти не по лайкам, а по делу.
           </p>
-          <div className="quote-panel">
-            <p className="quote-text">«Единственный способ сделать великую работу — любить то, что ты делаешь.»</p>
-            <p className="quote-author">— Стив Джобс</p>
+          <div className="hero-actions">
+            <button className="primary" onClick={() => navigate(user ? "/profile" : "/login")}>Начать трек развития</button>
+            <button className="ghost" onClick={() => navigate("/library")}>Посмотреть библиотеку</button>
           </div>
-          <div className="actions hero-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/library" : "/auth")}>Начать учиться</button>
-            <button className="ghost" onClick={() => navigate("/track")}>Собрать трек</button>
-          </div>
-          <div className="how-it-works">
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Пройди короткую регистрацию</span>
-            </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Активируй подписку и выбери трек</span>
-            </div>
-            <div>
-              <span className="check-dot">✓</span>
-              <span>Учись, проходи тесты и собирай очки</span>
-            </div>
+          <div className="hero-badges">
+            <span className="pill">Очки, уровни, серия дней</span>
+            <span className="pill">Живое комьюнити</span>
+            <span className="pill">Практика и реальные кейсы</span>
           </div>
         </div>
-      </div>
-
-      <div className="grid hero-grid">
-        <div className="card track-highlight">
-          <div className="card-header">Личный трек развития</div>
-          <p className="meta">Определи направление, собери подборку материалов и двигайся по персональному маршруту.</p>
-          <div className="track-steps">
-            <div className="pill">Осознание болей</div>
-            <div className="pill">Определение сильных сторон</div>
-            <div className="pill">Грамотное использование ресурсов</div>
-          </div>
-          <p className="meta">Это пригодится в любых направлениях — учёбе, бизнесе, работе и настройке своей головы.</p>
-          <div className="track-actions">
-            <button className="primary outline" onClick={() => navigate("/track")}>Пройти тест и собрать трек</button>
-            <button className="ghost" onClick={() => navigate("/library")}>Посмотреть материалы</button>
-          </div>
+        <div className="hero-visual">
+          <DeviceMock title="Твой маршрут" items={["Опрос", "Трек", "XP", "Ачивки"]} />
+          <BadgeOrbit />
         </div>
-        <GamificationSummary gamification={gamification} />
-      </div>
+      </section>
 
-      <div className="card">
-        <div className="card-header">ТОП сообщества</div>
-        <div className="grid columns-3">
-          {top.map((u) => (
-            <div key={u.id} className="mini-card">
-              <div className="avatar large">{u.name[0]}</div>
-              <div className="user-name">{u.name}</div>
-              <div className="meta">{u.points} очков • {u.status}</div>
-              <div className="badges">
-                {u.achievements.slice(0, 2).map((a) => (
-                  <span key={a} className="tag">
-                    {a}
-                  </span>
-                ))}
-              </div>
+      <section className="card soft">
+        <div className="section-head">
+          <div>
+            <p className="hero-kicker">Как это работает</p>
+            <h2>4 шага, чтобы включиться</h2>
+            <p className="meta">Мы ведём тебя от первого ответа до устойчивой привычки учиться.</p>
+          </div>
+          <button className="ghost" onClick={() => navigate(user ? "/profile" : "/login")}>Стартовать</button>
+        </div>
+        <div className="steps-grid">
+          {[{title:"Пройди короткий опрос",text:"Фиксируем твои цели и выбираем роль."},{title:"Получишь личный трек развития",text:"Готовый маршрут с материалами и челленджами."},{title:"Учись, играй и расти",text:"Собирай XP, уровни и ачивки за каждый шаг."},{title:"Поддержка комьюнити",text:"Встречи, рейтинги и ответы на вопросы."}].map((step, idx) => (
+            <div className="mini-card" key={step.title}>
+              <div className="step-index">{idx + 1}</div>
+              <div className="mini-title">{step.title}</div>
+              <p className="meta">{step.text}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="landing-flow">
-        <LandingSection
-          kicker="Почему NOESIS"
-          title="Платформа роста для подростков и детей предпринимателей"
-          subtitle="Мы не просто даём уроки. Мы собираем твой маршрут, мотивируем наградами и создаём среду, где хочется двигаться вперёд."
-          bullets={[
-            "Личный трек под твои цели",
-            "Геймификация и награды за активность",
-            "Фокус на мышлении, деньгах, проектах",
-            "Комьюнити, которое поддержит и не даст слиться",
-          ]}
-          childrenIllustration={<MascotIllustration />}
-        />
+      <section className="grid two">
+        <div className="card">
+          <p className="hero-kicker">Если ты подросток</p>
+          <h3>Мы помогаем увидеть направление</h3>
+          <ul className="bullet-list">
+            <li>Понимаешь, куда двигаться и как монетизировать идеи.</li>
+            <li>Учишься через реальные задачи, а не только теорию.</li>
+            <li>Получаешь очки, уровни и ачивки за развитие.</li>
+            <li>Видишь других ребят и не чувствуешь себя один.</li>
+          </ul>
+        </div>
+        <div className="card">
+          <p className="hero-kicker">Если ты родитель</p>
+          <h3>Прозрачный рост ребёнка</h3>
+          <ul className="bullet-list">
+            <li>Видишь, чем занят ребёнок и какие навыки собирает.</li>
+            <li>Получаешь прозрачную картину прогресса и отчёты.</li>
+            <li>Уверенность, что время в телефоне тратится с пользой.</li>
+            <li>Комьюнити, где безопасно и мотивирующе.</li>
+          </ul>
+        </div>
+      </section>
 
-        <LandingSection
-          kicker="Личный маршрут"
-          title="Твой трек развития"
-          subtitle="Ответь на вопросы, получи профиль и двигайся по понятной цепочке шагов: курсы, статьи, тесты и челленджи."
-          bullets={[
-            "Фокус и ясные приоритеты",
-            "План по 5 направлениям: мышление, деньги, коммуникации, лидерство, эффективность",
-            "Видимый прогресс и чекпоинты",
-            "Мотивация за закрытие каждого шага",
-          ]}
-          reverse
-          childrenIllustration={<TrackPreview />}
-        />
-
-        <LandingSection
-          kicker="Геймификация"
-          title="Очки, статусы и достижения"
-          subtitle="Получай баллы за действия, открывай уровни и собирай коллекцию достижений. Видно, как ты растёшь."
-          bullets={[
-            "Баллы за материалы, тесты и челленджи",
-            "Статусы за серию дней и общее количество очков",
-            "Челленджи с друзьями и группами",
-            "Вся статистика в профиле без лишних кликов",
-          ]}
-          childrenIllustration={<BadgeOrbit />}
-        />
-
-        <LandingSection
-          kicker="Библиотека"
-          title="Курсы, статьи и тесты в одном месте"
-          subtitle="Подборка материалов по пяти темам: предпринимательское мышление, деньги, коммуникации, лидерство и эффективность."
-          bullets={[
-            "Курсы по запуску проектов и управлению ресурсами",
-            "Статьи и лонгриды, которые можно пройти на бегу",
-            "Тесты после каждого блока, чтобы закрепить знания",
-            "Новые материалы каждую неделю",
-          ]}
-          reverse
-          childrenIllustration={
-            <DeviceMock
-              title="Библиотека NOESIS"
-              items={["Курс", "Статья", "Тест", "Разбор"]}
-            />
-          }
-        />
-
-        <LandingSection
-          kicker="Для кого"
-          title="13–20 лет: ребята, которые хотят большего"
-          subtitle="Подходит подросткам и детям предпринимателей. Родители получают систему развития, подростки — живую среду и понятный маршрут."
-          bullets={[
-            "Гибкие форматы под занятый график",
-            "Общение с наставниками и сверстниками",
-            "Практика на реальных мини-проектах",
-            "Прозрачные отчёты для родителей",
-          ]}
-          childrenIllustration={<CommunityOrbit />}
-        />
-
-        <LandingSection
-          kicker="Как это работает"
-          title="4 шага до результатов"
-          subtitle="Первые шаги занимают меньше 10 минут. Дальше — движение по треку с понятными точками роста."
-          bullets={[
-            "Ответить на вопросы и зафиксировать цели",
-            "Получить персональный трек",
-            "Проходить материалы и собирать награды",
-            "Видеть прогресс и праздновать уровни",
-          ]}
-          reverse
-          childrenIllustration={<DeviceMock title="Стартовый маршрут" items={["Опрос", "Трек", "Челлендж", "Статус"]} />}
-        />
-
-        <LandingSection
-          kicker="Среда"
-          title="Комьюнити, события и челленджи"
-          subtitle="Окружение активных ребят, живые созвоны, проектные спринты и дружеские соревнования."
-          bullets={[
-            "Чат и встречи по темам",
-            "Совместные челленджи на неделю",
-            "Поддержка наставников и комьюнити-менеджеров",
-            "Видно, кто рядом и кто помогает",
-          ]}
-          childrenIllustration={<MascotIllustration mood="joy" />}
-        />
-
-        <LandingSection
-          kicker="Призыв"
-          title="Готов начать путь в NOESIS?"
-          subtitle="Собери свой трек, получи первые очки и познакомься с комьюнити."
-          reverse
-          childrenIllustration={<BadgeOrbit />}
-        >
-          <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate(user ? "/track" : "/auth")}>Пройти опрос</button>
-            <button className="ghost" onClick={() => navigate(user ? "/library" : "/auth")}>Зарегистрироваться и начать</button>
+      <section className="card soft">
+        <div className="section-head">
+          <div>
+            <p className="hero-kicker">Что внутри</p>
+            <h2>Контент, треки и комьюнити</h2>
+            <p className="meta">Всё собрано в одном месте, чтобы не потеряться.</p>
           </div>
-        </LandingSection>
-      </div>
+        </div>
+        <div className="feature-grid">
+          {[{title:"Треки развития",text:"Персональные цепочки шагов под твои цели."},{title:"Библиотека",text:"Курсы, статьи, тесты и практики по ключевым темам."},{title:"Сообщество и клубы",text:"Лента, клубы, рейтинги, вопросы и чаты."},{title:"Геймификация",text:"XP, уровни, серия дней и ачивки за активность."}].map((card) => (
+            <div className="feature-card" key={card.title}>
+              <div className="pill outline">{card.title}</div>
+              <p>{card.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="section-head">
+          <div>
+            <p className="hero-kicker">Лига NOESIS</p>
+            <h2>Сообщество, которое двигает вперёд</h2>
+          </div>
+        </div>
+        <div className="top-grid">
+          <div className="top-list">
+            {top.map((u, idx) => (
+              <div className="top-row" key={u.id}>
+                <div className="avatar large">{u.name[0]}</div>
+                <div>
+                  <div className="user-name">{u.name}</div>
+                  <p className="meta">{u.points} XP · {u.status}</p>
+                </div>
+                <span className="pill outline">#{idx + 1}</span>
+              </div>
+            ))}
+          </div>
+          <div className="cta-panel">
+            <p className="meta">Уровень {getLevelFromPoints(gamification.totalPoints).level} · {gamification.totalPoints} XP</p>
+            <p>Вступай в клубы, участвуй в рейтингах и собирай достижения.</p>
+            <button className="primary" onClick={() => navigate("/community")}>Зайти в сообщество</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="cta-final card soft">
+        <div>
+          <p className="hero-kicker">Готов?</p>
+          <h2>Начни трек развития и держи серию</h2>
+          <p className="meta">Буквально пару кликов — и у тебя личный маршрут с наградами.</p>
+        </div>
+        <div className="hero-actions">
+          <button className="primary" onClick={() => navigate(user ? "/profile" : "/login")}>Начать сейчас</button>
+          <button className="ghost" onClick={() => navigate("/library")}>Открыть библиотеку</button>
+        </div>
+      </section>
     </div>
   );
 };
 
-const LibraryPage = ({ completedMaterialIds }) => {
+const LibraryPage = ({ completedMaterialIds, trackData }) => {
   const navigate = useNavigate();
-  const groupedMaterials = useMemo(
-    () =>
-      materialThemes.map((theme) => ({
-        ...theme,
-        items: materials.filter((m) => m.theme === theme.id),
-      })),
-    []
-  );
+  const [themeFilter, setThemeFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [onlyRecommended, setOnlyRecommended] = useState(false);
+
+  const recommendedSet = useMemo(() => new Set(trackData?.generatedTrack?.map((s) => s.materialId) || []), [trackData]);
+
+  const filtered = useMemo(() => {
+    return materials.filter((m) => {
+      if (onlyRecommended && recommendedSet.size > 0 && !recommendedSet.has(m.id)) return false;
+      if (themeFilter !== "all" && m.theme !== themeFilter) return false;
+      if (typeFilter !== "all" && m.type !== typeFilter) return false;
+      return true;
+    });
+  }, [themeFilter, typeFilter, onlyRecommended, recommendedSet]);
 
   return (
     <div className="page">
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
-          <p>Дорожки развития, курсы, статьи и тесты в одном месте. Выбирай тему и двигайся шаг за шагом.</p>
+          <p className="meta">Курсы, статьи, практики и тесты по ключевым темам: мышление, финансы, коммуникации, проекты.</p>
+        </div>
+        <button className="ghost" onClick={() => navigate("/profile")}>В профиль</button>
+      </div>
+
+      <div className="filters card soft">
+        <div className="filter-row">
+          <div>
+            <p className="hero-kicker">Темы</p>
+            <div className="chip-row scrollable">
+              <button className={`pill ${themeFilter === "all" ? "active" : "outline"}`} onClick={() => setThemeFilter("all")}>Все</button>
+              {materialThemes.map((theme) => (
+                <button
+                  key={theme.id}
+                  className={`pill ${themeFilter === theme.id ? "active" : "outline"}`}
+                  onClick={() => setThemeFilter(theme.id)}
+                >
+                  {theme.title}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="hero-kicker">Формат</p>
+            <div className="chip-row">
+              {[{ id: "all", label: "Все" }, { id: "course", label: "Курсы" }, { id: "article", label: "Статьи" }, { id: "test", label: "Тесты" }].map((t) => (
+                <button
+                  key={t.id}
+                  className={`pill ${typeFilter === t.id ? "active" : "outline"}`}
+                  onClick={() => setTypeFilter(t.id)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="recommended-toggle">
+          <label className="toggle">
+            <input type="checkbox" checked={onlyRecommended} onChange={(e) => setOnlyRecommended(e.target.checked)} />
+            <span>Рекомендовано тебе</span>
+          </label>
+          <p className="meta">Мы подсветили материалы из твоего трека и похожие темы.</p>
         </div>
       </div>
 
       <div className="card">
-        <div className="card-header">Твои дорожки</div>
+        <div className="card-header">Дорожки по темам</div>
         <div className="path-grid">
           {learningPaths.map((path) => (
             <PathCard
@@ -412,17 +418,11 @@ const LibraryPage = ({ completedMaterialIds }) => {
         </div>
       </div>
 
-      {groupedMaterials.map((theme) => (
-        <div key={theme.id} className="card">
-          <div className="card-header">{theme.title}</div>
-          <p className="meta">{theme.description}</p>
-          <div className="material-grid">
-            {theme.items.map((material) => (
-              <MaterialCard key={material.id} material={material} completed={completedMaterialIds.includes(material.id)} />
-            ))}
-          </div>
-        </div>
-      ))}
+      <div className="material-grid">
+        {filtered.map((material) => (
+          <MaterialCard key={material.id} material={material} completed={completedMaterialIds.includes(material.id)} />
+        ))}
+      </div>
     </div>
   );
 };
@@ -520,14 +520,19 @@ const LearningPathPage = ({ completedMaterialIds }) => {
 
 const AuthPage = ({ onAuth }) => {
   const [tab, setTab] = useState("login");
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", age: "", email: "", password: "", confirm: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = () => {
+    setError("");
     if (tab === "register") {
-      if (!form.name || !form.email || !form.password) {
+      if (!form.name || !form.email || !form.password || !form.confirm) {
         setError("Заполни все поля");
+        return;
+      }
+      if (form.password !== form.confirm) {
+        setError("Пароли не совпадают");
         return;
       }
       const res = registerUser({ name: form.name.trim(), email: form.email.trim(), password: form.password });
@@ -549,38 +554,68 @@ const AuthPage = ({ onAuth }) => {
   };
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>{tab === "login" ? "Вход" : "Регистрация"}</h1>
-        <div className="tabs">
-          <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>
-            Вход
-          </button>
-          <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>
-            Регистрация
-          </button>
+    <div className="page auth-page">
+      <div className="card soft">
+        <div className="auth-head">
+          <div>
+            <p className="hero-kicker">Вход / Регистрация</p>
+            <h1>Подключись к NOESIS</h1>
+            <p className="meta">Один аккаунт — доступ к трекам, библиотеке и комьюнити.</p>
+          </div>
+          <div className="tabs">
+            <button className={tab === "login" ? "tab active" : "tab"} onClick={() => setTab("login")}>Войти</button>
+            <button className={tab === "register" ? "tab active" : "tab"} onClick={() => setTab("register")}>Создать аккаунт</button>
+          </div>
         </div>
-      </div>
-      <div className="card">
-        <div className="form">
-          {tab === "register" && (
+
+        <div className="auth-grid">
+          <div className="form">
+            {tab === "register" && (
+              <>
+                <label>
+                  Имя
+                  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="Например, Алина" />
+                </label>
+                <label>
+                  Возраст (необязательно)
+                  <input value={form.age} onChange={(e) => setForm((p) => ({ ...p, age: e.target.value }))} placeholder="15" />
+                </label>
+              </>
+            )}
             <label>
-              Имя
-              <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value || "Макс" }))} />
+              Email
+              <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="you@example.com" />
             </label>
-          )}
-          <label>
-            Email
-            <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
-          </label>
-          <label>
-            Пароль
-            <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
-          </label>
-          {error && <div className="error">{error}</div>}
-          <button className="primary" onClick={handleSubmit}>
-            {tab === "login" ? "Войти" : "Зарегистрироваться"}
-          </button>
+            <label>
+              Пароль
+              <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} placeholder="••••••••" />
+            </label>
+            {tab === "register" && (
+              <label>
+                Повтори пароль
+                <input type="password" value={form.confirm} onChange={(e) => setForm((p) => ({ ...p, confirm: e.target.value }))} placeholder="••••••••" />
+              </label>
+            )}
+            {error && <div className="error">{error}</div>}
+            <button className="primary" onClick={handleSubmit}>
+              {tab === "login" ? "Войти" : "Создать аккаунт"}
+            </button>
+          </div>
+
+          <div className="auth-aside">
+            <div className="mini-card">
+              <div className="mini-title">Что даст аккаунт?</div>
+              <ul className="bullet-list">
+                <li>Сохраняем прогресс, XP и серию дней.</li>
+                <li>Открываем треки под твои цели.</li>
+                <li>Доступ ко всем разделам сообщества.</li>
+              </ul>
+            </div>
+            <div className="mini-card">
+              <div className="mini-title">Безопасность</div>
+              <p className="meta">Мы не передаём данные третьим лицам. Можно выйти в любой момент.</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -891,6 +926,7 @@ function App() {
     <div className={`app ${theme}`}>
       <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
       <main className="container">{children}</main>
+      <Footer />
       <Toast messages={toasts} />
     </div>
   );
@@ -905,7 +941,7 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
-          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} />} />
+          <Route path="/library" element={<LibraryPage completedMaterialIds={completedMaterialIds} trackData={trackData} />} />
           <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
           <Route
             path="/library/:type/:id"
@@ -937,7 +973,7 @@ function App() {
               />
             }
           />
-          <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
+          <Route path="/login" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track"
             element={
