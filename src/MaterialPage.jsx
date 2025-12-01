@@ -206,12 +206,15 @@ const MaterialPage = ({
   trackData,
   onMaterialComplete,
   onQuizComplete,
+  onAskCommunity,
 }) => {
   const { materialId } = useParams();
   const navigate = useNavigate();
   const material = getMaterialById(materialId);
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
   const [reflection, setReflection] = useReflection(materialId);
+  const [questionOpen, setQuestionOpen] = useState(false);
+  const [questionText, setQuestionText] = useState("");
   const xp = getXPRewards();
 
   const inlineQuiz = useMemo(() => material?.inlineQuiz || quizFromTest(materialId), [material, materialId]);
@@ -252,6 +255,13 @@ const MaterialPage = ({
     if (!completed) {
       handleComplete();
     }
+  };
+
+  const submitQuestion = () => {
+    if (!questionText.trim()) return;
+    onAskCommunity?.(material, questionText);
+    setQuestionText("");
+    setQuestionOpen(false);
   };
 
   const statusLabel = lessonStatusLabel(completed, false);
@@ -355,8 +365,38 @@ const MaterialPage = ({
               <li>Возвращайся к конспекту, если что-то не заходит.</li>
             </ul>
           </div>
+
+          <div className="card lesson-mini">
+            <div className="card-header">Нужна помощь?</div>
+            <p className="meta">Задай вопрос ребятам и наставникам прямо из урока.</p>
+            <button className="primary outline" onClick={() => setQuestionOpen(true)}>
+              Задать вопрос в сообществе
+            </button>
+          </div>
         </div>
       </div>
+
+      {questionOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="card-header">Вопрос по уроку</div>
+            <p className="meta">Напиши, что осталось непонятным или что хочется обсудить.</p>
+            <textarea
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value.slice(0, 300))}
+              placeholder="Что тебя волнует?"
+            />
+            <div className="modal-actions">
+              <button className="primary" onClick={submitQuestion} disabled={!questionText.trim()}>
+                Опубликовать
+              </button>
+              <button className="ghost" onClick={() => setQuestionOpen(false)}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

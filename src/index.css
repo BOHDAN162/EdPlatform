@@ -1912,6 +1912,36 @@ body {
   gap: 16px;
 }
 
+.active-now {
+  margin: 16px 0;
+}
+
+.active-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.active-item {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+
+.active-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.active-body .post-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
 .tab-header {
   display: flex;
   align-items: center;
@@ -2128,6 +2158,99 @@ body {
 .reflection-card textarea, .mission-notes textarea { width: 100%; min-height: 120px; border-radius: 12px; border: 1px solid var(--border); padding: 10px; background: var(--bg); color: var(--fg); }
 .lesson-info .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 10px 0; }
 .lesson-mini .lesson-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+
+/* Shared modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 30;
+}
+
+.modal-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  width: min(520px, 100%);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-strong);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.modal-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.modal-card textarea,
+.modal-card input {
+  width: 100%;
+}
+
+.mission-community-block {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.mission-posts { display: grid; gap: 8px; }
+
+.mission-post-row {
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mission-post-title { font-weight: 700; }
+
+.onboarding-header { align-items: center; }
+
+.onboarding-result .result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.mini-roadmap {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--border);
+}
+
+.mini-roadmap ol {
+  padding-left: 18px;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.mini-mission {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.06);
+  border: 1px dashed var(--accent);
+}
 .inline-quiz .quiz-options { display: grid; gap: 10px; }
 .inline-quiz .quiz-option { text-align: left; border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: var(--card); cursor: pointer; }
 .inline-quiz .quiz-option.selected { border-color: #7c3aed; box-shadow: 0 10px 24px rgba(124,58,237,0.12); }

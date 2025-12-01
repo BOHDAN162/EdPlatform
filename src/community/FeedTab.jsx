@@ -5,6 +5,8 @@ const filters = [
   { id: "all", label: "Все" },
   { id: "my", label: "Мои клубы" },
   { id: "achievement", label: "Достижения" },
+  { id: "mission_share", label: "Миссии" },
+  { id: "question", label: "Вопросы" },
   { id: "announcement", label: "Анонсы" },
 ];
 
@@ -17,6 +19,8 @@ const FeedTab = ({ posts, clubs, membershipSet, onLike, onCreatePost }) => {
     return posts.filter((post) => {
       if (filter === "my") return post.clubId && membershipSet.has(post.clubId);
       if (filter === "achievement") return post.type === "achievement";
+      if (filter === "mission_share") return post.type === "mission_share";
+      if (filter === "question") return post.type === "question";
       if (filter === "announcement") return post.type === "announcement";
       return true;
     });

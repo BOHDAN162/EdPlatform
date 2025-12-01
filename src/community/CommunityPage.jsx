@@ -40,6 +40,14 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     onToast,
   });
 
+  const activePosts = useMemo(
+    () =>
+      community.posts
+        .filter((post) => ["mission_share", "question", "achievement"].includes(post.type))
+        .slice(0, 4),
+    [community.posts]
+  );
+
   return (
     <div className="page community-page">
       <div className="page-header community-hero">
@@ -60,6 +68,29 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             <p className="big-number">{getStatusByPoints(gamification.totalPoints)}</p>
             <p className="meta">Взаимодействуй с лигой и получай опыт за помощь.</p>
           </div>
+        </div>
+      </div>
+
+      <div className="card active-now">
+        <div className="card-header">Сейчас активны</div>
+        <div className="active-grid">
+          {activePosts.length === 0 && <p className="meta">Пока нет свежих постов — стань первым!</p>}
+          {activePosts.map((post) => (
+            <div key={post.id} className="active-item">
+              <div className="active-top">
+                <div className="avatar bubble">{post.author?.name?.[0] || "?"}</div>
+                <div>
+                  <div className="post-author">{post.author?.name || post.authorName}</div>
+                  <div className="meta subtle">{post.relativeTime}</div>
+                </div>
+                <span className="pill outline">{post.type === "question" ? "Вопрос" : "Миссия"}</span>
+              </div>
+              <div className="active-body">
+                <div className="post-title">{post.title}</div>
+                <p className="meta">{post.content}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

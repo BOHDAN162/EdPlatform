@@ -3,6 +3,7 @@ import { useNavigate } from "./routerShim";
 import { missions, getMissionProgress, missionThemeLabel, linkToMaterial } from "./missionsData";
 import { getMaterialById, themeLabels } from "./libraryData";
 import { getLevelFromXP, getRoleFromLevel } from "./gamification";
+import { relativeTime } from "./communityState";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -92,7 +93,18 @@ const MissionCard = ({ mission, progress, onSelect }) => {
   );
 };
 
-const MissionDetail = ({ mission, progress, notes, onToggleStep, onStart, onComplete, onNoteChange, onOpenMaterial }) => {
+const MissionDetail = ({
+  mission,
+  progress,
+  notes,
+  onToggleStep,
+  onStart,
+  onComplete,
+  onNoteChange,
+  onOpenMaterial,
+  relatedPosts = [],
+  onOpenCommunity,
+}) => {
   if (!mission) return null;
   const theme = themeLabels[mission.theme] || { accent: "#7c3aed", title: "Тема" };
   const allDone = mission.steps.every((s) => progress.steps.includes(s.id));
@@ -145,6 +157,26 @@ const MissionDetail = ({ mission, progress, notes, onToggleStep, onStart, onComp
         <div className="card-header">Заметки по миссии</div>
         <textarea value={notes || ""} onChange={(e) => onNoteChange(e.target.value)} placeholder="Фиксируй находки, вопросы и инсайты" />
       </div>
+      <div className="mission-community-block">
+        <div className="card-header">Обсуждение этой миссии</div>
+        {relatedPosts.length ? (
+          <div className="mission-posts">
+            {relatedPosts.map((post) => (
+              <div key={post.id} className="mission-post-row">
+                <div>
+                  <div className="mission-post-title">{post.title}</div>
+                  <p className="meta">{post.content}</p>
+                  <p className="meta subtle">{post.relativeTime || "Недавно"}</p>
+                </div>
+                <span className="pill outline">{post.type === "question" ? "Вопрос" : "Миссия"}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="meta">Постов пока нет. Поделись своим результатом первым.</p>
+        )}
+        <button className="ghost" onClick={onOpenCommunity}>Посмотреть в сообществе</button>
+      </div>
     </div>
   );
 };
@@ -193,6 +225,8 @@ const MissionsPage = ({
   onUpdateMissionState,
   onMissionCompleted,
   trackData,
+  communityPosts = [],
+  onMissionShare,
 }) => {
   const navigate = useNavigate();
   const completedSet = useMemo(() => new Set(progress?.completedMaterialIds || []), [progress?.completedMaterialIds]);
@@ -206,9 +240,20 @@ const MissionsPage = ({
   const selectedMission = missions.find((m) => m.id === selectedMissionId);
   const selectedMissionProgress = selectedMission ? getMissionProgress(selectedMission, missionsState) : null;
   const selectedMissionNotes = missionsState?.notes?.[selectedMissionId];
+  const [shareMission, setShareMission] = useState(null);
+  const [shareComment, setShareComment] = useState("");
 
   const levelInfo = getLevelFromXP(gamification.totalPoints);
   const roleLabel = getRoleFromLevel(levelInfo.level);
+
+  const relatedPosts = useMemo(
+    () =>
+      (communityPosts || [])
+        .filter((post) => post.relatedMissionId === selectedMissionId)
+        .slice(0, 3)
+        .map((post) => ({ ...post, relativeTime: post.relativeTime || relativeTime(post.createdAt) })),
+    [communityPosts, selectedMissionId]
+  );
 
   const handleOpenMaterial = (materialId) => {
     navigate(`/material/${materialId}`);
@@ -228,6 +273,8 @@ const MissionsPage = ({
     if (!selectedMission) return;
     changeMissionState({ type: "status", missionId: selectedMissionId, status: "completed", reward: selectedMission.xpReward });
     if (onMissionCompleted) onMissionCompleted(selectedMission);
+    setShareMission(selectedMission);
+    setShareComment("");
   };
 
   const updateNotes = (text) => changeMissionState({ type: "notes", missionId: selectedMissionId, text });
@@ -301,16 +348,52 @@ const MissionsPage = ({
       </div>
 
       {selectedMission && selectedMissionProgress && (
-        <MissionDetail
-          mission={selectedMission}
-          progress={selectedMissionProgress}
-          notes={selectedMissionNotes}
-          onToggleStep={toggleStep}
-          onStart={startMission}
-          onComplete={completeMission}
-          onNoteChange={updateNotes}
-          onOpenMaterial={handleOpenMaterial}
-        />
+          <MissionDetail
+            mission={selectedMission}
+            progress={selectedMissionProgress}
+            notes={selectedMissionNotes}
+            onToggleStep={toggleStep}
+            onStart={startMission}
+            onComplete={completeMission}
+            onNoteChange={updateNotes}
+            onOpenMaterial={handleOpenMaterial}
+            relatedPosts={relatedPosts}
+            onOpenCommunity={() => navigate("/community")}
+          />
+        )}
+      {shareMission && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <div className="card-header">Миссия выполнена!</div>
+            <p className="meta">
+              Ты закрыл(а) миссию “{shareMission.title}” и получил(а) +{shareMission.xpReward} XP.
+            </p>
+            <label className="modal-field">
+              <span>Хочешь поделиться результатом с сообществом?</span>
+              <textarea
+                value={shareComment}
+                onChange={(e) => setShareComment(e.target.value.slice(0, 280))}
+                placeholder="Короткий комментарий, что получилось или что удивило."
+              />
+            </label>
+            <div className="modal-actions">
+              <button
+                className="primary"
+                onClick={() => {
+                  if (onMissionShare) onMissionShare(shareMission, shareComment);
+                  setShareMission(null);
+                  setShareComment("");
+                  navigate("/community");
+                }}
+              >
+                Поделиться в сообществе
+              </button>
+              <button className="ghost" onClick={() => setShareMission(null)}>
+                Пропустить
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
