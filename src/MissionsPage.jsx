@@ -255,12 +255,38 @@ const MissionsPage = ({
     [communityPosts, selectedMissionId]
   );
 
+  const missionHighlight = useMemo(() => {
+    const preferred = trackData?.recommendedMissionId ? getMissionById(trackData.recommendedMissionId) : null;
+    const preferredProgress = preferred ? getMissionProgress(preferred, missionsState) : null;
+    if (preferred && preferredProgress?.status !== "completed") return { mission: preferred, progress: preferredProgress };
+
+    const nextAvailable = missions.find((mission) => getMissionProgress(mission, missionsState).status !== "completed");
+    return nextAvailable ? { mission: nextAvailable, progress: getMissionProgress(nextAvailable, missionsState) } : null;
+  }, [missionsState, trackData]);
+
+  const primaryMaterial = nextMaterial || (trackData?.firstMaterialId ? getMaterialById(trackData.firstMaterialId) : null);
+  const missionStatusLabel =
+    missionHighlight?.progress?.status === "completed"
+      ? "Завершена"
+      : missionHighlight?.progress?.status === "in_progress"
+      ? "В процессе"
+      : "Не начата";
+
   const handleOpenMaterial = (materialId) => {
     navigate(`/material/${materialId}`);
   };
 
   const changeMissionState = (nextState) => {
     if (onUpdateMissionState) onUpdateMissionState(nextState);
+  };
+
+  const openMissionFromHighlight = (mission) => {
+    if (!mission) return;
+    setSelectedMissionId(mission.id);
+    const status = getMissionProgress(mission, missionsState).status;
+    if (status === "not_started") {
+      changeMissionState({ type: "status", missionId: mission.id, status: "in_progress" });
+    }
   };
 
   const startMission = () => {
@@ -300,6 +326,35 @@ const MissionsPage = ({
         <button className="primary" onClick={() => navigate("/material/" + (nextMaterial?.id || "course-entrepreneur-basic"))}>
           Открыть урок
         </button>
+      </div>
+
+      <div className="card focus next-step">
+        <div className="card-header">Твой ближайший шаг</div>
+        {missionHighlight ? (
+          <div className="next-step-body">
+            <div>
+              <div className="pill filled">Миссия</div>
+              <h3>{missionHighlight.mission.title}</h3>
+              <p className="meta">{missionHighlight.mission.description}</p>
+              <div className="meta subtle">{missionHighlight.mission.estimatedTime} · +{missionHighlight.mission.xpReward} XP</div>
+            </div>
+            <div className="next-actions">
+              <button className="primary large" onClick={() => openMissionFromHighlight(missionHighlight.mission)}>
+                {missionHighlight.progress?.status === "in_progress" ? "Продолжить миссию" : "Начать миссию"}
+              </button>
+              <span className="meta subtle">Статус: {missionStatusLabel}</span>
+            </div>
+          </div>
+        ) : primaryMaterial ? (
+          <NextStepCard
+            material={primaryMaterial}
+            onStart={(m) => handleOpenMaterial(m.id)}
+            doneCount={doneMainSteps}
+            totalSteps={steps.length}
+          />
+        ) : (
+          <p className="meta">Собери трек через опрос, чтобы получить первый шаг.</p>
+        )}
       </div>
 
       <div className="missions-hero">

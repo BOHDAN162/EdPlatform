@@ -245,7 +245,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
           <p className="hero-kicker">Платформа развития</p>
           <h1 className="hero-title">Будь лучше вчерашнего себя</h1>
           <p className="hero-subtitle">
-            Ответь на 10 вопросов и получи личный маршрут: профиль, миссии и первый урок. Всегда можно начать заново и обновить трек.
+            Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
           </p>
           <div className="quote-panel">
             <p className="quote-label">Совет дня</p>
@@ -257,7 +257,7 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
               {hasTrack ? "Продолжить" : "Начать"}
             </button>
             {hasTrack && (
-              <button className="ghost" onClick={() => navigate("/onboarding")}>Перепройти опрос</button>
+              <button className="ghost" onClick={() => navigate("/onboarding")}>Пройти опрос заново</button>
             )}
           </div>
           <div className="how-it-works">
