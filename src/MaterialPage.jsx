@@ -42,20 +42,36 @@ const typeLabels = {
   practice: "Практика",
 };
 
+const safeGetItem = (key, fallback = "") => {
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch (e) {
+    return fallback;
+  }
+};
+
+const safeSetItem = (key, value) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    // ignore
+  }
+};
+
 const useReflection = (materialId) => {
   const storageKey = `ep_reflection_${materialId}`;
-  const [value, setValue] = useState(() => localStorage.getItem(storageKey) || "");
+  const [value, setValue] = useState(() => safeGetItem(storageKey, ""));
   useEffect(() => {
-    localStorage.setItem(storageKey, value);
+    safeSetItem(storageKey, value);
   }, [storageKey, value]);
   return [value, setValue];
 };
 
 const useInlineQuizState = (materialId) => {
   const storageKey = `ep_quiz_${materialId}`;
-  const [completed, setCompleted] = useState(() => localStorage.getItem(storageKey) === "done");
+  const [completed, setCompleted] = useState(() => safeGetItem(storageKey) === "done");
   const markCompleted = () => {
-    localStorage.setItem(storageKey, "done");
+    safeSetItem(storageKey, "done");
     setCompleted(true);
   };
   return { completed, markCompleted };
