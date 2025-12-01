@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, NavLink, useNavigate, useParams } from "./routerShim";
+import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from "./routerShim";
 import {
   awardForCommunityAction,
   awardForMaterial,
@@ -32,76 +32,12 @@ import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
 import MissionsPage from "./MissionsPage";
 import { useMissions } from "./hooks/useMissions";
+import { useTheme } from "./hooks/useTheme";
+import { useToasts } from "./hooks/useToasts";
+import AppLayout from "./components/layout/AppLayout";
+import { statusFromProgress, statusProgressValue } from "./utils/materialStatus";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
-
-const Toast = ({ messages }) => {
-  if (!messages.length) return null;
-  return (
-    <div className="toast-stack">
-      {messages.map((m) => (
-        <div key={m.id} className="toast">
-          {m.text}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const Header = ({ user, onLogout, theme, toggleTheme }) => {
-  const [open, setOpen] = useState(false);
-  const links = [
-    { to: "/", label: "Главная" },
-    { to: "/library", label: "Библиотека" },
-    { to: "/missions", label: "Миссии" },
-    { to: "/memory", label: "Память" },
-    { to: "/community", label: "Сообщество" },
-    { to: "/profile", label: "Профиль" },
-  ];
-
-  return (
-    <header className="header">
-      <Link to="/" className="logo" onClick={() => setOpen(false)}>
-        NOESIS
-      </Link>
-      <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">
-        ☰
-      </button>
-      <nav className={`nav ${open ? "open" : ""}`}>
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === "/"}
-            className={({ isActive }) => `nav-link ${isActive ? "active" : ""}`}
-            onClick={() => setOpen(false)}
-          >
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
-      <div className="header-actions">
-        <button className="ghost" onClick={toggleTheme}>
-          {theme === "dark" ? "Тёмная" : "Светлая"}
-        </button>
-        {!user && <Link to="/auth" className="primary">Войти</Link>}
-        {user && (
-          <div className="user-chip">
-            <Link to="/profile" className="avatar">
-              {user.name?.[0] || "Я"}
-            </Link>
-            <div className="user-meta">
-              <div className="user-name">{user.name}</div>
-              <button className="ghost" onClick={onLogout}>
-                Выйти
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-};
 
 const GamificationSummary = ({ gamification }) => {
   const status = getStatusByPoints(gamification.totalPoints);
@@ -170,18 +106,6 @@ const typeFilterOptions = [
   { id: "test", label: "Тесты" },
   { id: "game", label: "Игры" },
 ];
-
-const statusFromProgress = (materialId, completedSet, activeMaterialId) => {
-  if (completedSet.has(materialId)) return "completed";
-  if (materialId === activeMaterialId) return "inProgress";
-  return "new";
-};
-
-const statusProgressValue = {
-  new: 8,
-  inProgress: 55,
-  completed: 100,
-};
 
 const BadgeOrbit = () => (
   <div className="badge-orbit">
@@ -959,7 +883,8 @@ const TestPage = ({ onComplete, completedMaterialIds }) => {
 };
 
 function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem("ep_theme") || "light");
+  const { theme, toggleTheme } = useTheme();
+  const { toasts, addToast, addToasts } = useToasts();
   const initialUser = loadCurrentUser();
   const [user, setUser] = useState(() => initialUser);
   const [gamification, setGamification] = useState(() => loadGamification(initialUser?.id));
@@ -967,7 +892,6 @@ function App() {
   const [progress, setProgress] = useState(() => loadProgress(initialUser?.id));
   const [activityLog, setActivityLog] = useState(() => loadActivity(initialUser?.id));
   const [communityState, setCommunityState] = useState(() => loadCommunityState(initialUser) || { ...baseCommunityState });
-  const [toasts, setToasts] = useState([]);
 
   const missionsApi = useMissions(user?.id, { onMissionCompleted: handleMissionComplete });
   const {
@@ -978,11 +902,6 @@ function App() {
     setMissionStatus,
     completedThisWeek,
   } = missionsApi;
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-    localStorage.setItem("ep_theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     if (user) {
@@ -999,16 +918,6 @@ function App() {
       setCommunityState(loadCommunityState(null) || { ...baseCommunityState });
     }
   }, [user]);
-
-  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
-
-  const addToast = (text) => {
-    const id = crypto.randomUUID();
-    setToasts((prev) => [...prev, { id, text }]);
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
-  };
-
-  const addToasts = (messages) => messages.forEach((m) => addToast(m));
 
   const updateCommunityState = (nextState) => {
     setCommunityState(nextState);
@@ -1238,14 +1147,6 @@ function App() {
     setTrackData(null);
   };
 
-  const Layout = ({ children }) => (
-    <div className={`app ${theme}`}>
-      <Header user={user} onLogout={handleLogout} theme={theme} toggleTheme={toggleTheme} />
-      <main className="container">{children}</main>
-      <Toast messages={toasts} />
-    </div>
-  );
-
   const HomeRoute = () => {
     const navigate = useNavigate();
     return <HomePage user={user} navigate={navigate} community={community} gamification={gamification} trackData={trackData} />;
@@ -1253,7 +1154,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
+      <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
           <Route
@@ -1362,7 +1263,7 @@ function App() {
             element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
           />
         </Routes>
-      </Layout>
+      </AppLayout>
     </BrowserRouter>
   );
 }
