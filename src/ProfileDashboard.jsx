@@ -5,6 +5,7 @@ import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
 import { getMaterialById, learningPaths, materials, themeLabels } from "./libraryData";
 import { getPathProgress } from "./progress";
 import { missions as missionList } from "./data/missions";
+import ActivityCalendar from "./components/activity/ActivityCalendar";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -182,25 +183,16 @@ const GoalsCard = ({ goals = [] }) => {
   );
 };
 
-const ActiveDaysCard = ({ activeDaysSet, monthLabel }) => {
-  const now = new Date();
-  const totalDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const startOffset = new Date(now.getFullYear(), now.getMonth(), 1).getDay() || 7;
-  const cells = Array.from({ length: startOffset - 1 + totalDays }, (_, idx) => idx - (startOffset - 2));
-  return (
-    <div className="insight-card">
-      <div className="insight-title">Активные дни</div>
-      <div className="meta subtle">{monthLabel}</div>
-      <div className="calendar-grid">
-        {cells.map((day) => (
-          <div key={day} className={`calendar-cell ${day > 0 && activeDaysSet.has(day) ? "active" : ""}`}>
-            {day > 0 ? day : ""}
-          </div>
-        ))}
-      </div>
+const ActiveDaysCard = ({ activeDays = 0, monthLabel, streakCurrent = 0, streakBest = 0 }) => (
+  <div className="insight-card">
+    <div className="insight-title">Активные дни</div>
+    <div className="mission-value">
+      <span className="number">{activeDays}</span>
+      <span className="meta subtle">в {monthLabel}</span>
     </div>
-  );
-};
+    <div className="mission-meta">Серия: {streakCurrent} · Лучший стрик: {streakBest}</div>
+  </div>
+);
 
 const MissionsCard = ({ completed = 0, active = 0 }) => {
   const total = completed + active;
@@ -269,22 +261,41 @@ const ActivityCard = ({ activityLog = [] }) => (
     {activityLog.length === 0 && <p className="meta">Пока нет событий — открой материалы, тесты или сообщество.</p>}
     <div className="activity-list">
       {activityLog.slice(0, 7).map((item) => {
+        const type = item.type || "";
         const icon =
-          item.type === "test"
+          type === "testCompleted"
             ? "🧠"
-            : item.type === "material"
+            : type === "materialCompleted"
             ? "📘"
-            : item.type === "memory"
+            : type === "memoryEntryCreated"
             ? "📓"
-            : item.type === "community"
+            : type === "communityAction"
             ? "🤝"
+            : type === "missionCompleted"
+            ? "🏁"
+            : type === "mindgameCompleted"
+            ? "🎮"
             : "✨";
+        const readableType =
+          type === "testCompleted"
+            ? "тест"
+            : type === "materialCompleted"
+            ? "материал"
+            : type === "memoryEntryCreated"
+            ? "память"
+            : type === "communityAction"
+            ? "сообщество"
+            : type === "missionCompleted"
+            ? "миссия"
+            : type === "mindgameCompleted"
+            ? "mindgame"
+            : item.type || "действие";
         return (
           <div key={item.id} className="activity-item">
             <div className="activity-icon">{icon}</div>
             <div>
               <div className="activity-title">{item.title}</div>
-              <div className="meta subtle">{relativeLabel(item.createdAt)} · {item.type || "действие"}</div>
+              <div className="meta subtle">{relativeLabel(item.createdAt)} · {readableType}</div>
             </div>
           </div>
         );
@@ -529,6 +540,10 @@ const ProfileDashboard = ({
   streak,
   trackData,
   activityLog = [],
+  activityByDate = {},
+  streakInfo,
+  getActivityForMonth,
+  activeDaysThisMonth = 0,
   community = [],
   theme,
   onToggleTheme,
@@ -579,18 +594,6 @@ const ProfileDashboard = ({
   const levelInfo = getLevelFromXP(gamification.totalPoints);
   const roleLabel = getRoleFromLevel(levelInfo.level);
 
-  const activeDaysSet = useMemo(() => {
-    const now = new Date();
-    const set = new Set();
-    (activityLog || []).forEach((item) => {
-      const d = new Date(item.createdAt);
-      if (!Number.isNaN(d) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-        set.add(d.getDate());
-      }
-    });
-    return set;
-  }, [activityLog]);
-
   const monthLabel = useMemo(() => {
     const now = new Date();
     return now.toLocaleDateString("ru-RU", { month: "long", year: "numeric" });
@@ -635,10 +638,27 @@ const ProfileDashboard = ({
         onAction={handleNextAction}
       />
 
+      <div className="card activity-calendar-panel">
+        <div className="activity-calendar-meta">
+          <div className="summary-pill">Активных дней в этом месяце: {activeDaysThisMonth}</div>
+          <div className="summary-pill">Текущая серия: {streakInfo?.current || 0}</div>
+          <div className="summary-pill">Лучшая серия: {streakInfo?.best || 0}</div>
+        </div>
+        <ActivityCalendar activityByDate={activityByDate} streakInfo={streakInfo} />
+        <p className="meta subtle">
+          Старайся держать серию и закрывать 15 активных дней в месяц — это даст дополнительные награды.
+        </p>
+      </div>
+
       <TracksSection progress={progress} navigate={navigate} />
 
       <div className="insights-row">
-        <ActiveDaysCard activeDaysSet={activeDaysSet} monthLabel={monthLabel} />
+        <ActiveDaysCard
+          activeDays={activeDaysThisMonth}
+          monthLabel={monthLabel}
+          streakCurrent={streakInfo?.current || 0}
+          streakBest={streakInfo?.best || 0}
+        />
         <MissionsCard completed={missionStats.completed} active={missionStats.active} />
         <MaterialsCard
           materialsCompleted={gamification.completedMaterialsCount || 0}

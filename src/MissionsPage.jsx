@@ -10,12 +10,42 @@ import {
   typeFilters,
 } from "./data/missions";
 import { getLevelFromXP, getRoleFromLevel } from "./gamification";
+import ActivityCalendar from "./components/activity/ActivityCalendar";
+import GroupChallengeCard from "./components/activity/GroupChallengeCard";
 
 const ProgressBar = ({ value }) => (
   <div className="mission-progress-line">
     <div className="mission-progress-fill" style={{ width: `${Math.min(100, value)}%` }} />
   </div>
 );
+
+const hasDayActivity = (day) => {
+  if (!day) return false;
+  return (
+    (day.completedMaterialsCount || 0) +
+      (day.missionsCompletedCount || 0) +
+      (day.memoryEntriesCount || 0) +
+      (day.communityActionsCount || 0) +
+      (day.sessionsCount || 0) +
+      (day.totalXP || 0) >
+    0
+  );
+};
+
+const CalendarMissionCard = ({ title, description, current = 0, target = 0 }) => {
+  const percent = target ? Math.min(100, Math.round((current / target) * 100)) : 0;
+  return (
+    <div className="mission-card-v2 calendar-mini-card">
+      <div className="mission-card-title-row">
+        <h3>{title}</h3>
+        <span className="status-pill">{current}/{target}</span>
+      </div>
+      <p className="mission-card-desc">{description}</p>
+      <ProgressBar value={percent} />
+      <div className="mission-card-meta">Прогресс: {percent}%</div>
+    </div>
+  );
+};
 
 const Badge = ({ label, color, outline = false }) => (
   <span
@@ -264,6 +294,9 @@ const MissionsPage = ({
   setMissionStatus,
   updateProgressByKey,
   completedThisWeek = 0,
+  activityByDate = {},
+  streakInfo,
+  getActivityForMonth,
 }) => {
   const navigate = useNavigate();
   const [duration, setDuration] = useState("all");
@@ -315,6 +348,49 @@ const MissionsPage = ({
     updateProgressByKey?.("missions_completed_week", 1);
   };
 
+  const monthRef = useMemo(() => new Date(), []);
+  const monthActivity = useMemo(
+    () => (getActivityForMonth ? getActivityForMonth(monthRef.getFullYear(), monthRef.getMonth() + 1) : activityByDate),
+    [activityByDate, getActivityForMonth, monthRef]
+  );
+
+  const activeDays = useMemo(() => Object.values(monthActivity || {}).filter((day) => hasDayActivity(day)).length, [monthActivity]);
+
+  const lastSixtyDaysActive = useMemo(() => {
+    const now = new Date();
+    const msDay = 1000 * 60 * 60 * 24;
+    return Object.entries(activityByDate || {}).filter(([dateKey, day]) => {
+      const diff = (now - new Date(dateKey)) / msDay;
+      return diff >= 0 && diff <= 60 && hasDayActivity(day);
+    }).length;
+  }, [activityByDate]);
+
+  const groupChallenges = useMemo(
+    () => [
+      {
+        id: "volgograd",
+        title: "Клуб Волгоград",
+        description: "10 000 XP за неделю на всех участниках",
+        deadline: "до пятницы",
+        progress: 6200,
+        target: 10000,
+        teamName: "Команда региона",
+        accent: "#7c3aed",
+      },
+      {
+        id: "finance-sprint",
+        title: "Финансовый спринт",
+        description: "5 материалов по финансам за 7 дней",
+        deadline: "осталось 3 дня",
+        progress: 3,
+        target: 5,
+        teamName: "Сквад Финансы",
+        accent: "#22c55e",
+      },
+    ],
+    []
+  );
+
   return (
     <div className="page missions-page-v3">
       <div className="missions-hero-v3">
@@ -345,9 +421,53 @@ const MissionsPage = ({
 
       <MissionOverview
         gamification={gamification}
-        streakCount={gamification.streakCount || 0}
+        streakCount={streakInfo?.current || gamification.streakCount || 0}
         completedWeek={completedThisWeek}
       />
+
+      <section className="mission-section">
+        <div className="section-head">
+          <div>
+            <h2>Календарь активности</h2>
+            <p className="meta">Следи за днями с действиями, чтобы удерживать серию и миссии месяца.</p>
+          </div>
+          <div className="chip-row">
+            <span className="chip">Активные дни: {activeDays}</span>
+            <span className="chip">Серия: {streakInfo?.current || 0}</span>
+            <span className="chip ghost">Лучший стрик: {streakInfo?.best || 0}</span>
+          </div>
+        </div>
+        <ActivityCalendar activityByDate={monthActivity} streakInfo={streakInfo} compact />
+      </section>
+
+      <section className="mission-section">
+        <div className="section-head">
+          <div>
+            <h2>Миссии по дням</h2>
+            <p className="meta">Удерживай активные дни и серии — данные из ActivityLog.</p>
+          </div>
+        </div>
+        <div className="mission-grid quest-grid">
+          <CalendarMissionCard
+            title="15 активных дней в месяц"
+            description="Календарь месяца в духе Apple Fitness"
+            current={activeDays}
+            target={15}
+          />
+          <CalendarMissionCard
+            title="7 активных дней подряд"
+            description="Серия без пропусков"
+            current={streakInfo?.current || 0}
+            target={7}
+          />
+          <CalendarMissionCard
+            title="30 активных дней за 2 месяца"
+            description="Длинный вызов — минимум день через день"
+            current={lastSixtyDaysActive}
+            target={30}
+          />
+        </div>
+      </section>
 
       <section className="mission-section">
         <div className="section-head">
@@ -416,6 +536,20 @@ const MissionsPage = ({
                 handleNavigate(mission);
               }}
             />
+          ))}
+        </div>
+      </section>
+
+      <section className="mission-section">
+        <div className="section-head">
+          <div>
+            <h2>Групповые челленджи</h2>
+            <p className="meta">Общий прогресс по клубам и сквадам — как в Nike Run Club.</p>
+          </div>
+        </div>
+        <div className="mission-grid quest-grid">
+          {groupChallenges.map((challenge) => (
+            <GroupChallengeCard key={challenge.id} {...challenge} />
           ))}
         </div>
       </section>

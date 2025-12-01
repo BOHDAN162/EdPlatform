@@ -168,8 +168,8 @@ export function useSmartCommands({
     }
 
     // 7. Mission heavy, library light
-    const missionActions = activityLog?.filter((item) => item.type === "миссия")?.length || 0;
-    const libraryActions = activityLog?.filter((item) => item.type === "материал")?.length || 0;
+    const missionActions = activityLog?.filter((item) => ["миссия", "missionCompleted"].includes(item.type))?.length || 0;
+    const libraryActions = activityLog?.filter((item) => ["материал", "materialCompleted"].includes(item.type))?.length || 0;
     if (missionActions > 2 && libraryActions < 2) {
       commands.push({
         id: "smart-library-pick",
@@ -182,7 +182,7 @@ export function useSmartCommands({
     }
 
     // 8. Community frequent visitor
-    const communityVisits = activityLog?.filter((item) => item.type === "сообщество")?.length || 0;
+    const communityVisits = activityLog?.filter((item) => ["сообщество", "communityAction"].includes(item.type))?.length || 0;
     if (communityVisits >= 3) {
       commands.push({
         id: "smart-community-answer",
