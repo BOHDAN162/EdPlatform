@@ -173,7 +173,7 @@ const QuickLinksCard = ({ navigate }) => (
       <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
       <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
       <button className="ghost" onClick={() => navigate("/track")}>Трек</button>
-      <button className="ghost" onClick={() => navigate("/login")}>Настройки</button>
+      <button className="ghost" onClick={() => navigate("/auth")}>Настройки</button>
     </div>
   </div>
 );
@@ -257,7 +257,7 @@ const ProfileDashboard = ({ user, gamification, progress, streak, trackData, act
         <div className="card">
           <div className="card-header">Профиль доступен после входа</div>
           <p className="meta">Авторизуйся, чтобы увидеть свой прогресс, XP и достижения.</p>
-          <Link to="/login" className="primary">Перейти к авторизации</Link>
+          <Link to="/auth" className="primary">Перейти к авторизации</Link>
         </div>
       </div>
     );
