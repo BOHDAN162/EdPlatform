@@ -24,7 +24,6 @@ import LibraryTrackView from "./components/LibraryTrackView";
 import MindGamesSection from "./components/MindGamesSection";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
-import LandingSection from "./LandingSection";
 import MascotIllustration from "./MascotIllustration";
 import UiMockupIllustration from "./UiMockupIllustration";
 import ProfileDashboard from "./ProfileDashboard";
@@ -51,16 +50,6 @@ const typeFilterOptions = [
   { id: "test", label: "Тесты" },
   { id: "game", label: "Игры" },
 ];
-
-const HeroStat = ({ title, value, caption }) => (
-  <div className="hero-stat">
-    <p className="hero-stat-title">{title}</p>
-    <p className="hero-stat-value">{value}</p>
-    <p className="hero-stat-caption">{caption}</p>
-  </div>
-);
-
-const HeroBadge = ({ label }) => <span className="hero-badge">{label}</span>;
 
 const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   const quotes = useMemo(
@@ -98,157 +87,189 @@ const HomePage = ({ user, navigate, community, gamification, trackData }) => {
   const currentQuote = quotes[quoteIndex];
   const hasTrack = !!trackData?.generatedTrack?.length;
   return (
-    <div className="page">
-      <div className="landing-hero wide">
-        <div className="hero-grid-modern">
-          <div className="hero-copy">
-            <p className="hero-kicker">Личный рост без скучных уроков</p>
-            <h1 className="hero-title">NOESIS — платформа развития для подростков и детей предпринимателей</h1>
-            <p className="hero-subtitle">
-              Опрос → персональный трек → миссии и XP → память и комьюнити. Не просто курсы, а система, которая держит тебя в фокусе и показывает рост.
-            </p>
-            <div className="hero-badges">
-              {["Трек по твоим целям", "XP и статусы", "Миссии каждый день", "Память и мини-игры"].map((label) => (
-                <HeroBadge key={label} label={label} />
-              ))}
-            </div>
-            <div className="hero-actions">
-              <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
-                {hasTrack ? "Продолжить трек" : "Пройти стартовый трек"}
-              </button>
-              <button className="ghost hero-secondary" onClick={() => navigate("/library")}>
-                Посмотреть библиотеку
-              </button>
-            </div>
-            <div className="hero-meta-grid">
-              <HeroStat title="Старт за 10 минут" value="Опрос → план" caption="Сразу видишь шаги и материалы" />
-              <HeroStat title="XP за действия" value="+50 XP" caption="каждый урок, тест и запись в Памяти" />
-              <HeroStat title="Комьюнити" value="Лиги и клубы" caption="челленджи с друзьями и городами" />
-            </div>
-            <div className="quote-carousel visible">
-              <p className="quote-text">«{currentQuote.text}»</p>
-              <p className="quote-author">— {currentQuote.author}</p>
-            </div>
+    <div className="page home-page">
+      <section className="home-hero-card">
+        <div className="hero-header-row">
+          <div>
+            <p className="home-kicker">Платформа развития</p>
+            <h1 className="home-title">БУДЬ ЛУЧШЕ ВЧЕРАШНЕГО СЕБЯ</h1>
+            <p className="home-subtitle">Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.</p>
           </div>
-          <div className="hero-visual">
-            <UiMockupIllustration variant="hero" />
+          <div className="home-quote-card float-card">
+            <p className="quote-label">совет дня</p>
+            <p className="quote-main">«{currentQuote.text}»</p>
+            <p className="quote-author">— {currentQuote.author}</p>
           </div>
         </div>
-      </div>
+        <div className="hero-actions hero-actions-centered">
+          <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>
+            {hasTrack ? "Продолжить" : "Пройти трек"}
+          </button>
+        </div>
+        <div className="hero-steps">
+          <div className="step-chip">Пройди короткую регистрацию</div>
+          <div className="step-chip">Ответь на вопросы</div>
+          <div className="step-chip">Узнай стартовый маршрут</div>
+          <div className="step-chip">Выполни первый урок</div>
+        </div>
+      </section>
 
-      <div className="landing-flow">
-        <LandingSection
-          kicker="Почему NOESIS"
-          title="Платформа развития, а не просто курсы"
-          subtitle="Мы строим маршрут под твои цели и добавляем игру, чтобы хотелось возвращаться. Фокус на мышлении, деньгах, проектах и софтовых навыках."
-          bullets={[
-            "Личный трек вместо случайных уроков",
-            "XP и статусы вместо самодисциплины через силу",
-            "Практика: мини-проекты, тесты, разборы",
-            "Комьюнити подростков и детей предпринимателей",
-          ]}
-          childrenIllustration={<MascotIllustration />}
-        />
-
-        <LandingSection
-          kicker="Личный трек развития"
-          title="Профиль, шаги и прогресс на одной линии"
-          subtitle="Ответь на вопросы — получишь карту пути по пяти направлениям: мышление, деньги, коммуникации, лидерство, эффективность."
-          bullets={[
-            "Диагностика и профиль за 10 минут",
-            "Чёткие шаги: курсы, статьи, тесты, мини-игры",
-            "Видно, что закрыто и что дальше",
-            "Мотивация через XP и чекпоинты",
-          ]}
-          reverse
-          childrenIllustration={<UiMockupIllustration variant="track" />}
-        />
-
-        <LandingSection
-          kicker="Миссии и геймификация"
-          title="Каждый день — миссия, XP и статусы"
-          subtitle="Закрывай задания, держи серию дней и поднимайся в уровнях. Баллы начисляются за материалы, тесты, память и активность в комьюнити."
-          bullets={[
-            "Дневные и недельные миссии",
-            "Серии дней, статусы и уровни",
-            "Челленджи с друзьями и клубами",
-            "Прозрачная статистика в профиле",
-          ]}
-          childrenIllustration={<UiMockupIllustration variant="missions" />}
-        />
-
-        <LandingSection
-          kicker="Библиотека NOESIS"
-          title="Курсы, статьи, тесты и MindGames"
-          subtitle="Вся база знаний в одном месте. Пять тем: мышление, деньги, коммуникации, лидерство, эффективность. Каждую неделю — новые материалы."
-          bullets={[
-            "Курсы по предпринимательству и проектам",
-            "Лонгриды и короткие статьи",
-            "Тесты и мини-игры, чтобы закрепить",
-            "Персональные рекомендации под трек",
-          ]}
-          reverse
-          childrenIllustration={<UiMockupIllustration variant="library" />}
-        />
-
-        <LandingSection
-          kicker="Память и метавселенная"
-          title="Твой город памяти"
-          subtitle="Фиксируй идеи, инсайты и выводы. Записи связываются с курсами и прогрессом, превращаясь в карту твоего опыта."
-          bullets={[
-            "Личные заметки и выводы по материалам",
-            "3D-метафора города памяти",
-            "Связь с треком и тестами",
-            "XP за осознанность и рефлексию",
-          ]}
-          childrenIllustration={<UiMockupIllustration variant="memory" />}
-        />
-
-        <LandingSection
-          kicker="Комьюнити и челленджи"
-          title="Лиги, клубы и еженедельные спринты"
-          subtitle="Встречи по городам и интересам, рейтинги, совместные челленджи: «Клуб Волгоград», «Финансовый спринт» и другие."
-          bullets={[
-            "Лиги с рейтингами и статусы",
-            "Клубы по городам и темам",
-            "Челленджи и проектные спринты",
-            "Аватарки друзей рядом с твоим прогрессом",
-          ]}
-          reverse
-          childrenIllustration={<UiMockupIllustration variant="community" />}
-        />
-
-        <LandingSection
-          kicker="Для кого"
-          title="Подросткам 13–20 и родителям-предпринимателям"
-          subtitle="Подросток получает игру и ясный маршрут. Родитель — систему развития без микроменеджмента."
-          bullets={[
-            "Для подростка: XP, миссии, друзья и проекты",
-            "Для родителя: прозрачные отчёты и прогресс",
-            "Гибкий график под учёбу и спорт",
-            "Наставники, которые говорят на одном языке",
-          ]}
-          childrenIllustration={<UiMockupIllustration variant="audience" />}
-        />
-
-        <LandingSection
-          kicker="Как это работает"
-          title="4 шага к результату"
-          subtitle="Старт за 10 минут, дальше — движение по треку с сериями и наградами."
-          bullets={["Ответить на вопросы", "Получить персональный трек", "Проходить материалы и миссии", "Следить за XP и сериями"]}
-          reverse
-          childrenIllustration={<UiMockupIllustration variant="flow" />}
-        >
-          <div className="cta-actions">
-            <button className="primary hero-cta" onClick={() => navigate("/track-quiz")}>
-              Пройти стартовый трек
-            </button>
-            <button className="ghost hero-secondary" onClick={() => navigate("/missions")}>
-              Посмотреть миссии
-            </button>
+      <section className="home-section two-column">
+        <div className="home-text-card">
+          <p className="home-kicker">Почему NOESIS</p>
+          <h2>Платформа роста для подростков и детей предпринимателей</h2>
+          <p className="home-subtext">Мы не просто даём материалы. Мы собираем твой маршрут, замеряем прогресс и даём мягкую мотивацию через миссии, XP и комьюнити.</p>
+          <div className="home-bullet-list">
+            {[
+              "Личный трек с шагами",
+              "Профиль роста в одном месте",
+              "Миссии и статусы вместо насилия",
+              "Поддержка от комьюнити",
+            ].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
           </div>
-        </LandingSection>
-      </div>
+        </div>
+        <div className="home-visual-card float-card">
+          <MascotIllustration />
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-visual-card float-card">
+          <UiMockupIllustration variant="track" />
+        </div>
+        <div className="home-text-card">
+          <p className="home-kicker">Личный маршрут</p>
+          <h2>Твой трек развития</h2>
+          <div className="pill-row">
+            {["Осознание", "Фокус", "Проект", "Комментарии"].map((item) => (
+              <span className="pill" key={item}>
+                {item}
+              </span>
+            ))}
+          </div>
+          <div className="home-card-grid">
+            {["Фокус и ключевые принципы", "Мини-цели: финансы, навыки, деньги", "Маленькие дела и шаги", "Визуальный прогресс и отчётность"].map((item) => (
+              <div className="text-bubble" key={item}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-text-card">
+          <p className="home-kicker">Библиотека</p>
+          <h2>Курсы, статьи и тесты в одном месте</h2>
+          <p className="home-subtext">
+            Подбираем материалы по твоим темам: предпринимательство, финансы, проекты, навыки общения. Курсы и статьи соединены
+            с твоим треком и измеримым прогрессом.
+          </p>
+          <div className="home-bullet-list columns">
+            {["Курсы по запуску проектов и управлению деньгами", "Тесты и мини-игры: мемори, реакция, проекты и бег", "Новые материалы каждую неделю", "Личный профиль с XP и сериями"].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="home-visual-card float-card">
+          <UiMockupIllustration variant="library" />
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-text-card">
+          <p className="home-kicker">Для кого</p>
+          <h2>13–20 лет: ребята, которые хотят большего</h2>
+          <p className="home-subtext">Проекты, предпринимательство, идеи, презентации: мы поддерживаем, задаём вопросы, ставим перспективы — вместе с твоим городом.</p>
+          <div className="home-bullet-list">
+            {["Гибкое обучение под школу и спорт", "Оценка по нестандартным сценариям", "Прозрачная отчётность для родителей"].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="home-visual-card float-card">
+          <UiMockupIllustration variant="audience" />
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-visual-card float-card">
+          <UiMockupIllustration variant="flow" />
+        </div>
+        <div className="home-text-card">
+          <p className="home-kicker">Как это работает</p>
+          <h2>4 шага до результатов</h2>
+          <p className="home-subtext">Первые шаги займут меньше 10 минут. Дальше — движение по треку, миссии, XP и подвижка по шагам.</p>
+          <div className="home-bullet-list columns">
+            {["Ответить на вопросы и сформировать цели", "Получить персональный трек", "Выполнять трек: курсы, тесты, миссии", "Видеть прогресс и XP"].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
+          </div>
+          <div className="cta-actions">
+            <button className="primary hero-cta" onClick={() => navigate("/track-quiz")}>Пройти стартовый трек</button>
+            <button className="ghost hero-secondary" onClick={() => navigate("/missions")}>Посмотреть миссии</button>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-text-card">
+          <p className="home-kicker">Среда</p>
+          <h2>Комьюнити, события и челленджи</h2>
+          <p className="home-subtext">Комьюнити из подростков, ребят, миссии, созвоны, проектные спринты и дружеское соревнование.</p>
+          <div className="home-bullet-list">
+            {["Чаты и встречи по темам", "Старт челленджей по темам", "Поддержка наставников и комьюнити-менеджеров", "Подарки за то, что помогает"].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="home-visual-card float-card">
+          <UiMockupIllustration variant="community" />
+        </div>
+      </section>
+
+      <section className="home-section two-column">
+        <div className="home-text-card">
+          <p className="home-kicker">Челленджи</p>
+          <h2>Каждую неделю: ребята, которые растут</h2>
+          <p className="home-subtext">Соревнования в старте проектов, параллельные темы, челленджи по финансам и реакциям. Прозрачная статистика по XP.</p>
+          <div className="home-bullet-list columns">
+            {["Чаты и встречи по темам", "Челленджи по темам", "Поддержка наставников и комьюнити-менеджеров", "Подарки за то, что помогает"].map((item) => (
+              <div className="bullet" key={item}>
+                <span className="dot" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="home-cta-card">
+          <p className="home-kicker">Готов начать путь в NOESIS?</p>
+          <h3>Собери свой трек, получи первую миссию, зафиксируй, что важно для тебя — и прокачивайся.</h3>
+          <div className="pill-row">
+            <span className="pill">Очки +120</span>
+            <span className="pill">Серия 7 дней</span>
+            <span className="pill">Новый статус</span>
+          </div>
+          <button className="primary hero-cta" onClick={() => navigate(hasTrack ? "/library" : "/track-quiz")}>Апгрейд</button>
+        </div>
+      </section>
     </div>
   );
 
