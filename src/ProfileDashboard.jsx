@@ -4,6 +4,7 @@ import useUserProfile from "./useUserProfile";
 import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
 import { getMaterialById, learningPaths, materials, themeLabels } from "./libraryData";
 import { getPathProgress } from "./progress";
+import { missions, getMissionProgress } from "./missionsData";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -473,6 +474,7 @@ const ProfileDashboard = ({
   community = [],
   theme,
   onToggleTheme,
+  missionsState,
 }) => {
   const navigate = useNavigate();
   const profile = useUserProfile(user, trackData);
@@ -480,23 +482,28 @@ const ProfileDashboard = ({
 
   const mainTrackSteps = trackData?.generatedTrack || [];
   const doneMainSteps = mainTrackSteps.filter((s) => completedSet.has(s.materialId)).length;
-  const nextStep = useMemo(() => mainTrackSteps.find((s) => !completedSet.has(s.materialId)), [mainTrackSteps, completedSet]);
+  const trackProgressLabel = mainTrackSteps.length
+    ? `${doneMainSteps} из ${mainTrackSteps.length} шагов`
+    : "Трек ещё не собран";
 
-  const fallbackMaterial = useMemo(() => {
-    const firstPath = learningPaths.find((p) => p.materials.length > 0);
-    if (!firstPath) return null;
-    const next = firstPath.materials.find((id) => !completedSet.has(id)) || firstPath.materials[0];
-    return getMaterialById(next);
-  }, [completedSet]);
+  const missionStats = useMemo(() => {
+    const statuses = missions.map((mission) => getMissionProgress(mission, missionsState));
+    return {
+      completed: statuses.filter((s) => s.status === "completed").length,
+      active: statuses.filter((s) => s.status === "in_progress").length,
+    };
+  }, [missionsState]);
 
-  const nextMaterial = nextStep ? getMaterialById(nextStep.materialId) : mainTrackSteps.length ? null : fallbackMaterial;
-
-  const openMaterial = (materialId, materialType) => {
-    const material = getMaterialById(materialId) || materials.find((m) => m.id === materialId);
-    if (!material) return;
-    const type = materialType || material.type;
-    navigate(type === "test" ? `/tests/${material.id}` : `/library/${type}/${material.id}`);
-  };
+  const goalsSummary = useMemo(() => {
+    const dailyGoals = gamification.goals?.filter((g) => g.type === "daily") || [];
+    const weeklyGoals = gamification.goals?.filter((g) => g.type === "weekly") || [];
+    const completedDaily = dailyGoals.filter((g) => g.completed).length;
+    const completedWeekly = weeklyGoals.filter((g) => g.completed).length;
+    return {
+      daily: `${completedDaily}/${dailyGoals.length || 0}`,
+      weekly: `${completedWeekly}/${weeklyGoals.length || 0}`,
+    };
+  }, [gamification.goals]);
 
   const levelInfo = getLevelFromXP(gamification.totalPoints);
   const roleLabel = getRoleFromLevel(levelInfo.level);
@@ -519,23 +526,45 @@ const ProfileDashboard = ({
 
       <div className="profile-columns">
         <div className="profile-main">
-          <NextStepCard
-            material={nextMaterial}
-            doneCount={doneMainSteps}
-            totalSteps={mainTrackSteps.length || 0}
-            onStart={(m) => openMaterial(m.id, m.type)}
-            onFallback={() => navigate("/library")}
-          />
-          <MainTrackCard steps={mainTrackSteps} completedSet={completedSet} onOpenMaterial={openMaterial} />
-          <TracksOverview progress={progress} navigate={navigate} />
+          <div className="card summary-card">
+            <div className="card-header">Короткий обзор</div>
+            <div className="summary-grid">
+              <div className="summary-item">
+                <div className="meta subtle">Трек</div>
+                <div className="summary-value">{trackProgressLabel}</div>
+                <div className="meta">Шаги из твоего маршрута</div>
+              </div>
+              <div className="summary-item">
+                <div className="meta subtle">Миссии</div>
+                <div className="summary-value">{missionStats.completed} выполнено</div>
+                <div className="meta">Активных: {missionStats.active}</div>
+              </div>
+              <div className="summary-item">
+                <div className="meta subtle">Цели</div>
+                <div className="summary-value">День: {goalsSummary.daily}</div>
+                <div className="meta">Неделя: {goalsSummary.weekly}</div>
+              </div>
+            </div>
+            <div className="summary-actions">
+              <button className="primary" onClick={() => navigate("/missions")}>Перейти в миссии</button>
+              <button className="ghost" onClick={() => navigate("/library")}>Открыть библиотеку</button>
+            </div>
+          </div>
+
+          <ActivityCard activityLog={activityLog} />
         </div>
 
         <div className="profile-side">
           <XPCard gamification={gamification} levelInfo={levelInfo} roleLabel={roleLabel} streak={streak} />
-          <GoalsCard goals={gamification.goals} />
-          <ActivityCard activityLog={activityLog} />
-          <RulesCard />
           <LeagueSnippet community={community} currentUserName={profile.name} />
+          <div className="card">
+            <div className="card-header">Быстрые действия</div>
+            <div className="quick-actions">
+              <button className="ghost" onClick={() => navigate("/missions")}>Миссии и проекты</button>
+              <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
+              <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -11,8 +11,8 @@ const typeLabels = {
 const MaterialCard = ({ material, completed }) => {
   const theme = themeLabels[material.theme] || { accent: "#6b7280", title: "Тема" };
   const badge = completed ? "Завершено" : typeLabels[material.type] || "Материал";
-  const cta = completed ? "Повторить" : material.type === "article" ? "Читать" : "Открыть";
-  const target = material.type === "test" ? `/tests/${material.id}` : `/library/${material.type}/${material.id}`;
+  const cta = completed ? "Повторить" : "Открыть урок";
+  const target = `/material/${material.id}`;
 
   return (
     <div className={`material-card ${completed ? "completed" : ""}`}>

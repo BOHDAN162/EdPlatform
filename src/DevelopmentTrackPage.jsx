@@ -180,7 +180,7 @@ const StrategyTimeline = ({ steps, completedStepIds, completedMaterialIds = [], 
           return (
             <div key={step.id} className={`timeline-step ${done ? "done" : ""}`}>
               <Link
-                to={step.materialType === "test" ? `/tests/${step.materialId}` : `/library/${step.materialType}/${step.materialId}`}
+                to={`/material/${step.materialId}`}
                 className="timeline-circle"
               >
                 {done ? "✓" : idx + 1}
