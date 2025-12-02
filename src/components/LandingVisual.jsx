@@ -1,5 +1,6 @@
 import React from "react";
 import NoesisMascotScene from "./NoesisMascotScene";
+import PersonaScene from "./PersonaScene";
 
 const StepPath = () => (
   <div className="path-visual">
@@ -96,15 +97,15 @@ const AudienceSplit = () => (
 );
 
 const visuals = {
-  hero: <NoesisMascotScene variant="hero" />,
+  hero: <PersonaScene variant="start" size="lg" />,
   steps: <StepPath />,
   track: <TrackLines />,
-  missions: <NoesisMascotScene variant="missions" />,
-  library: <LibraryGrid />,
+  missions: <PersonaScene variant="gamification" />,
+  library: <PersonaScene variant="library" />,
   memory: <MemoryCity />,
-  community: <NoesisMascotScene variant="community" />,
+  community: <PersonaScene variant="community" />,
   audience: <AudienceSplit />,
-  final: <NoesisMascotScene variant="final" />,
+  final: <PersonaScene variant="start" />,
 };
 
 const LandingVisual = ({ variant }) => visuals[variant] || null;

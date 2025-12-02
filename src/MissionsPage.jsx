@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "./routerShim";
+import TrackRoadmap from "./components/TrackRoadmap";
 import {
   badgePalette,
   durationFilters,
@@ -297,6 +298,9 @@ const MissionsPage = ({
   activityByDate = {},
   streakInfo,
   getActivityForMonth,
+  trackData,
+  onStartTrack,
+  onEditTrack,
 }) => {
   const navigate = useNavigate();
   const [duration, setDuration] = useState("all");
@@ -336,6 +340,16 @@ const MissionsPage = ({
     if (mission.link) {
       navigate(mission.link);
     }
+  };
+
+  const handleStartTrack = () => {
+    onStartTrack?.();
+    navigate("/track-quiz");
+  };
+
+  const handleEditTrack = () => {
+    onEditTrack?.();
+    navigate("/track-quiz");
   };
 
   const handleStart = (missionId) => {
@@ -400,24 +414,10 @@ const MissionsPage = ({
           <p className="meta">
             Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
           </p>
-          <div className="hero-actions">
-            <button className="primary" onClick={() => navigate("/")}>Главная</button>
-            <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>
-            <button className="ghost" onClick={() => navigate("/profile")}>Профиль</button>
-            <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
-            <button className="ghost" onClick={() => navigate("/memory")}>Память</button>
-          </div>
-        </div>
-        <div className="how-it-works">
-          <div className="pill">Как это работает</div>
-          <ul>
-            <li>За миссии даются XP и растёт уровень</li>
-            <li>3 дня подряд — бонус к streak</li>
-            <li>Неделя активности — награда и усиленный XP</li>
-            <li>Streak усиливает награды и бейджи</li>
-          </ul>
         </div>
       </div>
+
+      <TrackRoadmap track={trackData} onStart={handleStartTrack} onEdit={handleEditTrack} />
 
       <MissionOverview
         gamification={gamification}

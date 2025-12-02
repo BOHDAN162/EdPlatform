@@ -54,27 +54,40 @@ const typeFilterOptions = [
 ];
 
 const HomePage = ({ trackData }) => {
-  const tips = useMemo(
+  const quotes = useMemo(
     () => [
-      "Каждый день без действия — это день без прогресса.",
-      "Записывай идеи — они улетают, если не закрепить.",
-      "Честный тест быстрее показывает, что подтянуть.",
-      "Сильное окружение тянет вперёд — выбирай его.",
+      "С каждым днём по маленькому шагу — и ты уже далеко.",
+      "Ошибки — это подсказки, а не приговор.",
+      "Сильные проекты рождаются из смелых вопросов.",
+      "День без действий — день без прогресса.",
+      "Лучший момент начать был вчера, второй лучший — сейчас.",
       "Сравнивай себя только с тем, кем был вчера.",
-      "Делай маленькие проекты, чтобы подготовиться к большим.",
-      "Настойчивость важнее таланта на длинной дистанции.",
+      "Деньги любят порядок и ясный план.",
+      "Лидеры растут, когда помогают другим расти.",
+      "Риск — это билет в новый опыт.",
+      "Не жди идеальных условий, создавай их.",
+      "Голос уверенности звучит после практики.",
+      "Мечта становится целью, когда есть дедлайн.",
+      "Сильная команда начинается с честного диалога.",
+      "Каждый прототип — это шаг к лучшему решению.",
+      "Фокусируйся на том, что можешь сделать сегодня.",
+      "Задай вопрос — и ты уже на шаг умнее.",
+      "Маленькие победы складываются в уровень.",
+      "Финансовая грамотность — щит и меч создателя.",
+      "Вдохновение приходит к тем, кто действует.",
+      "Ты не один: комьюнити рядом, чтобы помочь.",
     ],
     []
   );
-  const [tipIndex, setTipIndex] = useState(() => Math.floor(Math.random() * tips.length));
-  const goToStartPath = useStartPath(trackData);
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
+  const handleStartJourney = useStartPath(trackData);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setTipIndex((prev) => (prev + 1) % tips.length);
-    }, 22000);
+      setQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 30000);
     return () => clearInterval(id);
-  }, [tips.length]);
+  }, [quotes.length]);
 
   const sections = [
     {
@@ -151,10 +164,10 @@ const HomePage = ({ trackData }) => {
               Квесты, контент, сообщество, миссии — всё, что нужно для достижения великой цели.
             </p>
             <div className="hero-tip">
-              <span className="tip-label">Совет дня</span>
-              <span className="tip-text">{tips[tipIndex]}</span>
+              <span className="tip-label">Цитата</span>
+              <span className="tip-text">{quotes[quoteIndex]}</span>
             </div>
-            <button className="primary hero-cta" onClick={goToStartPath}>
+            <button className="primary hero-cta" onClick={handleStartJourney}>
               Начать
             </button>
           </div>
@@ -176,7 +189,7 @@ const HomePage = ({ trackData }) => {
             <p className="landing-subtitle">
               Ответь на несколько вопросов — и мы соберём твой трек развития на ближайшие недели.
             </p>
-            <button className="primary hero-cta" onClick={goToStartPath}>
+            <button className="primary hero-cta" onClick={handleStartJourney}>
               Вперёд
             </button>
           </div>
@@ -1199,7 +1212,7 @@ function App() {
         : "Ответить на вопросы и получить план",
       category: "Трек",
       priority: 12,
-      action: { type: "navigate", to: trackData?.generatedTrack?.length ? "/library" : "/track-quiz" },
+      action: { type: "navigate", to: trackData?.generatedTrack?.length ? "/missions" : "/track-quiz" },
     });
 
     commands.push({
@@ -1346,6 +1359,11 @@ function App() {
                 activityByDate={activityByDate}
                 streakInfo={streakInfo}
                 getActivityForMonth={getActivityForMonth}
+                trackData={trackData}
+                onStartTrack={() => {}}
+                onEditTrack={() => {
+                  handleTrackRetake();
+                }}
               />
             }
           />
