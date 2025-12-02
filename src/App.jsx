@@ -41,9 +41,7 @@ import CommandPalette from "./components/CommandPalette";
 import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
 import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
-import LandingSection from "./LandingSection";
 import { useStartPath } from "./hooks/useStartPath";
-import LandingVisual from "./components/LandingVisual";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -52,6 +50,140 @@ const typeFilterOptions = [
   { id: "test", label: "Тесты" },
   { id: "game", label: "Игры" },
 ];
+
+const MascotOrbit = () => (
+  <div className="mascot-orbit">
+    <div className="mascot-glow" />
+    <div className="mascot-circle floating">
+      <img src="/assets/noesis-mascot.png" alt="NOESIS маскот" className="mascot-image" />
+    </div>
+    {["Твой трек", "Награды", "Прогресс"].map((label, idx) => (
+      <div key={label} className={`mascot-pill pill-${idx + 1}`}>
+        <span>{label}</span>
+      </div>
+    ))}
+  </div>
+);
+
+const TrackPathVisual = () => (
+  <div className="track-path-visual card glassy">
+    <div className="path-row">
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <div key={`top-${idx}`} className={`path-node ${idx === 2 ? "active" : ""}`} style={{ animationDelay: `${idx * 0.08}s` }}>
+          <span className="node-dot" />
+        </div>
+      ))}
+    </div>
+    <div className="path-arrow" />
+    <div className="path-row">
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <div
+          key={`bottom-${idx}`}
+          className={`path-node ${idx === 0 ? "up-next" : idx === 1 ? "active" : ""}`}
+          style={{ animationDelay: `${idx * 0.08}s` }}
+        >
+          <span className="node-dot" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const RewardsVisual = () => (
+  <div className="rewards-visual card glassy">
+    <div className="badge-row">
+      {["Серый", "Серебро", "Золото", "Фиолет", "Изумруд"].map((title, idx) => (
+        <div key={title} className={`badge badge-${idx + 1}`} style={{ animationDelay: `${idx * 0.1}s` }}>
+          <span className="badge-icon">★</span>
+          <span className="badge-label">{title}</span>
+        </div>
+      ))}
+    </div>
+    <div className="xp-bar">
+      <div className="xp-fill" />
+      <div className="xp-shimmer" />
+    </div>
+    <div className="streak">
+      <div className="streak-flame" />
+      <div>
+        <p className="streak-title">7-дневный стрик</p>
+        <p className="streak-meta">держи темп — +120 XP</p>
+      </div>
+    </div>
+  </div>
+);
+
+const LibraryDeviceVisual = () => (
+  <div className="device-visual card glassy">
+    {["Курс", "Статья", "Тест", "Игра"].map((item, idx) => (
+      <div key={item} className={`device-card ${idx === 1 ? "highlight" : ""}`} style={{ animationDelay: `${idx * 0.12}s` }}>
+        <div className="card-dot" />
+        <div>
+          <p className="device-title">{item}</p>
+          <p className="device-meta">{idx === 0 ? "12 уроков" : idx === 1 ? "следующий шаг" : idx === 2 ? "+80 XP" : "мини-игра"}</p>
+        </div>
+        <div className="device-progress">
+          <div style={{ width: `${50 + idx * 12}%` }} />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const CommunityVisual = () => (
+  <div className="community-visual card glassy">
+    <div className="community-core">
+      <img src="/assets/noesis-mascot.png" alt="NOESIS маскот" className="community-mascot" />
+      <div className="orb" />
+    </div>
+    {["Мск", "СПб", "Алматы", "Онлайн", "Лига"].map((city, idx) => (
+      <div key={city} className={`community-avatar avatar-${idx + 1}`}> {city} </div>
+    ))}
+    <div className="chat-bubble bubble-1">«Ребята, делимся прогрессом по миссии?»</div>
+    <div className="chat-bubble bubble-2">«Давайте созвонимся завтра в 18:00»</div>
+  </div>
+);
+
+const FeatureSection = ({ kicker, title, subtitle, bullets = [], visual, reverse = false }) => (
+  <section className="feature-section">
+    <div className="home-container">
+      <div className={`feature-grid ${reverse ? "reverse" : ""}`}>
+        <div className="feature-copy">
+          {kicker && <p className="landing-kicker">{kicker}</p>}
+          <h2>{title}</h2>
+          {subtitle && <p className="feature-subtitle">{subtitle}</p>}
+          {bullets.length > 0 && (
+            <ul className="feature-bullets">
+              {bullets.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="feature-visual" aria-hidden>
+          {visual}
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const FinalCtaSection = ({ onStart }) => (
+  <section className="cta-section">
+    <div className="home-container">
+      <div className="cta-card gradient-panel">
+        <p className="landing-kicker">Финишная прямая</p>
+        <h2>Готов начать путь?</h2>
+        <p className="feature-subtitle">
+          Пройди короткий опрос, получи личный трек и первую миссию уже сегодня.
+        </p>
+        <button className="primary hero-cta" onClick={onStart}>
+          Старт
+        </button>
+      </div>
+    </div>
+  </section>
+);
 
 const HomePage = ({ trackData }) => {
   const quotes = useMemo(
@@ -79,125 +211,106 @@ const HomePage = ({ trackData }) => {
     ],
     []
   );
-  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
+  const [quoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
+  const [quoteVisible, setQuoteVisible] = useState(false);
   const handleStartJourney = useStartPath(trackData);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setQuoteIndex((prev) => (prev + 1) % quotes.length);
-    }, 30000);
-    return () => clearInterval(id);
-  }, [quotes.length]);
+    setQuoteVisible(true);
+  }, []);
 
-  const sections = [
-    {
-      kicker: "Как это работает",
-      title: "4 шага до результата",
-      subtitle: "Первые шаги займут меньше 10 минут. Дальше — движение по треку с понятными точками роста.",
-      steps: [
-        { title: "Ответить на вопросы и зафиксировать цели." },
-        { title: "Получить персональный трек развития." },
-        { title: "Проходить материалы и собирать награды." },
-        { title: "Видеть прогресс и праздновать уровни." },
-      ],
-      visual: "steps",
-    },
+  const featureSections = [
     {
       kicker: "Личный трек развития",
-      title: "Твой маршрут, а не чужой курс",
-      subtitle: "После опроса мы собираем путь из курсов, статей, игр и миссий под твои цели.",
-      bullets: ["Фокус на главном", "Понятный план", "Видимый прогресс", "Шаги: сделал → получил"],
-      visual: "track",
-      reverse: true,
+      title: "Личный трек развития",
+      subtitle: "Ответь на 10 вопросов — и мы соберём твой план: профиль, миссии и первый урок.",
+      bullets: ["Фокус на ключевой цели", "План на 30–90 дней", "Прогресс виден в профиле"],
+      visual: <TrackPathVisual />,
     },
     {
-      kicker: "Миссии и геймификация",
-      title: "Миссии вместо скучного чек-листа",
-      subtitle: "Ежедневные и недельные челленджи, серии дней и статусы за реальные действия.",
+      kicker: "Геймификация и награды",
+      title: "Геймификация и награды",
+      subtitle: "Баллы, статусы и челленджи поддерживают темп и делают развитие игрой.",
       bullets: [
-        "Баллы за материалы, тесты и помощь в сообществе",
-        "Уровни и статусы: Новичок → Создатель → Ментор",
-        "Миссии на 1 день, 7 дней и месяц",
+        "XP за материалы, тесты и челленджи",
+        "Статусы за серию дней и общее XP",
+        "Дуэли с друзьями и группами",
+        "Вся статистика — в профиле",
       ],
-      visual: "missions",
-    },
-    {
-      kicker: "Библиотека NOESIS",
-      title: "Курсы, статьи, тесты и игры в одном месте",
-      subtitle: "Подборка по пяти темам: мышление, деньги, предпринимательские навыки, коммуникации, личная эффективность.",
-      bullets: ["Прогресс и связка с треком", "Фильтры по темам", "Игры, курсы и тесты в одном окне"],
-      visual: "library",
+      visual: <RewardsVisual />,
       reverse: true,
     },
     {
-      kicker: "Память и город инсайтов",
-      title: "Метавселенная памяти",
-      subtitle: "3D-город, где каждый объект — место для твоих идей и открытий.",
-      bullets: ["Сохраняешь выводы после материалов", "Возвращаешься к ним позже", "Видишь, как растёт город знаний"],
-      visual: "memory",
+      kicker: "Библиотека",
+      title: "Курсы, статьи и тесты в одном месте",
+      subtitle: "Майндсет, финансы, навыки, коммуникации и эффективность — выбирай, что нужно именно сейчас.",
+      bullets: ["Майндсет", "Финансы", "Навыки", "Коммуникации", "Эффективность"],
+      visual: <LibraryDeviceVisual />,
     },
     {
-      kicker: "Комьюнити и челленджи",
-      title: "Окружение, которое тянет вперёд",
-      subtitle: "Клубы по городам и интересам, лиги по XP и совместные челленджи.",
-      bullets: ["Клубы и команды 3–5 человек", "Общие цели и рейтинги", "Совместные спринты"],
-      visual: "community",
+      kicker: "Комьюнити",
+      title: "Комьюнити, события и челленджи",
+      subtitle: "Чаты, клубы по городам и лиги XP — вокруг тебя ребята, которые поддержат и подтолкнут.",
+      bullets: ["Чаты и встречи по темам", "Команды и клубы", "Общие челленджи и рейтинги"],
+      visual: <CommunityVisual />,
       reverse: true,
-    },
-    {
-      kicker: "Для кого NOESIS",
-      title: "Для подростков 13–20 и их родителей-предпринимателей",
-      subtitle: "Подростки получают игру и маршрут. Родители — систему развития, а не случайные курсы.",
-      bullets: ["Если ты подросток: XP, миссии и понятный путь", "Если ты родитель: прозрачные отчёты и прогресс"],
-      visual: "audience",
     },
   ];
 
   return (
-    <div className="page home-page">
-      <section className="landing-hero">
-        <div className="hero-grid">
-          <div className="hero-copy">
-            <p className="landing-kicker">Платформа развития</p>
-            <h1>Будь лучше вчерашнего себя</h1>
+    <div className="page home-page new-landing">
+      <section className="home-hero">
+        <div className="home-container">
+          <div className="hero-card gradient-panel">
+            <p className="hero-label">ПЛАТФОРМА РАЗВИТИЯ</p>
+            <h1>БУДЬ ЛУЧШЕ ВЧЕРАШНЕГО СЕБЯ</h1>
             <p className="hero-subtitle">
-              Квесты, контент, сообщество, миссии — всё, что нужно для достижения великой цели.
+              Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
             </p>
-            <div className="hero-tip">
-              <span className="tip-label">Цитата</span>
-              <span className="tip-text">{quotes[quoteIndex]}</span>
+            <div className={`hero-tip-card ${quoteVisible ? "visible" : ""}`}>
+              <span className="tip-label">СОВЕТ ДНЯ</span>
+              <p className="tip-quote">{quotes[quoteIndex]}</p>
             </div>
             <button className="primary hero-cta" onClick={handleStartJourney}>
               Начать
             </button>
-          </div>
-          <div className="hero-visual" aria-hidden>
-            <LandingVisual variant="hero" />
+            <ul className="hero-bullets">
+              <li>Пройди короткую регистрацию</li>
+              <li>Активируй подписку и выбери трек</li>
+              <li>Учись, проходи тесты и собирай очки</li>
+            </ul>
           </div>
         </div>
       </section>
 
-      {sections.map((section, idx) => (
-        <LandingSection key={section.title} reverse={idx % 2 === 1 || section.reverse} {...section} />
+      <section className="why-section">
+        <div className="home-container">
+          <div className="why-card gradient-panel">
+            <div className="why-copy">
+              <p className="hero-label">ПОЧЕМУ NOESIS</p>
+              <h2>Платформа роста для подростков и детей предпринимателей</h2>
+              <p className="feature-subtitle">
+                Одно место, где трек, миссии, библиотека и комьюнити собираются в понятный маршрут.
+              </p>
+              <ul className="feature-bullets">
+                <li>Личный трек под твои цели</li>
+                <li>Геймификация и награды за активность</li>
+                <li>Фокус на мышлении, деньгах, проектах</li>
+                <li>Комьюнити, которое поддержит и не даст слиться</li>
+              </ul>
+            </div>
+            <div className="why-visual" aria-hidden>
+              <MascotOrbit />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {featureSections.map((section, idx) => (
+        <FeatureSection key={section.title} reverse={idx % 2 === 1 || section.reverse} {...section} />
       ))}
 
-      <section className="landing-final">
-        <div className="landing-final-inner">
-          <div className="final-copy">
-            <p className="landing-kicker">Финишная прямая</p>
-            <h2>Готов начать свой маршрут?</h2>
-            <p className="landing-subtitle">
-              Ответь на несколько вопросов — и мы соберём твой трек развития на ближайшие недели.
-            </p>
-            <button className="primary hero-cta" onClick={handleStartJourney}>
-              Вперёд
-            </button>
-          </div>
-          <div className="final-visual" aria-hidden>
-            <LandingVisual variant="final" />
-          </div>
-        </div>
-      </section>
+      <FinalCtaSection onStart={handleStartJourney} />
     </div>
   );
 };
