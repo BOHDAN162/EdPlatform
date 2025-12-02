@@ -2310,6 +2310,8 @@ body {
 .floating-card:nth-child(1) { top: 12%; left: 6%; }
 .floating-card:nth-child(2) { top: 8%; right: 4%; }
 .floating-card:nth-child(3) { bottom: 10%; left: 20%; }
+.floating-card:nth-child(4) { bottom: 18%; right: 8%; }
+.floating-card:nth-child(5) { top: 28%; right: 22%; }
 
 .floating-card-label { font-weight: 700; font-size: 13px; }
 .floating-card-bar { height: 8px; border-radius: 8px; background: linear-gradient(90deg, #a855f7, #38bdf8); margin-top: 6px; }
@@ -5781,6 +5783,22 @@ body {
   color: #0f172a;
 }
 
+.hero-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: center;
+}
+
+.hero-copy {
+  text-align: left;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+}
+
 .hero-card h1 {
   margin: 12px 0 10px;
   font-size: clamp(32px, 4vw, 48px);
@@ -5990,90 +6008,22 @@ body {
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.12);
 }
 
-.mascot-orbit {
-  position: relative;
-  min-height: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .mascot-orbit {
+    position: relative;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-.mascot-circle {
-  width: clamp(220px, 26vw, 280px);
-  height: clamp(220px, 26vw, 280px);
-  border-radius: 28px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.18), transparent 50%),
-    linear-gradient(145deg, #0f172a, #1e1b4b);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  display: grid;
-  place-items: center;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  animation: float 5s ease-in-out infinite;
-  overflow: hidden;
-}
+  .mascot-orbit .mascot-wrapper {
+    width: 100%;
+  }
 
-.app.light .mascot-circle {
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), transparent 60%),
-    linear-gradient(145deg, #ede9fe, #dbeafe);
-  border-color: rgba(124, 58, 237, 0.15);
-}
-
-.mascot-glow {
-  position: absolute;
-  width: 80%;
-  height: 80%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(124, 58, 237, 0.2), transparent 60%);
-  filter: blur(24px);
-  z-index: 0;
-}
-
-.mascot-image {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 10px 30px rgba(124, 58, 237, 0.4));
-}
-
-.app.light .mascot-image,
-.app.light .community-mascot {
-  mix-blend-mode: normal;
-}
-
-.mascot-pill {
-  position: absolute;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #f8fafc;
-  font-weight: 700;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  animation: orbit 6s ease-in-out infinite;
-}
-
-.mascot-pill.pill-1 {
-  top: 12%;
-  left: 14%;
-}
-
-.mascot-pill.pill-2 {
-  top: 10%;
-  right: 10%;
-  animation-delay: 0.6s;
-}
-
-.mascot-pill.pill-3 {
-  bottom: 14%;
-  right: 16%;
-  animation-delay: 1.2s;
-}
-
-.app.light .mascot-pill {
-  background: rgba(255, 255, 255, 0.88);
-  color: #1f2937;
-}
+  .mascot-orbit .mascot-glow {
+    width: 80%;
+    height: 80%;
+  }
 
 .track-path-visual {
   padding: 16px;
@@ -6291,19 +6241,14 @@ body {
   background: linear-gradient(140deg, rgba(124, 58, 237, 0.1), rgba(20, 184, 166, 0.1));
 }
 
-.community-core {
+.community-mascot-grid {
   position: absolute;
   inset: 0;
   display: grid;
-  place-items: center;
-}
-
-.community-mascot {
-  width: clamp(160px, 22vw, 220px);
-  height: auto;
-  filter: drop-shadow(0 10px 30px rgba(124, 58, 237, 0.35));
-  animation: float 5s ease-in-out infinite;
-  z-index: 2;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 32px;
+  align-items: center;
 }
 
 .community-avatar {

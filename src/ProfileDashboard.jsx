@@ -5,7 +5,6 @@ import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
 import { getMaterialById, learningPaths, materials, themeLabels } from "./libraryData";
 import { getPathProgress } from "./progress";
 import { missions as missionList } from "./data/missions";
-import ActivityCalendar from "./components/activity/ActivityCalendar";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -540,9 +539,7 @@ const ProfileDashboard = ({
   streak,
   trackData,
   activityLog = [],
-  activityByDate = {},
   streakInfo,
-  getActivityForMonth,
   activeDaysThisMonth = 0,
   community = [],
   theme,
@@ -637,18 +634,6 @@ const ProfileDashboard = ({
         onAvatarClick={() => setShowAvatarModal(true)}
         onAction={handleNextAction}
       />
-
-      <div className="card activity-calendar-panel">
-        <div className="activity-calendar-meta">
-          <div className="summary-pill">Активных дней в этом месяце: {activeDaysThisMonth}</div>
-          <div className="summary-pill">Текущая серия: {streakInfo?.current || 0}</div>
-          <div className="summary-pill">Лучшая серия: {streakInfo?.best || 0}</div>
-        </div>
-        <ActivityCalendar activityByDate={activityByDate} streakInfo={streakInfo} />
-        <p className="meta subtle">
-          Старайся держать серию и закрывать 15 активных дней в месяц — это даст дополнительные награды.
-        </p>
-      </div>
 
       <TracksSection progress={progress} navigate={navigate} />
 
