@@ -22,6 +22,7 @@ import PathCard from "./components/PathCard";
 import TrackQuizPage from "./TrackQuizPage";
 import LibraryTrackView from "./components/LibraryTrackView";
 import MindGamesSection from "./components/MindGamesSection";
+import LibraryCard from "./components/LibraryCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import ProfileDashboard from "./ProfileDashboard";
@@ -204,6 +205,9 @@ const LibraryPage = ({
   const [statusFilter, setStatusFilter] = useState("all");
   const [scopeFilter, setScopeFilter] = useState(trackData?.trackSteps?.length ? "track" : "all");
   const [selectedId, setSelectedId] = useState(null);
+  const [isSidebarOpen, setSidebarOpen] = useState(
+    () => (typeof window !== "undefined" ? window.innerWidth >= 960 : true)
+  );
 
   const trackMaterials = useMemo(() => {
     const steps = trackData?.trackSteps || [];
@@ -251,6 +255,17 @@ const LibraryPage = ({
     [filteredMaterials, selectedId]
   );
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 960) {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const handleRetake = () => {
     onRetakeTrack?.();
     navigate("/track-quiz");
@@ -265,6 +280,9 @@ const LibraryPage = ({
 
   const openMaterial = (materialId) => navigate(`/material/${materialId}`);
 
+  const libraryLayoutClass = `library-layout ${isSidebarOpen ? "" : "sidebar-collapsed"}`;
+  const statusLabels = { new: "Новое", inProgress: "В процессе", completed: "Завершено" };
+
   return (
     <div className="page library-page">
       <div className="page-header">
@@ -276,8 +294,8 @@ const LibraryPage = ({
         </div>
       </div>
 
-      <div className="library-layout">
-        <aside className="library-sidebar card">
+      <div className={libraryLayoutClass}>
+        <aside className={`library-sidebar card ${isSidebarOpen ? "" : "collapsed"}`}>
           <div className="filter-group">
             <p className="filter-title">Типы</p>
             <div className="filter-chips">
@@ -335,15 +353,21 @@ const LibraryPage = ({
 
         <section className="library-main">
           <div className="library-toolbar card">
-            <div className="search-block">
-              <label className="meta subtle" htmlFor="library-search">Поиск</label>
-              <input
-                id="library-search"
-                type="search"
-                placeholder="Поиск по материалам…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            <div className="toolbar-left">
+              <button className="ghost filter-toggle" onClick={() => setSidebarOpen((prev) => !prev)}>
+                <span className="filter-icon">{isSidebarOpen ? "←" : "→"}</span>
+                {isSidebarOpen ? "Свернуть фильтры" : "Фильтры"}
+              </button>
+              <div className="search-block">
+                <label className="meta subtle" htmlFor="library-search">Поиск</label>
+                <input
+                  id="library-search"
+                  type="search"
+                  placeholder="Поиск по материалам…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
             </div>
             <div className="toolbar-actions">
               <div className="chip-row">
@@ -369,73 +393,6 @@ const LibraryPage = ({
             onRetake={handleRetake}
           />
 
-          <div className="library-split">
-            <div className="card list-card">
-              <div className="list-head">
-                <span>Название</span>
-                <span>Тип</span>
-                <span>Тема</span>
-                <span>Статус</span>
-                <span>Длительность</span>
-              </div>
-              <div className="material-list">
-                {filteredMaterials.map((material) => {
-                  const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
-                  return (
-                    <button
-                      key={material.id}
-                      className={`material-row ${selectedId === material.id ? "active" : ""}`}
-                      onClick={() => setSelectedId(material.id)}
-                    >
-                      <div className="material-cell">
-                        <div className="material-title-row">
-                          <span className="material-name">{material.title}</span>
-                          {trackMaterials.has(material.id) && <span className="pill outline">Трек</span>}
-                        </div>
-                        <p className="meta">{material.description}</p>
-                      </div>
-                      <span className="badge subtle">{typeFilterOptions.find((t) => t.id === material.type)?.label || "Материал"}</span>
-                      <span className="badge theme">{themeLabels[material.theme]?.title || "Тема"}</span>
-                      <span className={`badge status ${status}`}>{status === "new" ? "Новое" : status === "inProgress" ? "В процессе" : "Завершено"}</span>
-                      <span className="badge subtle">{material.estimatedTime || "15 минут"}</span>
-                    </button>
-                  );
-                })}
-                {filteredMaterials.length === 0 && (
-                  <div className="empty-state">
-                    <p>Нет материалов по выбранным фильтрам.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {selectedMaterial && (
-              <div className="card detail-card">
-                <div className="panel-header">
-                  <div>
-                    <p className="section-kicker">Детали</p>
-                    <h3>{selectedMaterial.title}</h3>
-                  </div>
-                  <button className="ghost" onClick={() => openMaterial(selectedMaterial.id)}>Открыть полностью</button>
-                </div>
-                <div className="chip-row">
-                  <span className="material-badge" style={{ background: `${(themeLabels[selectedMaterial.theme]?.accent || "#7c3aed")}20`, color: themeLabels[selectedMaterial.theme]?.accent || "#7c3aed" }}>
-                    {themeLabels[selectedMaterial.theme]?.title || "Тема"}
-                  </span>
-                  <span className="material-badge outline">{selectedMaterial.type === "course" ? "Курс" : selectedMaterial.type === "article" ? "Лонгрид" : "Тест"}</span>
-                  <span className="material-badge outline">{selectedMaterial.estimatedTime || "15 минут"}</span>
-                </div>
-                <p className="meta">{selectedMaterial.description}</p>
-                <div className="detail-actions">
-                  <button className="primary" onClick={() => openMaterial(selectedMaterial.id)}>
-                    Начать / продолжить
-                  </button>
-                  <button className="ghost" onClick={() => navigate("/")}>На главную</button>
-                </div>
-              </div>
-            )}
-          </div>
-
           <div className="card">
             <div className="card-header">Твои дорожки</div>
             <div className="path-grid">
@@ -451,6 +408,95 @@ const LibraryPage = ({
           </div>
 
           <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
+
+          <div className="card materials-card">
+            <div className="card-header-row">
+              <div>
+                <div className="card-header">Все материалы</div>
+                <p className="meta">Карточки курсов, лонгридов, тестов и игр в едином стиле.</p>
+              </div>
+            </div>
+            <div className="material-grid">
+              {filteredMaterials.map((material) => {
+                const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
+                const theme = themeLabels[material.theme] || { title: "Тема", accent: "#7c3aed" };
+                const typeLabel = typeFilterOptions.find((t) => t.id === material.type)?.label || "Материал";
+
+                return (
+                  <LibraryCard
+                    key={material.id}
+                    onClick={() => setSelectedId(material.id)}
+                    active={selectedId === material.id}
+                    badges={[
+                      <span key="type" className="pill outline">{typeLabel}</span>,
+                      <span
+                        key="theme"
+                        className="material-badge"
+                        style={{ background: `${theme.accent}20`, color: theme.accent }}
+                      >
+                        {theme.title}
+                      </span>,
+                      <span key="status" className={`pill status ${status}`}>
+                        {statusLabels[status]}
+                      </span>,
+                      trackMaterials.has(material.id) ? <span key="track" className="pill accent">Трек</span> : null,
+                    ].filter(Boolean)}
+                    title={material.title}
+                    description={material.description}
+                    progress={statusProgressValue[status] || 0}
+                    footer={
+                      <div className="material-card-footer">
+                        <span className="material-foot-note">{material.estimatedTime || "15 минут"}</span>
+                        <button
+                          className="ghost small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openMaterial(material.id);
+                          }}
+                        >
+                          Открыть
+                        </button>
+                      </div>
+                    }
+                  />
+                );
+              })}
+              {filteredMaterials.length === 0 && (
+                <div className="empty-state">
+                  <p>Нет материалов по выбранным фильтрам.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {selectedMaterial && (
+            <div className="card detail-card material-detail-card">
+              <div className="panel-header">
+                <div>
+                  <p className="section-kicker">Детали</p>
+                  <h3>{selectedMaterial.title}</h3>
+                </div>
+                <button className="ghost" onClick={() => openMaterial(selectedMaterial.id)}>Открыть полностью</button>
+              </div>
+              <div className="chip-row">
+                <span
+                  className="material-badge"
+                  style={{ background: `${(themeLabels[selectedMaterial.theme]?.accent || "#7c3aed")}20`, color: themeLabels[selectedMaterial.theme]?.accent || "#7c3aed" }}
+                >
+                  {themeLabels[selectedMaterial.theme]?.title || "Тема"}
+                </span>
+                <span className="material-badge outline">{selectedMaterial.type === "course" ? "Курс" : selectedMaterial.type === "article" ? "Лонгрид" : "Тест"}</span>
+                <span className="material-badge outline">{selectedMaterial.estimatedTime || "15 минут"}</span>
+              </div>
+              <p className="meta">{selectedMaterial.description}</p>
+              <div className="detail-actions">
+                <button className="primary" onClick={() => openMaterial(selectedMaterial.id)}>
+                  Начать / продолжить
+                </button>
+                <button className="ghost" onClick={() => navigate("/")}>На главную</button>
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </div>
