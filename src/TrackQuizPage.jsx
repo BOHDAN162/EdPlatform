@@ -73,7 +73,7 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
     const profileResult = result || buildProfileResult(computedResult.archetype);
     const track = buildDevelopmentTrack(computedResult.archetype, materials);
     onTrackSave?.({ ...track, profileResult });
-    navigate("/library");
+    navigate("/missions");
   };
 
   const showQuiz = mode === "quiz";
