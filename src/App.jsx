@@ -20,7 +20,6 @@ import { learningPaths, materialThemes, materials, getMaterialById, themeLabels 
 import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress";
 import PathCard from "./components/PathCard";
 import TrackQuizPage from "./TrackQuizPage";
-import LibraryTrackView from "./components/LibraryTrackView";
 import MindGamesSection from "./components/MindGamesSection";
 import LibraryCard from "./components/LibraryCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
@@ -42,6 +41,7 @@ import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
 import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
 import { useStartPath } from "./hooks/useStartPath";
+import MascotIllustration from "./MascotIllustration";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -51,17 +51,14 @@ const typeFilterOptions = [
   { id: "game", label: "Игры" },
 ];
 
-const MascotOrbit = () => (
+const MascotOrbit = ({ variant = "indigo" }) => (
   <div className="mascot-orbit">
-    <div className="mascot-glow" />
-    <div className="mascot-circle floating">
-      <img src="/assets/noesis-mascot.png" alt="NOESIS маскот" className="mascot-image" />
-    </div>
-    {["Твой трек", "Награды", "Прогресс"].map((label, idx) => (
-      <div key={label} className={`mascot-pill pill-${idx + 1}`}>
-        <span>{label}</span>
-      </div>
-    ))}
+    <MascotIllustration mood="joy" variant={variant} floatingCards={[
+      "Твой трек",
+      "Награды",
+      "Прогресс",
+    ]}
+    />
   </div>
 );
 
@@ -132,9 +129,10 @@ const LibraryDeviceVisual = () => (
 
 const CommunityVisual = () => (
   <div className="community-visual card glassy">
-    <div className="community-core">
-      <img src="/assets/noesis-mascot.png" alt="NOESIS маскот" className="community-mascot" />
-      <div className="orb" />
+    <div className="community-mascot-grid" aria-hidden>
+      {(["indigo", "teal", "pink"]).map((variant) => (
+        <MascotIllustration key={variant} variant={variant} mood="joy" floatingCards={["XP", "Диалоги"]} />
+      ))}
     </div>
     {["Мск", "СПб", "Алматы", "Онлайн", "Лига"].map((city, idx) => (
       <div key={city} className={`community-avatar avatar-${idx + 1}`}> {city} </div>
@@ -262,23 +260,30 @@ const HomePage = ({ trackData }) => {
       <section className="home-hero">
         <div className="home-container">
           <div className="hero-card gradient-panel">
-            <p className="hero-label">ПЛАТФОРМА РАЗВИТИЯ</p>
-            <h1>БУДЬ ЛУЧШЕ ВЧЕРАШНЕГО СЕБЯ</h1>
-            <p className="hero-subtitle">
-              Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
-            </p>
-            <div className={`hero-tip-card ${quoteVisible ? "visible" : ""}`}>
-              <span className="tip-label">СОВЕТ ДНЯ</span>
-              <p className="tip-quote">{quotes[quoteIndex]}</p>
+            <div className="hero-layout">
+              <div className="hero-copy">
+                <p className="hero-label">Платформа развития</p>
+                <h1>Будь лучше вчерашнего себя</h1>
+                <p className="hero-subtitle">
+                  Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
+                </p>
+                <div className={`hero-tip-card ${quoteVisible ? "visible" : ""}`}>
+                  <span className="tip-label">СОВЕТ ДНЯ</span>
+                  <p className="tip-quote">{quotes[quoteIndex]}</p>
+                </div>
+                <button className="primary hero-cta" onClick={handleStartJourney}>
+                  Начать
+                </button>
+                <ul className="hero-bullets">
+                  <li>Пройди короткий опрос из 10 вопросов</li>
+                  <li>Получишь трек, миссии и первый материал</li>
+                  <li>Учись, проходи тесты и собирай очки</li>
+                </ul>
+              </div>
+              <div className="hero-visual" aria-hidden>
+                <MascotIllustration variant="blue" mood="joy" floatingCards={["Твой трек", "Серия", "Первый урок"]} />
+              </div>
             </div>
-            <button className="primary hero-cta" onClick={handleStartJourney}>
-              Начать
-            </button>
-            <ul className="hero-bullets">
-              <li>Пройди короткую регистрацию</li>
-              <li>Активируй подписку и выбери трек</li>
-              <li>Учись, проходи тесты и собирай очки</li>
-            </ul>
           </div>
         </div>
       </section>
@@ -315,45 +320,23 @@ const HomePage = ({ trackData }) => {
   );
 };
 
-const LibraryPage = ({
-  completedMaterialIds,
-  trackData,
-  user,
-  onMindGameComplete,
-  onTrackUpdate,
-  onRetakeTrack,
-}) => {
+const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
   const navigate = useNavigate();
   const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [scopeFilter, setScopeFilter] = useState(trackData?.trackSteps?.length ? "track" : "all");
   const [selectedId, setSelectedId] = useState(null);
   const [isSidebarOpen, setSidebarOpen] = useState(
     () => (typeof window !== "undefined" ? window.innerWidth >= 960 : true)
   );
 
-  const trackMaterials = useMemo(() => {
-    const steps = trackData?.trackSteps || [];
-    const ids = steps.flatMap((step) => step.materialId || step.materials || []);
-    return new Set(ids.filter(Boolean));
-  }, [trackData]);
-
-  const activeTrackMaterialId = useMemo(() => {
-    if (!trackData?.trackSteps?.length) return null;
-    const firstIncomplete = trackData.trackSteps.find((step) => {
-      const candidate = step.materialId || step.materials?.[0];
-      return candidate && !completedSet.has(candidate);
-    });
-    return firstIncomplete?.materialId || firstIncomplete?.materials?.[0] || null;
-  }, [trackData, completedSet]);
+  const activeTrackMaterialId = null;
 
   const filteredMaterials = useMemo(() => {
     const query = search.trim().toLowerCase();
     return materials.filter((material) => {
-      if (scopeFilter === "track" && trackMaterials.size && !trackMaterials.has(material.id)) return false;
       if (typeFilter !== "all" && material.type !== typeFilter) return false;
       if (themeFilter !== "all" && material.theme !== themeFilter) return false;
       const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
@@ -364,7 +347,7 @@ const LibraryPage = ({
         material.description?.toLowerCase().includes(query)
       );
     });
-  }, [search, typeFilter, themeFilter, statusFilter, scopeFilter, completedSet, activeTrackMaterialId, trackMaterials]);
+  }, [search, typeFilter, themeFilter, statusFilter, completedSet, activeTrackMaterialId]);
 
   useEffect(() => {
     if (filteredMaterials.length === 0) {
@@ -391,11 +374,6 @@ const LibraryPage = ({
     handleResize();
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  const handleRetake = () => {
-    onRetakeTrack?.();
-    navigate("/track-quiz");
-  };
 
   const statusOptions = [
     { id: "all", label: "Все" },
@@ -458,23 +436,6 @@ const LibraryPage = ({
             </div>
           </div>
 
-          <div className="filter-group">
-            <p className="filter-title">Область</p>
-            <div className="chip-row">
-              <button
-                className={`chip ${scopeFilter === "track" ? "active" : ""}`}
-                onClick={() => setScopeFilter("track")}
-              >
-                Только в моём треке
-              </button>
-              <button
-                className={`chip ${scopeFilter === "all" ? "active" : ""}`}
-                onClick={() => setScopeFilter("all")}
-              >
-                Все материалы
-              </button>
-            </div>
-          </div>
         </aside>
 
         <section className="library-main">
@@ -510,14 +471,6 @@ const LibraryPage = ({
               <button className="ghost focus-btn">Пройти сессию фокуса (20 минут)</button>
             </div>
           </div>
-
-          <LibraryTrackView
-            track={trackData}
-            materials={materials}
-            completedMaterialIds={completedMaterialIds}
-            onUpdateSteps={(steps) => onTrackUpdate?.({ trackSteps: steps, generatedTrack: steps })}
-            onRetake={handleRetake}
-          />
 
           <div className="card">
             <div className="card-header">Твои дорожки</div>
@@ -1419,13 +1372,8 @@ function App() {
             element={
               <LibraryPage
                 completedMaterialIds={completedMaterialIds}
-                trackData={trackData}
                 user={user}
                 onMindGameComplete={handleMindGameComplete}
-                onTrackUpdate={handleTrackUpdate}
-                onRetakeTrack={() => {
-                  handleTrackRetake();
-                }}
               />
             }
           />
@@ -1505,9 +1453,7 @@ function App() {
                 streak={streak}
                 trackData={trackData}
                 activityLog={activityFeed}
-                activityByDate={activityByDate}
                 streakInfo={streakInfo}
-                getActivityForMonth={getActivityForMonth}
                 activeDaysThisMonth={activeDaysThisMonth}
                 community={community}
                 theme={theme}
@@ -1519,14 +1465,6 @@ function App() {
             }
           />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
-          <Route
-            path="/track"
-            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
-          />
-          <Route
-            path="/onboarding"
-            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
-          />
           <Route
             path="/track-quiz"
             element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
