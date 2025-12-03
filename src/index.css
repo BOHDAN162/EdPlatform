@@ -5745,6 +5745,17 @@ body {
   padding: 32px 0 8px;
 }
 
+/* Стабилизируем главный экран: убираем любые бесконечные анимации, которые могли
+   вызывать микродвижения крупных блоков и визуальные подёргивания layout. */
+.home-page .floating-card,
+.home-page .device-card,
+.home-page .scene-orbit,
+.home-page .scene-character,
+.home-page .persona-character {
+  animation: none !important;
+  transform: none;
+}
+
 .gradient-panel {
   position: relative;
   background: linear-gradient(135deg, #1b1134, #0f172a 58%, #0f1f3b);
