@@ -22,7 +22,6 @@ import PathCard from "./components/PathCard";
 import TrackQuizPage from "./TrackQuizPage";
 import MindGamesSection from "./components/MindGamesSection";
 import LibraryCard from "./components/LibraryCard";
-import LandingPage from "./LandingPage";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import ProfileDashboard from "./ProfileDashboard";
@@ -1092,7 +1091,11 @@ function App() {
   };
 
   const HomeRoute = () => {
-    return <LandingPage />;
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        Главный экран временно удалён.
+      </div>
+    );
   };
 
   return (
