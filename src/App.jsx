@@ -40,6 +40,7 @@ import CommandPalette from "./components/CommandPalette";
 import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
 import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
+import LandingPage from "./components/LandingPage";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -1091,11 +1092,7 @@ function App() {
   };
 
   const HomeRoute = () => {
-    return (
-      <div style={{ padding: "40px", textAlign: "center" }}>
-        Главный экран временно удалён.
-      </div>
-    );
+    return <LandingPage />;
   };
 
   return (
