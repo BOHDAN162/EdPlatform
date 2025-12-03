@@ -144,11 +144,6 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
               </React.Fragment>
             ))}
           </div>
-          <div className="track-connector" aria-hidden>
-            <span className="connector-dot" />
-            <div className="connector-line" />
-            <span className="connector-dot" />
-          </div>
           <div className="track-grid-row">
             {bottomRow.map((step, idx) => (
               <React.Fragment key={step.id}>
