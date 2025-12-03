@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "./routerShim";
 import useUserProfile from "./useUserProfile";
 import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
@@ -43,18 +43,7 @@ const AvatarSelectorModal = ({ open, onClose, onSelect, currentAvatar }) => {
   );
 };
 
-const NextActionCard = ({ onAction }) => (
-  <div className="next-action-card">
-    <div className="meta subtle">Твой следующий шаг</div>
-    <h3>Сегодня: Пройди 1 MindGame и дочитай модуль по финансам</h3>
-    <p className="meta">Короткая, понятная цель на день, чтобы серия не прерывалась.</p>
-    <button className="primary giant" onClick={onAction}>
-      Перейти к действию
-    </button>
-  </div>
-);
-
-const HeroCard = ({ profile, levelInfo, roleLabel, streak, gamification, onAvatarClick, onAction }) => (
+const HeroCard = ({ profile, levelInfo, roleLabel, streak, gamification, onAvatarClick, progressSummary, progressContent }) => (
   <div className="profile-hero modern">
     <div className="hero-left">
       <button className="avatar huge gradient interactive" onClick={onAvatarClick}>
@@ -64,26 +53,111 @@ const HeroCard = ({ profile, levelInfo, roleLabel, streak, gamification, onAvata
         <div className="hero-name-row">
           <div>
             <div className="hero-name">{profile.name}</div>
-            <div className="meta subtle">{profile.role}</div>
+            <div className="meta subtle">{profile.personality || profile.role || "Исследователь"}</div>
           </div>
           <span className="status-pill">{roleLabel}</span>
         </div>
+        <div className="hero-subtitle">Уровень {levelInfo.level} · XP: {gamification.totalPoints} · Серия: {streak?.count || 0} дней</div>
         <div className="level-line">
-          <div className="level-title">Уровень {levelInfo.level}</div>
-          <span className="meta subtle">{gamification.totalPoints} XP</span>
+          <div className="level-title">Прогресс уровня</div>
+          <span className="meta subtle">До следующего: {levelInfo.toNext} XP</span>
         </div>
         <ProgressLine value={levelInfo.progress} />
         <div className="level-footer">
           <div className={`chip streak ${streak?.count >= 3 ? "hot" : ""}`}>
             🔥 Серия: {streak?.count || 0} дней
           </div>
-          <div className="meta subtle">До следующего уровня: {levelInfo.toNext} XP</div>
+          <div className="meta subtle">{progressSummary}</div>
         </div>
       </div>
     </div>
-    <NextActionCard onAction={onAction} />
+    <div className="hero-right">{progressContent}</div>
   </div>
 );
+
+const ProgressRing = ({ size = 140, thickness = 12, value = 0, color, label, caption }) => {
+  const radius = (size - thickness) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const [animatedValue, setAnimatedValue] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  useEffect(() => {
+    if (hasAnimated) return;
+    const frame = requestAnimationFrame(() => {
+      setAnimatedValue(value);
+      setHasAnimated(true);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [value, hasAnimated]);
+
+  const progress = Math.min(100, Math.max(0, animatedValue));
+  const offset = circumference - (progress / 100) * circumference;
+
+  return (
+    <div className="ring-card" style={{ width: size, height: size }}>
+      <div className="ring-shell">
+        <svg width={size} height={size}>
+          <circle className="ring-track" strokeWidth={thickness} r={radius} cx={size / 2} cy={size / 2} />
+          <circle
+            className="ring-progress"
+            stroke={color}
+            strokeWidth={thickness}
+            r={radius}
+            cx={size / 2}
+            cy={size / 2}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        </svg>
+        <div className="ring-value">{Math.round(progress)}%</div>
+      </div>
+      <div className="ring-label">{label}</div>
+      <div className="ring-caption">{caption}</div>
+    </div>
+  );
+};
+
+const ProgressRings = ({ xpToday, xpTarget, streakCount, streakTarget, habitsCompleted, habitsTotal }) => {
+  const habitsPercent = habitsTotal ? Math.round((habitsCompleted / habitsTotal) * 100) : 0;
+  return (
+    <div className="progress-rings">
+      <ProgressRing
+        value={xpTarget ? Math.min(100, Math.round((xpToday / xpTarget) * 100)) : 0}
+        color="url(#gradient-purple)"
+        label="Дневной XP"
+        caption={`${xpToday} / ${xpTarget} XP`}
+      />
+      <ProgressRing
+        value={streakTarget ? Math.min(100, Math.round((streakCount / streakTarget) * 100)) : 0}
+        color="url(#gradient-blue)"
+        label="Серия дней"
+        caption={`${streakCount} из ${streakTarget}`}
+      />
+      <ProgressRing
+        value={habitsPercent}
+        color="url(#gradient-green)"
+        label="Дневные привычки"
+        caption={`${habitsCompleted} / ${habitsTotal}`}
+      />
+      <svg className="ring-gradients" width="0" height="0">
+        <defs>
+          <linearGradient id="gradient-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a855f7" />
+            <stop offset="100%" stopColor="#7c3aed" />
+          </linearGradient>
+          <linearGradient id="gradient-blue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#22d3ee" />
+            <stop offset="100%" stopColor="#6366f1" />
+          </linearGradient>
+          <linearGradient id="gradient-green" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#bef264" />
+            <stop offset="100%" stopColor="#22c55e" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+};
 
 const TrackCard = ({ path, progress, onOpen }) => {
   const ratio = progress.totalCount ? Math.round((progress.completedCount / progress.totalCount) * 100) : 0;
@@ -225,6 +299,73 @@ const MaterialsCard = ({ materialsCompleted = 0, testsCompleted = 0 }) => {
     </div>
   );
 };
+
+const MissionPlaylistCard = ({ mission, status, onOpen }) => (
+  <div className={`hub-card mission ${status}`} onClick={onOpen}>
+    <div className="hub-card-top">
+      <div>
+        <div className="meta subtle">Миссия недели</div>
+        <div className="hub-title">{mission.title}</div>
+        <div className="meta">{mission.description}</div>
+      </div>
+      <span className={`pill ${status}`}>{status === "completed" ? "Завершена" : status === "in-progress" ? "В процессе" : "Начата"}</span>
+    </div>
+    <div className="hub-progress">
+      <ProgressLine value={status === "completed" ? 100 : status === "in-progress" ? 60 : 25} />
+      <button className="ghost">Открыть</button>
+    </div>
+  </div>
+);
+
+const RecommendationCard = ({ material, onOpen }) => (
+  <div className="hub-card recommendation" onClick={onOpen}>
+    <div>
+      <div className="meta subtle">Под твой тип личности</div>
+      <div className="hub-title">{material.title}</div>
+      <div className="meta">{material.type === "article" ? "Материал" : "Видео"}</div>
+    </div>
+    <div className="recommend-pill">Открыть</div>
+  </div>
+);
+
+const MiniGameCard = ({ game, onOpen }) => (
+  <div className="hub-card mini-game" onClick={onOpen}>
+    <div className="hub-card-top">
+      <div>
+        <div className="meta subtle">Мини-игра</div>
+        <div className="hub-title">{game.title}</div>
+        <div className="meta">Лучший результат: {game.bestScore}</div>
+      </div>
+      <div className="pill">Сегодня: {game.todayScore}</div>
+    </div>
+    <div className="hub-progress">
+      <ProgressLine value={game.progress || 0} />
+      <button className="ghost">Играть</button>
+    </div>
+  </div>
+);
+
+const AchievementsRail = ({ achievements = [] }) => (
+  <div className="achievements-rail">
+    {achievements.map((ach) => (
+      <div key={ach.id} className="badge-card" title={ach.label}>
+        <span className="badge-icon">{ach.icon}</span>
+        <span className="badge-title">{ach.label}</span>
+      </div>
+    ))}
+  </div>
+);
+
+const MiniChart = ({ title, data = [], color }) => (
+  <div className="mini-chart">
+    <div className="mini-chart-title">{title}</div>
+    <div className="mini-chart-graph">
+      {data.map((value, idx) => (
+        <div key={idx} className="mini-bar" style={{ height: `${value}%`, background: color }} />
+      ))}
+    </div>
+  </div>
+);
 
 const TracksSection = ({ progress, navigate }) => (
   <div className="card tracks-card">
@@ -588,8 +729,55 @@ const ProfileDashboard = ({
     };
   }, [gamification.goals]);
 
+  const dailyGoals = gamification.goals?.filter((g) => g.type === "daily") || [];
+  const habitsCompleted = dailyGoals.filter((g) => g.completed).length;
   const levelInfo = getLevelFromXP(gamification.totalPoints);
   const roleLabel = getRoleFromLevel(levelInfo.level);
+  const xpToday = gamification.dailyXp || gamification.xpToday || Math.min(140, Math.max(20, gamification.totalPoints % 180));
+  const xpTarget = gamification.dailyXpTarget || 160;
+  const streakCount = streak?.count || gamification.streakCount || 0;
+  const progressSummary = `${trackProgressLabel} · Цели сегодня: ${habitsCompleted}/${dailyGoals.length || 0}`;
+
+  const missionCards = useMemo(() => {
+    return missions.slice(0, 3).map((mission) => {
+      const state = getMissionProgress ? getMissionProgress(mission.id) : missionProgress?.[mission.id];
+      const status = state?.status === "completed" ? "completed" : state?.status ? "in-progress" : "started";
+      return { ...mission, status };
+    });
+  }, [missions, missionProgress, getMissionProgress]);
+
+  const recommendations = useMemo(() => materials.slice(0, 4), []);
+  const miniGames = useMemo(
+    () => [
+      { id: "mindgame-speed", title: "MindGame: Скорость", bestScore: "1240", todayScore: "540", progress: 68 },
+      { id: "focus-lab", title: "Фокус-лаборатория", bestScore: "980", todayScore: "420", progress: 52 },
+    ],
+    []
+  );
+
+  const achievementBadges = useMemo(() => {
+    const badgeMap = {
+      "first-test": { label: "Первый тест", icon: "🧠" },
+      "tests-3": { label: "3 теста", icon: "🎯" },
+      "materials-5": { label: "5 материалов", icon: "📘" },
+      "points-100": { label: "100 XP", icon: "⚡" },
+      "points-300": { label: "300 XP", icon: "🚀" },
+      "community-first-post": { label: "Первый пост", icon: "🤝" },
+    };
+    return (gamification.achievements || []).map((id) => ({ id, ...badgeMap[id], icon: badgeMap[id]?.icon || "✨", label: badgeMap[id]?.label || id }));
+  }, [gamification.achievements]);
+
+  const trends = useMemo(() => {
+    const seed = gamification.totalPoints || 1;
+    const base = [50, 62, 48, 74, 80, 68, 90].map((v, idx) => Math.min(100, Math.max(18, v + ((seed + idx * 13) % 15) - 7)));
+    const habits = dailyGoals.length
+      ? dailyGoals.map((goal, idx) => Math.min(100, Math.round(((goal.progress || (goal.completed ? goal.target : goal.progress || 0)) / (goal.target || 1)) * 100) || 0)).concat(
+          Array(Math.max(0, 7 - dailyGoals.length)).fill(40)
+        )
+      : [35, 40, 48, 52, 60, 64, 72];
+    const missionsTrend = [30, 44, 36, 52, 66, 58, 74];
+    return { xp: base.slice(0, 7), habits: habits.slice(0, 7), missions: missionsTrend };
+  }, [gamification.totalPoints, dailyGoals]);
 
   const monthLabel = useMemo(() => {
     const now = new Date();
@@ -632,8 +820,82 @@ const ProfileDashboard = ({
         streak={streak}
         gamification={gamification}
         onAvatarClick={() => setShowAvatarModal(true)}
-        onAction={handleNextAction}
+        progressSummary={progressSummary}
+        progressContent={
+          <ProgressRings
+            xpToday={xpToday}
+            xpTarget={xpTarget}
+            streakCount={streakCount}
+            streakTarget={21}
+            habitsCompleted={habitsCompleted}
+            habitsTotal={dailyGoals.length || 3}
+          />
+        }
       />
+
+      <div className="growth-hub">
+        <div className="section-heading">
+          <div>
+            <div className="section-kicker">Твоя панель развития</div>
+            <h2>Персональный хаб, как в Spotify</h2>
+            <p className="meta">Миссии недели, рекомендации, мини-игры и достижения в одном месте.</p>
+          </div>
+          <div className="ghost-group">
+            <button className="ghost" onClick={handleNextAction}>Продолжить трек</button>
+            <button className="ghost" onClick={() => navigate("/missions")}>Все миссии</button>
+          </div>
+        </div>
+
+        <div className="hub-grid three">
+          {missionCards.map((mission) => (
+            <MissionPlaylistCard
+              key={mission.id}
+              mission={mission}
+              status={mission.status}
+              onOpen={() => navigate(`/missions/${mission.id || ""}`)}
+            />
+          ))}
+        </div>
+
+        <div className="hub-grid recommendations">
+          {recommendations.map((material) => (
+            <RecommendationCard
+              key={material.id}
+              material={material}
+              onOpen={() => navigate(`/library/${material.type}/${material.id}`)}
+            />
+          ))}
+        </div>
+
+        <div className="hub-grid mini-games">
+          {miniGames.map((game) => (
+            <MiniGameCard key={game.id} game={game} onOpen={() => navigate("/memory")} />
+          ))}
+        </div>
+
+        <div className="achievements-block">
+          <div className="section-subheader">
+            <div className="section-kicker">История достижений</div>
+            <p className="meta">Мини-бейджи, которые ты уже забрал. Продолжай собирать серию.</p>
+          </div>
+          <AchievementsRail achievements={achievementBadges} />
+        </div>
+      </div>
+
+      <div className="progress-charts">
+        <div className="section-heading compact">
+          <div>
+            <div className="section-kicker">Твой прогресс</div>
+            <h3>Стиль Strava: XP, привычки, миссии за 7 дней</h3>
+          </div>
+          <button className="ghost" onClick={() => navigate("/activity")}>Детальный отчёт</button>
+        </div>
+        <div className="chart-grid">
+          <MiniChart title="XP последние 7 дней" data={trends.xp} color="linear-gradient(135deg, #a855f7, #7c3aed)" />
+          <MiniChart title="Привычки за день" data={trends.habits} color="linear-gradient(135deg, #bef264, #22c55e)" />
+          <MiniChart title="Активность по миссиям" data={trends.missions} color="linear-gradient(135deg, #22d3ee, #6366f1)" />
+        </div>
+      </div>
 
       <TracksSection progress={progress} navigate={navigate} />
 
