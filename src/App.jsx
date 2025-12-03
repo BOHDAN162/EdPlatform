@@ -66,7 +66,7 @@ const TrackPathVisual = () => (
   <div className="track-path-visual card glassy">
     <div className="path-row">
       {Array.from({ length: 5 }).map((_, idx) => (
-        <div key={`top-${idx}`} className={`path-node ${idx === 2 ? "active" : ""}`} style={{ animationDelay: `${idx * 0.08}s` }}>
+        <div key={`top-${idx}`} className={`path-node ${idx === 2 ? "active" : ""}`}>
           <span className="node-dot" />
         </div>
       ))}
@@ -77,7 +77,6 @@ const TrackPathVisual = () => (
         <div
           key={`bottom-${idx}`}
           className={`path-node ${idx === 0 ? "up-next" : idx === 1 ? "active" : ""}`}
-          style={{ animationDelay: `${idx * 0.08}s` }}
         >
           <span className="node-dot" />
         </div>
@@ -90,7 +89,7 @@ const RewardsVisual = () => (
   <div className="rewards-visual card glassy">
     <div className="badge-row">
       {["Серый", "Серебро", "Золото", "Фиолет", "Изумруд"].map((title, idx) => (
-        <div key={title} className={`badge badge-${idx + 1}`} style={{ animationDelay: `${idx * 0.1}s` }}>
+        <div key={title} className={`badge badge-${idx + 1}`}>
           <span className="badge-icon">★</span>
           <span className="badge-label">{title}</span>
         </div>
@@ -113,7 +112,7 @@ const RewardsVisual = () => (
 const LibraryDeviceVisual = () => (
   <div className="device-visual card glassy">
     {["Курс", "Статья", "Тест", "Игра"].map((item, idx) => (
-      <div key={item} className={`device-card ${idx === 1 ? "highlight" : ""}`} style={{ animationDelay: `${idx * 0.12}s` }}>
+      <div key={item} className={`device-card ${idx === 1 ? "highlight" : ""}`}>
         <div className="card-dot" />
         <div>
           <p className="device-title">{item}</p>
@@ -151,7 +150,7 @@ const CommunityVisual = () => (
 const FeatureSection = ({ kicker, title, subtitle, bullets = [], visual, reverse = false }) => (
   <section className="feature-section">
     <div className="home-container">
-      <div className={`feature-grid ${reverse ? "reverse" : ""}`}>
+      <div className={`feature-grid gradient-panel ${reverse ? "reverse" : ""}`}>
         <div className="feature-copy">
           {kicker && <p className="landing-kicker">{kicker}</p>}
           <h2>{title}</h2>
@@ -216,12 +215,7 @@ const HomePage = ({ trackData }) => {
     []
   );
   const [quoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
-  const [quoteVisible, setQuoteVisible] = useState(false);
   const handleStartJourney = useStartPath();
-
-  useEffect(() => {
-    setQuoteVisible(true);
-  }, []);
 
   const featureSections = [
     {
@@ -273,7 +267,7 @@ const HomePage = ({ trackData }) => {
                 <p className="hero-subtitle">
                   Ответь на 10 вопросов — и мы соберём твой личный план: профиль, миссии и первый урок.
                 </p>
-                <div className={`hero-tip-card ${quoteVisible ? "visible" : ""}`}>
+                <div className="hero-tip-card">
                   <span className="tip-label">СОВЕТ ДНЯ</span>
                   <p className="tip-quote">{quotes[quoteIndex]}</p>
                 </div>
