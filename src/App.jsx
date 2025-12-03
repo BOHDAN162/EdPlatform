@@ -22,6 +22,7 @@ import PathCard from "./components/PathCard";
 import TrackQuizPage from "./TrackQuizPage";
 import MindGamesSection from "./components/MindGamesSection";
 import LibraryCard from "./components/LibraryCard";
+import LandingPage from "./LandingPage";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import ProfileDashboard from "./ProfileDashboard";
@@ -48,12 +49,6 @@ const typeFilterOptions = [
   { id: "test", label: "Тесты" },
   { id: "game", label: "Игры" },
 ];
-
-const HomePlaceholder = () => (
-  <div style={{ padding: "40px", textAlign: "center" }}>
-    Главный экран удалён. Временная заглушка.
-  </div>
-);
 
 const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData }) => {
   const navigate = useNavigate();
@@ -1097,7 +1092,7 @@ function App() {
   };
 
   const HomeRoute = () => {
-    return <HomePlaceholder />;
+    return <LandingPage />;
   };
 
   return (
