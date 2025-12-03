@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "./routerShim";
+import Mascot from "./components/Mascot";
 
 const steps = [
   {
@@ -65,7 +66,7 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
-      <section className="landing-section landing-hero">
+      <section className="landing-section landing-hero reveal">
         <div className="landing-container hero-grid">
           <div className="hero-copy appear">
             <span className="eyebrow">Экосистема развития 13–20</span>
@@ -115,25 +116,19 @@ const LandingPage = () => {
                 </div>
               </div>
             </div>
-            <div className="mascot mascot-guide">
-              <div className="mascot-face" />
-              <p className="mascot-label">Гид смотрит за прогрессом</p>
-            </div>
+            <Mascot variant="guide" size="lg" className="mascot-hero" label="Гид смотрит за прогрессом" />
           </div>
         </div>
       </section>
 
-      <section id="how-it-works" className="landing-section">
+      <section id="how-it-works" className="landing-section reveal">
         <div className="landing-container section-header">
           <div>
             <p className="eyebrow">Путь за 4 шага</p>
             <h2>Как это работает</h2>
             <p className="section-subtitle">От первых ответов до трека и ежедневных миссий.</p>
           </div>
-          <div className="mascot mascot-explorer">
-            <div className="mascot-face" />
-            <p className="mascot-label">Исследователь рядом</p>
-          </div>
+          <Mascot variant="explorer" size="md" label="Исследователь рядом" />
         </div>
         <div className="landing-container steps-grid appear">
           {steps.map((step, idx) => (
@@ -151,7 +146,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-container dual-grid">
           <div className="appear">
             <p className="eyebrow">Личный маршрут</p>
@@ -208,15 +203,12 @@ const LandingPage = () => {
                 </button>
               </div>
             </div>
-            <div className="mascot mascot-strategist">
-              <div className="mascot-face" />
-              <p className="mascot-label">Стратег держит курс</p>
-            </div>
+            <Mascot variant="planner" size="md" className="mascot-track" label="Стратег держит курс" />
           </div>
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-container dual-grid">
           <div className="library-block appear">
             <p className="eyebrow">Контент в деле</p>
@@ -241,10 +233,7 @@ const LandingPage = () => {
             </button>
           </div>
           <div className="games-block appear delay-1">
-            <div className="mascot mascot-geek">
-              <div className="mascot-face" />
-              <p className="mascot-label">Гик по контенту</p>
-            </div>
+            <Mascot variant="geek" size="md" className="mascot-floating" label="Гик по контенту" />
             <div className="mini-section">
               <p className="eyebrow">Мини-игры</p>
               <h3>Мини-игры, которые качают мозг</h3>
@@ -270,16 +259,13 @@ const LandingPage = () => {
                   <p className="card-title">4 дня</p>
                 </div>
               </div>
-              <div className="mascot mascot-player">
-                <div className="mascot-face" />
-                <p className="mascot-label">Готов к челленджу</p>
-              </div>
+              <Mascot variant="gamer" size="md" className="mascot-inline" label="Готов к челленджу" />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-container dual-grid">
           <div className="memory-block appear">
             <p className="eyebrow">Метавселенная памяти</p>
@@ -303,15 +289,12 @@ const LandingPage = () => {
                 </div>
               ))}
             </div>
-            <div className="mascot mascot-guide alt">
-              <div className="mascot-face" />
-              <p className="mascot-label">Гид фиксирует инсайты</p>
-            </div>
+            <Mascot variant="guide" size="md" className="mascot-inline" label="Гид фиксирует инсайты" />
           </div>
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-container dual-grid">
           <div className="community-block appear">
             <p className="eyebrow">Комьюнити</p>
@@ -342,15 +325,15 @@ const LandingPage = () => {
                 <div key={letter} className="avatar bubble large">{letter}</div>
               ))}
             </div>
-            <div className="mascot mascot-community">
-              <div className="mascot-face" />
-              <p className="mascot-label">Команда поддерживает</p>
+            <div className="community-mascots">
+              <Mascot variant="community" size="sm" className="mascot-inline" label="Команда поддерживает" />
+              <Mascot variant="explorer" size="sm" className="mascot-inline" label="Новые друзья" />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section reveal">
         <div className="landing-container dual-grid transformation">
           <div className="appear">
             <p className="eyebrow">До / после</p>
@@ -383,7 +366,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      <section className="landing-section final-cta">
+      <section className="landing-section final-cta reveal">
         <div className="landing-container dual-grid">
           <div className="appear">
             <p className="eyebrow">Старт</p>
