@@ -129,16 +129,22 @@ const LibraryDeviceVisual = () => (
 
 const CommunityVisual = () => (
   <div className="community-visual card glassy">
-    <div className="community-mascot-grid" aria-hidden>
-      {(["indigo", "teal", "pink"]).map((variant) => (
-        <MascotIllustration key={variant} variant={variant} mood="joy" floatingCards={["XP", "Диалоги"]} />
-      ))}
+    <div className="community-visual-inner" aria-hidden>
+      <div className="community-mascot-grid">
+        {["indigo", "teal", "pink"].map((variant) => (
+          <MascotIllustration key={variant} variant={variant} mood="joy" floatingCards={["XP", "Диалоги"]} />
+        ))}
+      </div>
+      <div className="community-avatars">
+        {["Мск", "СПб", "Алматы", "Онлайн", "Лига"].map((city) => (
+          <div key={city} className="community-avatar">{city}</div>
+        ))}
+      </div>
+      <div className="community-bubbles">
+        <div className="chat-bubble bubble-1">«Ребята, делимся прогрессом по миссии?»</div>
+        <div className="chat-bubble bubble-2">«Давайте созвонимся завтра в 18:00»</div>
+      </div>
     </div>
-    {["Мск", "СПб", "Алматы", "Онлайн", "Лига"].map((city, idx) => (
-      <div key={city} className={`community-avatar avatar-${idx + 1}`}> {city} </div>
-    ))}
-    <div className="chat-bubble bubble-1">«Ребята, делимся прогрессом по миссии?»</div>
-    <div className="chat-bubble bubble-2">«Давайте созвонимся завтра в 18:00»</div>
   </div>
 );
 
@@ -211,7 +217,7 @@ const HomePage = ({ trackData }) => {
   );
   const [quoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
   const [quoteVisible, setQuoteVisible] = useState(false);
-  const handleStartJourney = useStartPath(trackData);
+  const handleStartJourney = useStartPath();
 
   useEffect(() => {
     setQuoteVisible(true);
@@ -320,7 +326,7 @@ const HomePage = ({ trackData }) => {
   );
 };
 
-const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
+const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData }) => {
   const navigate = useNavigate();
   const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
   const [search, setSearch] = useState("");
@@ -333,6 +339,10 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
   );
 
   const activeTrackMaterialId = null;
+  const trackMaterials = useMemo(
+    () => new Set(trackData?.generatedTrack?.map((item) => item.materialId || item.id) || []),
+    [trackData]
+  );
 
   const filteredMaterials = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -1374,6 +1384,7 @@ function App() {
                 completedMaterialIds={completedMaterialIds}
                 user={user}
                 onMindGameComplete={handleMindGameComplete}
+                trackData={trackData}
               />
             }
           />

@@ -5761,7 +5761,6 @@ body {
   background: radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.25), transparent 45%),
     radial-gradient(circle at 80% 10%, rgba(79, 70, 229, 0.3), transparent 35%);
   opacity: 0.6;
-  animation: heroGradient 12s ease-in-out infinite alternate;
 }
 
 .gradient-panel > * {
@@ -5882,7 +5881,6 @@ body {
   border-radius: 14px;
   font-size: 16px;
   box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
-  animation: pulseBorder 5.5s ease-in-out infinite;
   transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
@@ -6107,7 +6105,6 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
-  animation: wobble 6s ease-in-out infinite;
 }
 
 .badge-icon {
@@ -6239,20 +6236,50 @@ body {
   position: relative;
   min-height: 320px;
   background: linear-gradient(140deg, rgba(124, 58, 237, 0.1), rgba(20, 184, 166, 0.1));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
 }
 
-.community-mascot-grid {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  padding: 32px;
+.community-visual-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   align-items: center;
 }
 
+.community-mascot-grid {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 8px 4px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.community-mascot-grid .mascot-wrapper {
+  max-width: 160px;
+  height: 200px;
+}
+
+.community-avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
 .community-avatar {
-  position: absolute;
+  position: static;
   width: 82px;
   height: 82px;
   border-radius: 22px;
@@ -6262,29 +6289,35 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #e5e7eb;
   font-weight: 800;
-  animation: orbit 7s ease-in-out infinite;
+  animation: none;
 }
 
-.community-avatar.avatar-1 { top: 12%; left: 16%; }
-.community-avatar.avatar-2 { top: 10%; right: 16%; animation-delay: 0.6s; }
-.community-avatar.avatar-3 { bottom: 16%; left: 12%; animation-delay: 1s; }
-.community-avatar.avatar-4 { bottom: 10%; right: 12%; animation-delay: 1.4s; }
-.community-avatar.avatar-5 { top: 45%; right: 6%; animation-delay: 0.2s; }
+.community-bubbles {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 520px;
+}
 
 .chat-bubble {
-  position: absolute;
-  max-width: 220px;
+  position: relative;
+  max-width: none;
   padding: 12px 14px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f1f5f9;
   font-weight: 600;
-  animation: fadeSlide 6s ease-in-out infinite;
+  animation: none;
 }
 
-.chat-bubble.bubble-1 { top: 18%; left: 42%; }
-.chat-bubble.bubble-2 { bottom: 20%; right: 32%; animation-delay: 1s; }
+.chat-bubble.bubble-1,
+.chat-bubble.bubble-2 {
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
 
 .orb {
   position: absolute;
