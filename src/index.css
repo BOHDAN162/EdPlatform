@@ -4892,6 +4892,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  overflow-x: hidden;
 }
 
 .landing-hero,
@@ -5761,6 +5762,7 @@ body {
   background: radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.25), transparent 45%),
     radial-gradient(circle at 80% 10%, rgba(79, 70, 229, 0.3), transparent 35%);
   opacity: 0.6;
+  pointer-events: none;
 }
 
 .gradient-panel > * {
@@ -5845,14 +5847,9 @@ body {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 12px 38px rgba(0, 0, 0, 0.2);
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.hero-tip-card.visible {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
+  transition: none;
 }
 
 .app.light .hero-tip-card {
@@ -5881,12 +5878,11 @@ body {
   border-radius: 14px;
   font-size: 16px;
   box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transition: none;
 }
 
 .hero-cta:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 16px 40px rgba(124, 58, 237, 0.45);
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.35);
 }
 
 .hero-bullets {
@@ -5975,6 +5971,7 @@ body {
   grid-template-columns: 1.05fr 0.95fr;
   gap: 32px;
   align-items: center;
+  border-radius: 20px;
 }
 
 .feature-grid.reverse {
@@ -6044,7 +6041,7 @@ body {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.4), transparent);
-  animation: lineShimmer 5s linear infinite;
+  animation: none;
 }
 
 .path-node {
@@ -6057,7 +6054,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1;
-  animation: nodeLift 5.5s ease-in-out infinite;
+  animation: none;
 }
 
 .path-node .node-dot {
@@ -6069,7 +6066,7 @@ body {
 }
 
 .path-node.active {
-  transform: translateY(-6px);
+  transform: none;
   box-shadow: 0 12px 28px rgba(124, 58, 237, 0.35);
 }
 
@@ -6145,7 +6142,8 @@ body {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  animation: lineShimmer 3.6s linear infinite;
+  animation: none;
+  opacity: 0.4;
 }
 
 .streak {
@@ -6164,7 +6162,7 @@ body {
   border-radius: 12px;
   background: linear-gradient(135deg, #f97316, #facc15);
   box-shadow: 0 0 18px rgba(249, 115, 22, 0.6);
-  animation: pulseGlow 2.8s ease-in-out infinite;
+  animation: none;
 }
 
 .streak-title {
@@ -6242,7 +6240,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  padding: 24px;
+  padding: 28px;
 }
 
 .community-visual-inner {
@@ -6266,8 +6264,8 @@ body {
 }
 
 .community-mascot-grid .mascot-wrapper {
-  max-width: 160px;
-  height: 200px;
+  max-width: 130px;
+  height: 160px;
 }
 
 .community-avatars {
