@@ -132,30 +132,26 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
         <div className="track-grid-wrapper">
           <div className="track-grid-row">
             {topRow.map((step, idx) => (
-              <React.Fragment key={step.id}>
-                <TrackStepCard
-                  step={step}
-                  index={idx}
-                  completedSet={completedSet}
-                  activeId={activeStepId}
-                  onClick={() => openStep(step)}
-                />
-                {idx < topRow.length - 1 && <div className="track-arrow" aria-hidden />}
-              </React.Fragment>
+              <TrackStepCard
+                key={step.id}
+                step={step}
+                index={idx}
+                completedSet={completedSet}
+                activeId={activeStepId}
+                onClick={() => openStep(step)}
+              />
             ))}
           </div>
           <div className="track-grid-row">
             {bottomRow.map((step, idx) => (
-              <React.Fragment key={step.id}>
-                <TrackStepCard
-                  step={step}
-                  index={idx + 5}
-                  completedSet={completedSet}
-                  activeId={activeStepId}
-                  onClick={() => openStep(step)}
-                />
-                {idx < bottomRow.length - 1 && <div className="track-arrow" aria-hidden />}
-              </React.Fragment>
+              <TrackStepCard
+                key={step.id}
+                step={step}
+                index={idx + 5}
+                completedSet={completedSet}
+                activeId={activeStepId}
+                onClick={() => openStep(step)}
+              />
             ))}
           </div>
         </div>
