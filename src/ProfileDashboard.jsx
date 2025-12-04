@@ -498,181 +498,6 @@ const LeagueSnippet = ({ community, currentUserName }) => {
   );
 };
 
-const FAQItem = ({ question, answer, open, onToggle }) => (
-  <div className={`faq-item ${open ? "open" : ""}`}>
-    <button className="faq-question" onClick={onToggle}>
-      <span>{question}</span>
-      <span className="faq-icon">{open ? "−" : "+"}</span>
-    </button>
-    {open && <p className="faq-answer">{answer}</p>}
-  </div>
-);
-
-const SettingsSection = ({ theme, onToggleTheme, onClose, inModal }) => {
-  const [form, setForm] = useState({ current: "", next: "", confirm: "" });
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const faqItems = [
-    {
-      q: "Как платформа помогает развиваться?",
-      a: "Мы собираем твой маршрут по целям, добавляем практические задания и даём обратную связь, чтобы прогресс был видимым.",
-    },
-    {
-      q: "Что такое трек развития?",
-      a: "Это цепочка материалов, тестов и челленджей под твои цели. Ты видишь шаги и понимаешь, зачем делаешь каждый из них.",
-    },
-    {
-      q: "За что я получаю XP и уровни?",
-      a: "XP начисляются за материалы, тесты, челленджи и участие в сообществе. Чем активнее ты, тем выше статус и уровни.",
-    },
-    {
-      q: "Как работают streak и серия дней?",
-      a: "Каждый день с активностью продлевает серию. Чем длиннее streak, тем больше бонусов и уважения в сообществе.",
-    },
-    {
-      q: "Как попасть в топ сообщества?",
-      a: "Набирай очки за полезные ответы, материалы и тесты. Топ обновляется по XP, так что регулярность решает всё.",
-    },
-    {
-      q: "Чем платформа полезна родителям?",
-      a: "Родители видят понятный план развития, отчёты по активности и уверены, что ребёнок прокачивает важные навыки.",
-    },
-    {
-      q: "Как сменить пароль и данные профиля?",
-      a: "Пароль можно обновить прямо здесь, а данные профиля редактируются в твоём аккаунте и сохраняются мгновенно.",
-    },
-    {
-      q: "Можно ли сбросить прогресс?",
-      a: "Мы сохраняем историю, но ты всегда можешь выбрать новый трек и начать проходить материалы с чистого листа.",
-    },
-    {
-      q: "Как подключиться к сообществу и клубам?",
-      a: "Открой раздел «Сообщество», присоединяйся к чатам и клубам по темам — там проходят созвоны и челленджи.",
-    },
-    {
-      q: "К кому обратиться, если что-то не работает?",
-      a: "Напиши в поддержку внутри платформы или оставь заявку в чате сообщества — ответим и поможем разобраться.",
-    },
-  ];
-  const [openFaq, setOpenFaq] = useState([0]);
-
-  const toggleFaq = (idx) => {
-    setOpenFaq((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
-  };
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    setError("");
-    setSuccess("");
-  };
-
-  const submit = (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    if (form.next !== form.confirm) {
-      setError("Пароли не совпадают.");
-      return;
-    }
-    localStorage.setItem("ep_mock_password", form.next);
-    setSuccess("Пароль успешно обновлён.");
-    setForm({ current: "", next: "", confirm: "" });
-  };
-
-  return (
-    <div className={`card settings-card ${inModal ? "modal-layout" : ""}`}>
-      <div className="settings-title-row">
-        <div>
-          <div className="card-header">Настройки</div>
-          <p className="meta">Управляй безопасностью, темой и ответами на популярные вопросы прямо в профиле.</p>
-        </div>
-        {onClose && (
-          <button className="ghost" onClick={onClose}>
-            Закрыть
-          </button>
-        )}
-      </div>
-      <div className="settings-grid">
-        <div className="settings-block">
-          <div className="settings-block-header">Сменить пароль</div>
-          <p className="meta">Измени пароль для входа в профиль.</p>
-          <form className="settings-form" onSubmit={submit}>
-            <label>
-              Старый пароль
-              <input
-                type="password"
-                value={form.current}
-                onChange={(e) => handleChange("current", e.target.value)}
-                placeholder="Введи текущий пароль"
-              />
-            </label>
-            <label>
-              Новый пароль
-              <input
-                type="password"
-                value={form.next}
-                onChange={(e) => handleChange("next", e.target.value)}
-                placeholder="Минимум 6 символов"
-              />
-            </label>
-            <label>
-              Подтверждение пароля
-              <input
-                type="password"
-                value={form.confirm}
-                onChange={(e) => handleChange("confirm", e.target.value)}
-                placeholder="Повтори новый пароль"
-              />
-            </label>
-            {error && <div className="error">{error}</div>}
-            {success && <div className="success">{success}</div>}
-            <button className="primary" type="submit">Сохранить</button>
-          </form>
-        </div>
-
-        <div className="settings-block">
-          <div className="settings-block-header">Часто задаваемые вопросы</div>
-          <div className="faq-list">
-            {faqItems.map((item, idx) => (
-              <FAQItem
-                key={item.q}
-                question={item.q}
-                answer={item.a}
-                open={openFaq.includes(idx)}
-                onToggle={() => toggleFaq(idx)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="settings-block theme-block">
-          <div className="settings-block-header">Тема оформления</div>
-          <p className="meta">Переключай светлую и тёмную тему, как тебе удобнее.</p>
-          <div className="theme-toggle-row">
-            <span className="meta">Светлая</span>
-            <button type="button" className={`theme-switch ${theme === "dark" ? "on" : ""}`} onClick={onToggleTheme}>
-              <span className="switch-knob" />
-            </button>
-            <span className="meta">Тёмная</span>
-          </div>
-          <div className="meta subtle">Сейчас: {theme === "dark" ? "тёмная тема" : "светлая тема"}</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const SettingsModal = ({ open, onClose, theme, onToggleTheme }) => {
-  if (!open) return null;
-  return (
-    <div className="modal-backdrop settings-backdrop">
-      <div className="modal-card wide">
-        <SettingsSection theme={theme} onToggleTheme={onToggleTheme} onClose={onClose} inModal />
-      </div>
-    </div>
-  );
-};
-
 const ProfileDashboard = ({
   user,
   gamification,
@@ -691,7 +516,6 @@ const ProfileDashboard = ({
 }) => {
   const navigate = useNavigate();
   const [avatarChoice, setAvatarChoice] = useState(() => localStorage.getItem("ep_avatar_choice") || "");
-  const [showSettings, setShowSettings] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const profile = useUserProfile(user, trackData);
   const profileWithAvatar = { ...profile, avatar: avatarChoice || profile.avatar };
@@ -960,14 +784,12 @@ const ProfileDashboard = ({
               <div className="card-header">Настройки</div>
               <p className="meta">Тема, пароль, FAQ и выход — в отдельном чистом экране.</p>
             </div>
-            <button className="primary" onClick={() => setShowSettings(true)}>
+            <button className="primary" onClick={() => navigate("/profile/settings")}>
               Открыть настройки
             </button>
           </div>
         </div>
       </div>
-
-      <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} theme={theme} onToggleTheme={onToggleTheme} />
       <AvatarSelectorModal
         open={showAvatarModal}
         currentAvatar={profileWithAvatar.avatar}
