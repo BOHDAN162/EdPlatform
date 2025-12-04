@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import DashboardHero from "./components/DashboardHero";
-import ProgressRingsPanel from "./components/ProgressRingsPanel";
+import GrowthProgressCard from "./components/GrowthProgressCard";
 import TodayMissionCard from "./components/TodayMissionCard";
 import WeeklyTrack from "./components/WeeklyTrack";
 import RecommendationsPanel from "./components/RecommendationsPanel";
@@ -206,7 +206,7 @@ const DashboardPage = ({
   return (
     <div className="dashboard-grid">
       <DashboardHero user={user} streak={streakInfo} mood={mood} onContinue={handleContinue} />
-      <ProgressRingsPanel stats={stats} onNavigate={navigate} />
+      <GrowthProgressCard stats={stats} />
       <TodayMissionCard mission={todayMission} onStart={handleContinue} />
       <WeeklyProgressSummary summary={weeklySummary} />
       <HabitDashboardWidget />
