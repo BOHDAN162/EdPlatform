@@ -5,6 +5,7 @@ import { getLevelFromXP, getRoleFromLevel, getXPConfig } from "./gamification";
 import { getMaterialById, learningPaths, materials, themeLabels } from "./libraryData";
 import { getPathProgress } from "./progress";
 import { missions as missionList } from "./data/missions";
+import HabitProfileWidget from "./habits/HabitProfileWidget";
 
 const ProgressLine = ({ value }) => (
   <div className="progress-shell">
@@ -946,6 +947,7 @@ const ProfileDashboard = ({
         <div className="profile-side">
           <XPCard gamification={gamification} levelInfo={levelInfo} roleLabel={roleLabel} streak={streak} />
           <LeagueSnippet community={community} currentUserName={profileWithAvatar.name} />
+          <HabitProfileWidget />
           <div className="card">
             <div className="card-header">Быстрые действия</div>
             <div className="quick-actions">

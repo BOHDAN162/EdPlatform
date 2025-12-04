@@ -42,6 +42,8 @@ import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
 import Landing from "./components/Landing";
 import DashboardPage from "./dashboard/DashboardPage";
+import { HabitProvider } from "./habits/habitsStore";
+import HabitTrackerPage from "./habits/HabitTrackerPage";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -1117,10 +1119,11 @@ function App() {
   return (
     <BrowserRouter>
       <CommandCenter />
-      <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
-        <Routes>
-          <Route path="/" element={<HomeRoute />} />
-          <Route path="/dashboard" element={<HomeRoute />} />
+      <HabitProvider>
+        <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
+          <Routes>
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="/dashboard" element={<HomeRoute />} />
           <Route
             path="/library"
             element={
@@ -1224,8 +1227,10 @@ function App() {
             path="/track-quiz"
             element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
           />
+          <Route path="/habits" element={<HabitTrackerPage />} />
         </Routes>
-      </AppLayout>
+        </AppLayout>
+      </HabitProvider>
     </BrowserRouter>
   );
 }
