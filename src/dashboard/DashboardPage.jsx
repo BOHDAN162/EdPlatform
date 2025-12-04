@@ -136,6 +136,7 @@ const DashboardPage = ({
           ...material,
           duration: material.estimatedTime ? `${material.estimatedTime} мин` : "коротко",
           typeLabel: material.type === "course" ? "Курс" : material.type === "article" ? "Статья" : "Тест",
+          to: `/material/${material.id}`,
         })),
     []
   );
@@ -204,18 +205,27 @@ const DashboardPage = ({
   };
 
   return (
-    <div className="dashboard-grid">
-      <DashboardHero user={user} streak={streakInfo} mood={mood} onContinue={handleContinue} />
-      <GrowthProgressCard stats={stats} />
-      <TodayMissionCard mission={todayMission} onStart={handleContinue} />
-      <WeeklyProgressSummary summary={weeklySummary} />
-      <HabitDashboardWidget />
-      <RecommendationsPanel material={recommendedMaterial} game={recommendedGame} insightLink="/memory" />
-      <WeeklyTrack week={weeklyTrack} />
-      <AchievementsFeed feed={achievementTimeline} />
-      <CommunitySnapshot items={communitySnapshot} />
-      <MoodSelector onChange={setMood} />
-      <WeeklyCalendar events={calendarEvents} />
+    <div className="dashboard-shell">
+      <div className="dashboard-layout">
+        <div className="dashboard-main">
+          <DashboardHero user={user} streak={streakInfo} mood={mood} onContinue={handleContinue} />
+          <GrowthProgressCard stats={stats} />
+          <HabitDashboardWidget />
+          <WeeklyProgressSummary summary={weeklySummary} />
+          <WeeklyTrack week={weeklyTrack} />
+          <div className="dashboard-row">
+            <AchievementsFeed feed={achievementTimeline} />
+            <CommunitySnapshot items={communitySnapshot} />
+          </div>
+        </div>
+
+        <aside className="dashboard-aside">
+          <TodayMissionCard mission={todayMission} onStart={handleContinue} />
+          <RecommendationsPanel material={recommendedMaterial} game={recommendedGame} insightLink="/memory" />
+          <WeeklyCalendar events={calendarEvents} />
+          <MoodSelector onChange={setMood} />
+        </aside>
+      </div>
     </div>
   );
 };

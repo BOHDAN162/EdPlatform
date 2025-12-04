@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import Mascot from "./Mascot";
-import { Link } from "../../routerShim";
 
 const getTimeLabel = () => {
   const hours = new Date().getHours();
@@ -33,9 +32,6 @@ const DashboardHero = ({ user, streak, mood = "happy", onContinue }) => {
           <button className="primary" onClick={onContinue}>
             Продолжить трек
           </button>
-          <Link to="/missions" className="ghost">
-            Открыть миссии
-          </Link>
         </div>
         <div className="hero-metrics">
           <div className="metric">

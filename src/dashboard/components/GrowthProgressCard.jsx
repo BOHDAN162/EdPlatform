@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Link } from "../../routerShim";
 
 const RADIUS = 36;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -8,12 +9,12 @@ const clampPercent = (value) => {
   return Math.min(100, Math.max(0, Math.round(value)));
 };
 
-const GrowthRing = ({ label, value = 0, hint, color = "#8b5cf6" }) => {
+const GrowthRing = ({ label, value = 0, hint, color = "#8b5cf6", to }) => {
   const percent = clampPercent(value);
   const dashOffset = CIRCUMFERENCE - (percent / 100) * CIRCUMFERENCE;
 
-  return (
-    <div className="growth-ring">
+  const content = (
+    <>
       <div className="growth-ring-chart" aria-hidden="true">
         <svg viewBox="0 0 100 100">
           <circle className="growth-ring-track" cx="50" cy="50" r={RADIUS} />
@@ -33,8 +34,18 @@ const GrowthRing = ({ label, value = 0, hint, color = "#8b5cf6" }) => {
         <div className="growth-ring-label">{label}</div>
         <div className="meta subtle">{hint || "Данные появятся позже"}</div>
       </div>
-    </div>
+    </>
   );
+
+  if (to) {
+    return (
+      <Link to={to} className="growth-ring linkable">
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="growth-ring">{content}</div>;
 };
 
 const fallbackRings = [

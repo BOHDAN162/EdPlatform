@@ -32,8 +32,8 @@ const TodayMissionCard = ({ mission, onStart }) => {
               <p className="meta">Мини-задача</p>
               <div className="focus-mini-title">Пройди 1 MindGame</div>
               <p className="meta subtle">+XP за быструю попытку</p>
-              <Link to="/missions" className="ghost">
-                Открыть миссии
+              <Link to="/library" className="ghost">
+                Запустить MindGame
               </Link>
             </div>
           </div>
