@@ -1119,118 +1119,128 @@ function App() {
 
   return (
     <BrowserRouter>
-      <CommandCenter />
-      <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
-        <Routes>
-          <Route path="/landing" element={<Landing />} />
-          <Route path="/" element={<HomeRoute />} />
-          <Route path="/dashboard" element={<HomeRoute />} />
-          <Route
-            path="/library"
-            element={
-              <LibraryPage
-                completedMaterialIds={completedMaterialIds}
-                user={user}
-                onMindGameComplete={handleMindGameComplete}
-                trackData={trackData}
-              />
-            }
-          />
-          <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
-          <Route
-            path="/library/:type/:id"
-            element={
-              <MaterialPage
-                user={user}
-                gamification={gamification}
-                progress={progress}
-                trackData={trackData}
-                onMaterialComplete={handleFinishMaterial}
-                onQuizComplete={handleInlineQuizComplete}
-                onAskCommunity={handleMaterialQuestion}
-              />
-            }
-          />
-          <Route
-            path="/material/:materialId"
-            element={
-              <MaterialPage
-                user={user}
-                gamification={gamification}
-                progress={progress}
-                trackData={trackData}
-                onMaterialComplete={handleFinishMaterial}
-                onQuizComplete={handleInlineQuizComplete}
-              />
-            }
-          />
-          <Route path="/tests/:id" element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />} />
-          <Route
-            path="/missions"
-            element={
-              <MissionsPage
-                gamification={gamification}
-                missions={missions}
-                missionProgress={missionProgress}
-                getMissionProgress={getMissionProgress}
-                setMissionStatus={setMissionStatus}
-                updateProgressByKey={updateProgressByKey}
-                completedThisWeek={completedThisWeek}
-                activityByDate={activityByDate}
-                streakInfo={streakInfo}
-                getActivityForMonth={getActivityForMonth}
-                trackData={trackData}
-                onStartTrack={() => {}}
-                onEditTrack={() => {
-                  handleTrackRetake();
-                }}
-              />
-            }
-          />
-          <Route
-            path="/memory"
-            element={<MemoryPage user={user} onEntryAdded={handleMemoryEntryAdded} />}
-          />
-          <Route
-            path="/community"
-            element={
-              <CommunityPage
-                user={user}
-                gamification={gamification}
-                onCommunityAction={handleCommunityAction}
-                onToast={addToast}
-              />
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProfileDashboard
-                user={user}
-                gamification={gamification}
-                progress={progress}
-                streak={streak}
-                trackData={trackData}
-                activityLog={activityFeed}
-                streakInfo={streakInfo}
-                activeDaysThisMonth={activeDaysThisMonth}
-                community={community}
-                theme={theme}
-                onToggleTheme={toggleTheme}
-                missions={missions}
-                missionProgress={missionProgress}
-                getMissionProgress={getMissionProgress}
-              />
-            }
-          />
-          <Route path="/profile/settings" element={<SettingsPage theme={theme} setTheme={setTheme} />} />
-          <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
-          <Route
-            path="/track-quiz"
-            element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
-          />
-          <Route path="/habits" element={<HabitTrackerPage />} />
-        </Routes>
+      <HabitProvider>
+        <CommandCenter />
+        <AppLayout
+          theme={theme}
+          user={user}
+          onLogout={handleLogout}
+          toggleTheme={toggleTheme}
+          toasts={toasts}
+        >
+          <Routes>
+            <Route path="/landing" element={<Landing />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path="/dashboard" element={<HomeRoute />} />
+            <Route
+              path="/library"
+              element={
+                <LibraryPage
+                  completedMaterialIds={completedMaterialIds}
+                  user={user}
+                  onMindGameComplete={handleMindGameComplete}
+                  trackData={trackData}
+                />
+              }
+            />
+            <Route path="/library/paths/:slug" element={<LearningPathPage completedMaterialIds={completedMaterialIds} />} />
+            <Route
+              path="/library/:type/:id"
+              element={
+                <MaterialPage
+                  user={user}
+                  gamification={gamification}
+                  progress={progress}
+                  trackData={trackData}
+                  onMaterialComplete={handleFinishMaterial}
+                  onQuizComplete={handleInlineQuizComplete}
+                  onAskCommunity={handleMaterialQuestion}
+                />
+              }
+            />
+            <Route
+              path="/material/:materialId"
+              element={
+                <MaterialPage
+                  user={user}
+                  gamification={gamification}
+                  progress={progress}
+                  trackData={trackData}
+                  onMaterialComplete={handleFinishMaterial}
+                  onQuizComplete={handleInlineQuizComplete}
+                />
+              }
+            />
+            <Route
+              path="/tests/:id"
+              element={<TestPage onComplete={handleFinishTest} completedMaterialIds={completedMaterialIds} />}
+            />
+            <Route
+              path="/missions"
+              element={
+                <MissionsPage
+                  gamification={gamification}
+                  missions={missions}
+                  missionProgress={missionProgress}
+                  getMissionProgress={getMissionProgress}
+                  setMissionStatus={setMissionStatus}
+                  updateProgressByKey={updateProgressByKey}
+                  completedThisWeek={completedThisWeek}
+                  activityByDate={activityByDate}
+                  streakInfo={streakInfo}
+                  getActivityForMonth={getActivityForMonth}
+                  trackData={trackData}
+                  onStartTrack={() => {}}
+                  onEditTrack={() => {
+                    handleTrackRetake();
+                  }}
+                />
+              }
+            />
+            <Route
+              path="/memory"
+              element={<MemoryPage user={user} onEntryAdded={handleMemoryEntryAdded} />}
+            />
+            <Route
+              path="/community"
+              element={
+                <CommunityPage
+                  user={user}
+                  gamification={gamification}
+                  onCommunityAction={handleCommunityAction}
+                  onToast={addToast}
+                />
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProfileDashboard
+                  user={user}
+                  gamification={gamification}
+                  progress={progress}
+                  streak={streak}
+                  trackData={trackData}
+                  activityLog={activityFeed}
+                  streakInfo={streakInfo}
+                  activeDaysThisMonth={activeDaysThisMonth}
+                  community={community}
+                  theme={theme}
+                  onToggleTheme={toggleTheme}
+                  missions={missions}
+                  missionProgress={missionProgress}
+                  getMissionProgress={getMissionProgress}
+                />
+              }
+            />
+            <Route path="/profile/settings" element={<SettingsPage theme={theme} setTheme={setTheme} />} />
+            <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
+            <Route
+              path="/track-quiz"
+              element={<TrackQuizPage savedTrack={trackData} onTrackSave={handleTrackSave} materials={materials} />}
+            />
+            <Route path="/habits" element={<HabitTrackerPage />} />
+          </Routes>
         </AppLayout>
       </HabitProvider>
     </BrowserRouter>
