@@ -41,6 +41,7 @@ import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
 import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
 import Landing from "./components/Landing";
+import DashboardPage from "./dashboard/DashboardPage";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -1092,6 +1093,24 @@ function App() {
   };
 
   const HomeRoute = () => {
+    if (user) {
+      return (
+        <DashboardPage
+          user={user}
+          gamification={gamification}
+          missions={missions}
+          missionProgress={missionProgress}
+          getMissionProgress={getMissionProgress}
+          trackData={trackData}
+          progress={progress}
+          activityFeed={activityFeed}
+          activityByDate={activityByDate}
+          community={community}
+          streakInfo={streakInfo}
+          completedThisWeek={completedThisWeek}
+        />
+      );
+    }
     return <Landing />;
   };
 
@@ -1101,6 +1120,7 @@ function App() {
       <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
         <Routes>
           <Route path="/" element={<HomeRoute />} />
+          <Route path="/dashboard" element={<HomeRoute />} />
           <Route
             path="/library"
             element={
