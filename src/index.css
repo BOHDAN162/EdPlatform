@@ -6752,20 +6752,40 @@ body {
 }
 
 /* Dashboard */
-.dashboard-grid {
+.dashboard-shell {
+  min-height: calc(100vh - 72px);
+  padding: 18px 24px 32px;
+}
+
+.dashboard-layout {
+  width: min(1240px, 100% - 24px);
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: 1.65fr 1fr;
   gap: 18px;
   align-items: start;
 }
 
-.dashboard-hero {
-  grid-column: span 2;
+.dashboard-main,
+.dashboard-aside {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.dashboard-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
+}
+
+.dashboard-hero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
   overflow: hidden;
   position: relative;
+  padding: 20px;
 }
 
 .dashboard-hero .hero-copy h1 {
@@ -6804,11 +6824,12 @@ body {
 
 .progress-rings { grid-column: span 2; min-height: 280px; display: flex; flex-direction: column; gap: 12px; }
 
-.growth-progress-card { grid-column: span 2; min-height: 280px; display: grid; gap: 14px; background: var(--card); border-radius: 18px; border: 1px solid var(--border); padding: 18px; box-shadow: var(--shadow-soft); }
+.growth-progress-card { min-height: 280px; display: grid; gap: 16px; background: var(--card); border-radius: 18px; border: 1px solid var(--border); padding: 18px; box-shadow: var(--shadow-soft); }
 .growth-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .growth-progress-status { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text); }
-.growth-progress-rings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: stretch; }
-.growth-ring { border: 1px solid var(--border); border-radius: 14px; padding: 12px; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,0.02); }
+.growth-progress-rings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+.growth-ring { border: 1px solid var(--border); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,0.02); height: 100%; text-decoration: none; color: inherit; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.growth-ring.linkable:hover { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25); }
 .growth-ring-chart { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
 .growth-ring-chart svg { width: 96px; height: 96px; transform: rotate(-90deg); }
 .growth-ring-track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 10; }
@@ -6873,16 +6894,25 @@ body {
 .event-month { color: var(--muted); font-size: 12px; text-transform: uppercase; }
 .event-title { font-weight: 700; }
 
-@media (max-width: 1024px) {
-  .dashboard-hero, .progress-rings, .growth-progress-card { grid-column: span 1; }
+@media (max-width: 1200px) {
+  .dashboard-layout { width: min(1200px, 100% - 24px); }
+}
+
+@media (max-width: 1100px) {
+  .dashboard-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 960px) {
+  .growth-progress-rings { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .dashboard-shell { padding: 16px; }
   .weekly-progress-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
-  .dashboard-grid { grid-template-columns: 1fr; }
   .hero-visual .bubble { position: static; margin-top: 8px; }
   .growth-progress-rings { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
   .focus-grid { grid-template-columns: 1fr; }
+  .dashboard-shell { padding: 12px; }
 }
 
 /* Marketing Landing 2024 */
