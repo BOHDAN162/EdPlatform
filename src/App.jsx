@@ -25,6 +25,7 @@ import LibraryCard from "./components/LibraryCard";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import ProfileDashboard from "./ProfileDashboard";
+import SettingsPage from "./SettingsPage";
 import { clearActivityLog, useActivityLog } from "./hooks/useActivityLog";
 import CommunityPage from "./community/CommunityPage";
 import MaterialPage from "./MaterialPage";
@@ -713,7 +714,7 @@ const TestPage = ({ onComplete, completedMaterialIds }) => {
 };
 
 function App() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const { toasts, addToast, addToasts } = useToasts();
   const initialUser = loadCurrentUser();
   const xpConfig = useMemo(() => getXPConfig(), []);
@@ -1219,6 +1220,7 @@ function App() {
               />
             }
           />
+          <Route path="/profile/settings" element={<SettingsPage theme={theme} setTheme={setTheme} />} />
           <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
           <Route
             path="/track-quiz"
