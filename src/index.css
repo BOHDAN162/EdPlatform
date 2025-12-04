@@ -6560,7 +6560,7 @@ body {
 .hero-visual { position: relative; display: grid; place-items: center; }
 .hero-visual .bubble { position: absolute; bottom: 12px; right: 12px; background: rgba(0,0,0,0.6); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-soft); font-weight: 700; }
 
-.mascot { border-radius: 28px; position: relative; display: grid; place-items: center; isolation: isolate; animation: float 5s ease-in-out infinite; }
+.mascot { border-radius: 28px; position: relative; display: grid; place-items: center; isolation: isolate; animation: none; }
 .mascot.subtle { opacity: 0.8; box-shadow: none; }
 .mascot-face { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 18px; }
 .mascot-eye { display: block; border-radius: 50%; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2); }
@@ -6578,20 +6578,32 @@ body {
 .section-head h3 { margin: 4px 0; }
 .section-actions { display: flex; gap: 8px; }
 
-.progress-rings { grid-column: span 2; }
-.ring-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.progress-ring { background: transparent; border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; place-items: center; gap: 8px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.progress-ring:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.progress-rings { grid-column: span 2; min-height: 280px; display: flex; flex-direction: column; gap: 12px; }
+.rings-row { display: grid; grid-template-columns: 3fr 1fr; gap: 14px; align-items: center; }
+.ring-grid { display: flex; gap: 12px; width: 100%; justify-content: space-between; align-items: stretch; }
+.progress-ring { background: transparent; border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; place-items: center; gap: 8px; cursor: pointer; height: 100%; box-shadow: none; }
 .progress-ring svg { width: 120px; height: 120px; transform: rotate(-90deg); }
-.progress-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.05); stroke-width: 10; }
-.progress-ring .ring-value { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dasharray 0.6s ease; }
+.progress-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 10; }
+.progress-ring .ring-value { fill: none; stroke-width: 10; stroke-linecap: round; }
 .ring-content { text-align: center; }
 .ring-value-label { font-size: 26px; font-weight: 800; }
 .ring-label { font-weight: 700; }
 
+.rings-side { display: grid; gap: 10px; justify-items: center; align-content: center; }
+.rings-side .ghost { width: 100%; text-align: center; }
+
 .today-mission .progress-bar { height: 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
 .today-mission .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #7c3aed, #a855f7); }
 .today-mission .mission-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.daily-focus { display: grid; gap: 12px; }
+.focus-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; align-items: stretch; }
+.focus-main { display: grid; gap: 12px; }
+.focus-details { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+.focus-figure { font-size: 32px; font-weight: 800; }
+.focus-mini { border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: rgba(255,255,255,0.03); width: 100%; max-width: 260px; }
+.focus-mini-title { font-weight: 700; margin: 4px 0; }
+.focus-actions { border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: grid; gap: 10px; align-content: start; background: rgba(255,255,255,0.02); }
+.focus-status { font-weight: 700; font-size: 16px; }
 
 .weekly-track .week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
 .weekly-track .day-card { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.02); display: grid; gap: 8px; }
@@ -6601,10 +6613,19 @@ body {
 .weekly-track .day-progress .progress-bar { height: 8px; }
 .weekly-track .day-actions { display: flex; justify-content: space-between; align-items: center; }
 
+.weekly-progress-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; align-items: center; }
+.weekly-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.weekly-stat { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: rgba(255,255,255,0.02); display: grid; gap: 6px; }
+.weekly-stat .stat-value { font-size: 22px; font-weight: 800; }
+.weekly-chart { display: flex; gap: 8px; align-items: flex-end; justify-content: space-between; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.02); min-height: 140px; }
+.chart-bar { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
+.chart-fill { width: 100%; min-height: 12px; background: linear-gradient(180deg, #7c3aed, #22c55e); border-radius: 8px 8px 4px 4px; }
+
 .recommendations .recommendation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
-.rec-card { border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.02); text-decoration: none; color: inherit; transition: transform 0.2s ease, box-shadow 0.2s ease; display: grid; gap: 6px; }
-.rec-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.rec-card { border: 1px solid var(--border); border-radius: 14px; padding: 12px; background: rgba(255,255,255,0.02); text-decoration: none; color: inherit; display: grid; gap: 6px; box-shadow: none; }
 .rec-card.game { background: linear-gradient(135deg, rgba(124, 58, 237, 0.14), rgba(14, 165, 233, 0.1)); }
+.recommendation-grid.stable { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.rec-card.stable-card { min-height: 140px; }
 
 .timeline { display: grid; gap: 10px; }
 .timeline-item { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; }
@@ -6629,11 +6650,17 @@ body {
 
 @media (max-width: 1024px) {
   .dashboard-hero, .progress-rings { grid-column: span 1; }
+  .rings-row { grid-template-columns: 1fr; }
+  .weekly-progress-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .hero-visual .bubble { position: static; margin-top: 8px; }
+  .ring-grid { gap: 8px; }
+  .progress-ring { padding: 8px; }
+  .progress-ring svg { width: 90px; height: 90px; }
+  .focus-grid { grid-template-columns: 1fr; }
 }
 
 /* Marketing Landing 2024 */

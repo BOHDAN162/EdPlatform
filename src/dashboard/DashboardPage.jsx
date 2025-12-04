@@ -8,6 +8,7 @@ import AchievementsFeed from "./components/AchievementsFeed";
 import CommunitySnapshot from "./components/CommunitySnapshot";
 import MoodSelector from "./components/MoodSelector";
 import WeeklyCalendar from "./components/WeeklyCalendar";
+import WeeklyProgressSummary from "./components/WeeklyProgressSummary";
 import { materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
 import { getLevelFromPoints, progressToNextStatus } from "../gamification";
@@ -115,6 +116,17 @@ const DashboardPage = ({
     });
   }, [activityByDate, activityFeed]);
 
+  const weeklySummary = useMemo(() => {
+    const graph = weeklyTrack.map((day) => Math.max(1, Math.round((day.completed / Math.max(1, day.planned)) * 8)));
+    return {
+      missions: missionCompletedCount,
+      materials: completedMaterials,
+      xp: gamification?.totalPoints || 0,
+      streak: streakCount,
+      graph,
+    };
+  }, [completedMaterials, gamification?.totalPoints, missionCompletedCount, streakCount, weeklyTrack]);
+
   const recommendedMaterials = useMemo(
     () =>
       materials
@@ -131,6 +143,9 @@ const DashboardPage = ({
     { id: "logic", title: "MindGame: Фокус", description: "5 вопросов на внимание и скорость", best: "+320 XP", to: "/library" },
     { id: "finance", title: "MindGame: Финансы", description: "Практика решений с деньгами", best: "+280 XP", to: "/library" },
   ];
+
+  const recommendedMaterial = recommendedMaterials[0];
+  const recommendedGame = recommendedGames[0];
 
   const achievementTimeline = useMemo(() => {
     if (activityFeed?.length) return activityFeed;
@@ -192,8 +207,9 @@ const DashboardPage = ({
       <DashboardHero user={user} streak={streakInfo} mood={mood} onContinue={handleContinue} />
       <ProgressRingsPanel stats={stats} onNavigate={navigate} />
       <TodayMissionCard mission={todayMission} onStart={handleContinue} />
+      <WeeklyProgressSummary summary={weeklySummary} />
+      <RecommendationsPanel material={recommendedMaterial} game={recommendedGame} insightLink="/memory" />
       <WeeklyTrack week={weeklyTrack} />
-      <RecommendationsPanel materials={recommendedMaterials} games={recommendedGames} />
       <AchievementsFeed feed={achievementTimeline} />
       <CommunitySnapshot items={communitySnapshot} />
       <MoodSelector onChange={setMood} />
