@@ -4066,14 +4066,7 @@ body {
   font-weight: 700;
 }
 
-.settings-columns {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.settings-main {
+.settings-stack {
   display: grid;
   gap: 16px;
 }
@@ -4159,6 +4152,28 @@ body {
   border: 2px solid var(--border);
 }
 
+.focus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.focus-chip {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 12px;
+  text-align: left;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.focus-chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.22);
+}
+
 .preference-list {
   display: grid;
   gap: 12px;
@@ -4182,6 +4197,23 @@ body {
 
 .preference-label {
   font-weight: 700;
+}
+
+.help-links {
+  display: grid;
+  gap: 8px;
+}
+
+.link-row {
+  width: 100%;
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--card);
 }
 
 .switch {
@@ -4236,26 +4268,13 @@ body {
   gap: 10px;
 }
 
-.settings-aside {
-  position: sticky;
-  top: 12px;
-}
-
 .faq-panel {
   min-width: 0;
 }
 
 @media (max-width: 960px) {
-  .settings-columns {
-    grid-template-columns: 1fr;
-  }
-
   .settings-page-header {
     align-items: flex-start;
-  }
-
-  .settings-aside {
-    position: static;
   }
 }
 
