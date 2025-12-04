@@ -46,21 +46,6 @@ const initialHabits = [
   },
 ];
 
-const initialLogs = (() => {
-  const today = new Date();
-  const start = getWeekStart(today);
-  const dates = getWeekDates(start);
-  return [
-    { habitId: "habit-focus", date: dates[0], status: "done" },
-    { habitId: "habit-focus", date: dates[1], status: "done" },
-    { habitId: "habit-move", date: dates[0], status: "done" },
-    { habitId: "habit-move", date: dates[2], status: "done" },
-    { habitId: "habit-learn", date: dates[1], status: "done" },
-    { habitId: "habit-learn", date: dates[2], status: "done" },
-    { habitId: "habit-reflect", date: dates[3], status: "done" },
-  ];
-})();
-
 export const getWeekStart = (baseDate = new Date()) => {
   const date = new Date(baseDate);
   const day = date.getDay();
@@ -76,6 +61,21 @@ export const getWeekDates = (startDate) =>
     d.setDate(startDate.getDate() + idx);
     return d.toISOString().slice(0, 10);
   });
+
+const initialLogs = (() => {
+  const today = new Date();
+  const start = getWeekStart(today);
+  const dates = getWeekDates(start);
+  return [
+    { habitId: "habit-focus", date: dates[0], status: "done" },
+    { habitId: "habit-focus", date: dates[1], status: "done" },
+    { habitId: "habit-move", date: dates[0], status: "done" },
+    { habitId: "habit-move", date: dates[2], status: "done" },
+    { habitId: "habit-learn", date: dates[1], status: "done" },
+    { habitId: "habit-learn", date: dates[2], status: "done" },
+    { habitId: "habit-reflect", date: dates[3], status: "done" },
+  ];
+})();
 
 export const HabitProvider = ({ children }) => {
   const [habits, setHabits] = useState(initialHabits);
