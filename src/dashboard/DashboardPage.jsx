@@ -13,6 +13,7 @@ import { materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
 import { getLevelFromPoints, progressToNextStatus } from "../gamification";
 import { useNavigate } from "../routerShim";
+import HabitDashboardWidget from "../habits/HabitDashboardWidget";
 
 const DashboardPage = ({
   user,
@@ -208,6 +209,7 @@ const DashboardPage = ({
       <ProgressRingsPanel stats={stats} onNavigate={navigate} />
       <TodayMissionCard mission={todayMission} onStart={handleContinue} />
       <WeeklyProgressSummary summary={weeklySummary} />
+      <HabitDashboardWidget />
       <RecommendationsPanel material={recommendedMaterial} game={recommendedGame} insightLink="/memory" />
       <WeeklyTrack week={weeklyTrack} />
       <AchievementsFeed feed={achievementTimeline} />
