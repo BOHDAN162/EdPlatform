@@ -40,7 +40,7 @@ import CommandPalette from "./components/CommandPalette";
 import { useSmartCommands, useLastVisit } from "./hooks/useSmartCommands";
 import { navLinks } from "./utils/navigation";
 import { useMemory } from "./hooks/useMemory";
-import LandingPage from "./components/LandingPage";
+import Landing from "./components/Landing";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -1092,7 +1092,7 @@ function App() {
   };
 
   const HomeRoute = () => {
-    return <LandingPage />;
+    return <Landing />;
   };
 
   return (
