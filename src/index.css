@@ -3098,7 +3098,6 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   align-items: center;
-  animation: fadeInSoft 320ms ease-out;
 }
 
 .ring-card {
@@ -3110,12 +3109,6 @@ body {
   place-items: center;
   padding: 10px;
   gap: 8px;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.ring-card:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 24px 56px rgba(124, 58, 237, 0.25);
 }
 
 .ring-shell {
@@ -3124,8 +3117,6 @@ body {
   height: 100%;
   display: grid;
   place-items: center;
-  transform: scale(0.96);
-  animation: scaleIn 320ms ease-out forwards;
 }
 
 .ring-track,
@@ -3143,7 +3134,6 @@ body {
 
 .ring-progress {
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.45s ease-out;
 }
 
 .ring-value {
@@ -6794,18 +6784,19 @@ body {
 .section-actions { display: flex; gap: 8px; }
 
 .progress-rings { grid-column: span 2; min-height: 280px; display: flex; flex-direction: column; gap: 12px; }
-.rings-row { display: grid; grid-template-columns: 3fr 1fr; gap: 14px; align-items: center; }
-.ring-grid { display: flex; gap: 12px; width: 100%; justify-content: space-between; align-items: stretch; }
-.progress-ring { background: transparent; border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; place-items: center; gap: 8px; cursor: pointer; height: 100%; box-shadow: none; }
-.progress-ring svg { width: 120px; height: 120px; transform: rotate(-90deg); }
-.progress-ring .ring-bg { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 10; }
-.progress-ring .ring-value { fill: none; stroke-width: 10; stroke-linecap: round; }
-.ring-content { text-align: center; }
-.ring-value-label { font-size: 26px; font-weight: 800; }
-.ring-label { font-weight: 700; }
 
-.rings-side { display: grid; gap: 10px; justify-items: center; align-content: center; }
-.rings-side .ghost { width: 100%; text-align: center; }
+.growth-progress-card { grid-column: span 2; min-height: 280px; display: grid; gap: 14px; background: var(--card); border-radius: 18px; border: 1px solid var(--border); padding: 18px; box-shadow: var(--shadow-soft); }
+.growth-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.growth-progress-status { border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text); }
+.growth-progress-rings { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: stretch; }
+.growth-ring { border: 1px solid var(--border); border-radius: 14px; padding: 12px; display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,0.02); }
+.growth-ring-chart { position: relative; width: 96px; height: 96px; display: grid; place-items: center; }
+.growth-ring-chart svg { width: 96px; height: 96px; transform: rotate(-90deg); }
+.growth-ring-track { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 10; }
+.growth-ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: none; }
+.growth-ring-value { position: absolute; font-weight: 800; font-size: 18px; }
+.growth-ring-meta { display: grid; gap: 4px; }
+.growth-ring-label { font-weight: 700; }
 
 .today-mission .progress-bar { height: 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border); }
 .today-mission .progress-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #7c3aed, #a855f7); }
@@ -6864,17 +6855,14 @@ body {
 .event-title { font-weight: 700; }
 
 @media (max-width: 1024px) {
-  .dashboard-hero, .progress-rings { grid-column: span 1; }
-  .rings-row { grid-template-columns: 1fr; }
+  .dashboard-hero, .progress-rings, .growth-progress-card { grid-column: span 1; }
   .weekly-progress-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .hero-visual .bubble { position: static; margin-top: 8px; }
-  .ring-grid { gap: 8px; }
-  .progress-ring { padding: 8px; }
-  .progress-ring svg { width: 90px; height: 90px; }
+  .growth-progress-rings { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
   .focus-grid { grid-template-columns: 1fr; }
 }
 

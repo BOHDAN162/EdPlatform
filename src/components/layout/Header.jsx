@@ -7,7 +7,7 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
 
   return (
     <header className="header">
-      <Link to="/" className="logo" onClick={() => setOpen(false)}>
+      <Link to="/landing" className="logo" onClick={() => setOpen(false)}>
         NOESIS
       </Link>
       <button className="burger" onClick={() => setOpen((v) => !v)} aria-label="menu">

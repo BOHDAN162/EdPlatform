@@ -1120,6 +1120,7 @@ function App() {
       <CommandCenter />
       <AppLayout theme={theme} user={user} onLogout={handleLogout} toggleTheme={toggleTheme} toasts={toasts}>
         <Routes>
+          <Route path="/landing" element={<Landing />} />
           <Route path="/" element={<HomeRoute />} />
           <Route path="/dashboard" element={<HomeRoute />} />
           <Route
