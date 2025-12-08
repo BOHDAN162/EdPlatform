@@ -1,235 +1,236 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Link } from "../routerShim";
+
+const mascotUrl = "https://sdmntpritalynorth.oaiusercontent.com/files/00000000-7270-7246-82d0-94f1c00b9da5/raw";
 
 const steps = [
   {
+    number: 1,
     title: "Ответь на 10 вопросов",
     text: "Узнаем твой тип личности и точку старта.",
   },
   {
+    number: 2,
     title: "Получишь свой трек",
     text: "Соберём маршрут из миссий, игр и материалов.",
   },
   {
+    number: 3,
     title: "Действуй каждый день",
-    text: "Маленькие шаги, MindGames и заметки в Памяти.",
+    text: "MindGames, Память и привычки помогут расти.",
   },
 ];
 
 const modules = [
   {
     title: "Трек развития",
-    text: "Личный маршрут из миссий под твой тип.",
+    desc: "Личный маршрут под твой стиль и фокус.",
     to: "/track-quiz",
   },
   {
     title: "Миссии",
-    text: "Задачи и челленджи с XP и сериями.",
+    desc: "Задачи и челленджи с XP и сериями.",
     to: "/missions",
   },
   {
-    title: "Библиотека",
-    text: "Видео, статьи, тесты и конспекты.",
-    to: "/library",
-  },
-  {
     title: "MindGames",
-    text: "Короткие игры на внимание и память.",
+    desc: "Мини-игры на внимание, память и мышление.",
     to: "/missions",
   },
   {
     title: "Память",
-    text: "Храни инсайты и связывай материалы между собой.",
+    desc: "Журнал инсайтов, дневник, размышления.",
     to: "/memory",
   },
   {
+    title: "Привычки",
+    desc: "Трекер с галочками и сериями.",
+    to: "/habits",
+  },
+  {
     title: "Сообщество",
-    text: "Подростки, которые тоже растут и делятся опытом.",
+    desc: "Подростки, которые растут вместе.",
     to: "/community",
   },
 ];
 
-const valuePoints = [
-  "Хочешь прокачать мышление и продуктивность",
-  "Нужен понятный трек вместо хаоса из видео",
-  "Важно делать проекты и не забивать",
-];
-
-const changeList = [
-  "Появится ощущение маршрута и контроля",
-  "Больше действий, меньше прокрастинации",
-  "Видишь реальный прогресс, а не просто просмотр",
+const audience = [
+  "Хочешь прокачать продуктивность и мышление",
+  "Нужен понятный трек вместо хаоса YouTube",
+  "Хочешь делать проекты и видеть прогресс",
 ];
 
 const testimonials = [
-  {
-    quote: "Поняла, что мне реально интересно. Миссии короткие, поэтому не сливаюсь.",
-    name: "Аня, 15 лет",
-  },
-  {
-    quote: "Ребёнок сам напоминает про трек. Видим прогресс, а не просто ролики.",
-    name: "Родитель",
-  },
+  "Поняла, что мне реально интересно. Миссии короткие — не сливаюсь. — Аня, 15 лет",
+  "Ребёнок сам напоминает про трек. Видим прогресс, а не просто ролики. — Родитель",
 ];
 
-const Landing = () => {
+const stats = [
+  { number: "12 400+", label: "часов развития внутри платформы" },
+  { number: "3 200", label: "миссий пройдено подростками" },
+];
+
+export default function Landing() {
   return (
-    <div className="marketing-landing">
-      <section className="landing-hero">
-        <div className="hero-copy">
-          <p className="hero-kicker">NOESIS • платформа развития</p>
-          <h1>Твой трек роста без хаоса</h1>
-          <p className="hero-sub">Ответь на 10 вопросов, получи личный маршрут и двигайся по миссиям, играм и материалам.</p>
-          <div className="hero-actions">
-            <Link className="primary hero-cta" to="/track-quiz">
+    <div className="bg-[#0d0d1f] text-white font-sans overflow-x-hidden">
+      <section className="w-full bg-gradient-to-br from-purple-950 to-black px-6 py-16 md:flex md:items-center md:justify-between gap-10">
+        <div className="max-w-xl space-y-4">
+          <p className="text-sm uppercase tracking-[0.2em] text-purple-300 font-semibold">NOESIS • платформа развития</p>
+          <h1 className="text-4xl md:text-5xl font-bold leading-tight">Твой трек роста без хаоса</h1>
+          <p className="text-lg text-gray-300">
+            Ответь на 10 вопросов — получи личный маршрут и двигайся по миссиям, играм и материалам.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <Link
+              to="/track-quiz"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl transition text-center font-semibold"
+            >
               Начать
             </Link>
-            <Link className="secondary" to="/auth">
+            <Link
+              to="/auth"
+              className="bg-white text-black px-6 py-3 rounded-xl transition hover:bg-gray-100 text-center font-semibold"
+            >
               Войти
             </Link>
-            <Link className="ghost" to="/auth">
-              Зарегистрироваться
-            </Link>
           </div>
-          <p className="hero-note">Главная кнопка ведёт в трек-вопросник (10 вопросов → тип личности → миссии).</p>
+          <p className="text-sm text-gray-400">10 вопросов → тип личности → твой трек и XP.</p>
         </div>
-        <div className="hero-visual">
-          <div className="hero-mock">
-            <div className="mock-header">
-              <span className="badge">Твой трек</span>
-              <span className="muted-text">+120 XP · серия 4</span>
-            </div>
-            <div className="mock-steps">
-              {["Опрос", "Мышление", "Проект", "Комьюнити"].map((item, idx) => (
-                <div key={item} className={`mock-step ${idx === 1 ? "active" : ""}`}>
-                  <div className="step-index">{idx + 1}</div>
-                  <div>
-                    <p className="step-title">{item}</p>
-                    <p className="step-caption">{idx === 1 ? "Сейчас" : "Далее"}</p>
-                  </div>
-                  <span className="step-pill">XP</span>
-                </div>
-              ))}
-            </div>
-            <div className="mock-progress">
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: "56%" }} />
-              </div>
-              <div className="progress-meta">
-                <span>56% пути</span>
-                <span className="muted-text">MindGames · Память · Миссии</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <img src={mascotUrl} alt="Маскот NOESIS" className="w-48 md:w-56 mt-10 md:mt-0 md:ml-12 drop-shadow-2xl" />
       </section>
 
-      <section className="landing-section">
-        <div className="section-header">
-          <p className="section-kicker">Путь</p>
-          <h2>Как это работает</h2>
-          <p className="section-sub">Простой маршрут из 3 шагов — без лишней теории.</p>
-        </div>
-        <div className="card-grid three">
+      <motion.section
+        className="px-6 py-16 bg-black"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-8">Как это работает</h2>
+        <div className="grid gap-6 md:grid-cols-3">
           {steps.map((step) => (
-            <div key={step.title} className="info-card">
-              <div className="icon-dot" />
-              <h3>{step.title}</h3>
-              <p className="muted-text">{step.text}</p>
-            </div>
+            <Step key={step.number} {...step} />
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <section className="landing-section">
-        <div className="section-header">
-          <p className="section-kicker">Модули</p>
-          <h2>Что внутри NOESIS</h2>
-          <p className="section-sub">Все разделы доступны по существующим маршрутам платформы.</p>
-        </div>
-        <div className="card-grid">
-          {modules.map((item) => (
-            <Link key={item.title} to={item.to} className="info-card link-card">
-              <div className="icon-dot" />
-              <div>
-                <h3>{item.title}</h3>
-                <p className="muted-text">{item.text}</p>
-                <span className="pill subtle">Перейти</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-section split">
-        <div>
-          <p className="section-kicker">Для кого</p>
-          <h2>Если ты хочешь расти и не терять фокус</h2>
-          <p className="section-sub">
-            Подходит подросткам 13–20 лет: активным, любознательным, тем, кто хочет делать проекты и держать темп.
-          </p>
-          <ul className="bullet-list">
-            {valuePoints.map((point) => (
-              <li key={point}>{point}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="value-card">
-          <p className="section-kicker">Что изменится</p>
-          <ul className="check-list">
-            {changeList.map((item) => (
-              <li key={item}>
-                <span className="check-dot">✓</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="landing-section">
-        <div className="section-header">
-          <p className="section-kicker">Доверие</p>
-          <h2>Почему нам верят</h2>
-          <p className="section-sub">Здесь временные цифры — замените на реальные метрики, когда подключится бэкенд. {/* TODO: заменить на реальные данные */}</p>
-        </div>
-        <div className="card-grid">
-          <div className="stat-card">
-            <p className="stat-number">12 400+</p>
-            <p className="muted-text">часов развития внутри платформы</p>
-          </div>
-          <div className="stat-card">
-            <p className="stat-number">3 200</p>
-            <p className="muted-text">миссий пройдено подростками</p>
-          </div>
-          {testimonials.map((item) => (
-            <div key={item.name} className="quote-card">
-              <p className="quote">“{item.quote}”</p>
-              <p className="muted-text">{item.name}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="landing-final">
-        <div className="final-content">
+      <motion.section
+        className="bg-gradient-to-br from-black to-purple-950 px-6 py-16"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <p className="section-kicker">Старт</p>
-            <h2>Готов начать свой трек развития?</h2>
-            <p className="section-sub">Ответь на 10 вопросов — мы соберём маршрут под тебя.</p>
+            <p className="text-sm uppercase tracking-[0.2em] text-purple-300 font-semibold">Модули платформы</p>
+            <h2 className="text-3xl font-bold">Что внутри NOESIS</h2>
           </div>
-          <div className="final-actions">
-            <Link className="primary hero-cta" to="/track-quiz">
-              Начать
-            </Link>
-            <Link className="ghost" to="/auth">
-              Уже есть аккаунт? Войти
-            </Link>
-          </div>
+          <Link
+            to="/dashboard"
+            className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100"
+          >
+            Смотреть трек →
+          </Link>
         </div>
-      </section>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {modules.map((mod) => (
+            <Link
+              key={mod.title}
+              to={mod.to}
+              className="bg-[#1f1f2f] p-6 rounded-xl shadow-md hover:shadow-purple-500/20 transition border border-white/5 hover:border-purple-400/30"
+            >
+              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-400" />
+                {mod.title}
+              </h3>
+              <p className="text-gray-400 text-sm mb-4">{mod.desc}</p>
+              <span className="inline-flex items-center gap-2 text-sm text-purple-300 font-semibold">Перейти →</span>
+            </Link>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="px-6 py-16 bg-black"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-6">Для кого это</h2>
+        <p className="text-lg text-gray-300 mb-6">
+          NOESIS подходит подросткам 13–20 лет, которые хотят расти, прокачивать мышление, не терять фокус и реализовывать идеи.
+        </p>
+        <ul className="list-disc list-inside space-y-2 text-gray-400">
+          {audience.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </motion.section>
+
+      <motion.section
+        className="bg-purple-950 text-white px-6 py-16"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-6">Почему нам верят</h2>
+        <div className="grid md:grid-cols-2 gap-6">
+          {stats.map((item) => (
+            <Stat key={item.label} {...item} />
+          ))}
+        </div>
+        <div className="mt-8 space-y-4 text-sm text-gray-200">
+          {testimonials.map((quote) => (
+            <blockquote key={quote} className="border-l-4 border-purple-300 pl-4">{quote}</blockquote>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="px-6 py-16 text-center bg-black"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-3xl font-bold mb-4">Готов начать свой путь?</h2>
+        <p className="text-gray-400 mb-6">Ответь на 10 вопросов — мы соберём маршрут под тебя.</p>
+        <Link
+          to="/track-quiz"
+          className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-full font-semibold text-white transition inline-block"
+        >
+          Начать путь роста →
+        </Link>
+      </motion.section>
+
+      <footer className="text-center text-sm text-gray-500 py-6 bg-[#0a0a1a]">© 2025 NOESIS • Все права защищены</footer>
     </div>
   );
-};
+}
 
-export default Landing;
+function Step({ number, title, text }) {
+  return (
+    <div className="bg-[#1e1e2f] p-6 rounded-xl shadow-md border border-white/5">
+      <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+        <span className="inline-block w-8 h-8 rounded-full bg-purple-500/20 text-purple-200 font-bold grid place-items-center">
+          #{number}
+        </span>
+        {title}
+      </h3>
+      <p className="text-gray-400">{text}</p>
+    </div>
+  );
+}
+
+function Stat({ number, label }) {
+  return (
+    <div className="bg-[#2a1a3a] p-6 rounded-xl shadow-md text-center border border-purple-300/20">
+      <p className="text-2xl font-bold text-purple-200">{number}</p>
+      <p className="text-sm text-gray-300">{label}</p>
+    </div>
+  );
+}
