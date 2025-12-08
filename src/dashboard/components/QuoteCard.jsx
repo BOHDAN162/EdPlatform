@@ -1,0 +1,39 @@
+import React, { useMemo } from "react";
+
+const quotes = [
+  {
+    text: "Люди, которые достаточно безумны, чтобы думать, что они могут изменить мир, обычно так и делают.",
+    author: "Стив Джобс",
+  },
+  {
+    text: "Движение важнее идеальной траектории. Сделай шаг — поймешь дорогу.",
+    author: "NOESIS",
+  },
+  {
+    text: "Серию строят маленькие победы. Отмечай их честно.",
+    author: "NOESIS",
+  },
+  {
+    text: "Качество вопросов определяет качество ответов.",
+    author: "Тони Роббинс",
+  },
+  {
+    text: "Мы становимся тем, что делаем регулярно.",
+    author: "Шон Кови",
+  },
+];
+
+const QuoteCard = ({ seed = 0 }) => {
+  const quote = useMemo(() => quotes[seed % quotes.length], [seed]);
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg">
+      <div className="absolute right-6 top-4 text-4xl text-[#8A3FFC]/70">“</div>
+      <p className="text-lg font-semibold text-white">{quote.text}</p>
+      <p className="mt-3 text-sm text-white/60">{quote.author}</p>
+      <div className="mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[#8A3FFC] via-[#c084fc] to-[#22d3ee]" />
+    </div>
+  );
+};
+
+export default QuoteCard;

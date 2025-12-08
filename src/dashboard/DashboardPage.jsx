@@ -1,19 +1,20 @@
 import React, { useMemo, useState } from "react";
-import DashboardHero from "./components/DashboardHero";
-import GrowthProgressCard from "./components/GrowthProgressCard";
-import TodayMissionCard from "./components/TodayMissionCard";
-import WeeklyTrack from "./components/WeeklyTrack";
-import RecommendationsPanel from "./components/RecommendationsPanel";
-import AchievementsFeed from "./components/AchievementsFeed";
-import CommunitySnapshot from "./components/CommunitySnapshot";
-import MoodSelector from "./components/MoodSelector";
-import WeeklyCalendar from "./components/WeeklyCalendar";
-import WeeklyProgressSummary from "./components/WeeklyProgressSummary";
+import { useNavigate } from "../routerShim";
 import { materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
 import { getLevelFromPoints, progressToNextStatus } from "../gamification";
-import { useNavigate } from "../routerShim";
-import HabitDashboardWidget from "../habits/HabitDashboardWidget";
+import GreetingHero from "./components/GreetingHero";
+import QuoteCard from "./components/QuoteCard";
+import ProgressPanel from "./components/ProgressPanel";
+import WeeklyRoadmap from "./components/WeeklyRoadmap";
+import FocusMission from "./components/FocusMission";
+import HabitPreview from "./components/HabitPreview";
+import MoodReflection from "./components/MoodReflection";
+import ContentRail from "./components/ContentRail";
+import ActivityHistory from "./components/ActivityHistory";
+import CommunityPulse from "./components/CommunityPulse";
+import InsightCard from "./components/InsightCard";
+import AchievementsStream from "./components/AchievementsStream";
 
 const DashboardPage = ({
   user,
@@ -27,10 +28,10 @@ const DashboardPage = ({
   activityByDate = {},
   community = [],
   streakInfo,
-  completedThisWeek = 0,
 }) => {
   const navigate = useNavigate();
-  const [mood, setMood] = useState("ok");
+  const [mood, setMood] = useState("happy");
+  const [morningMode, setMorningMode] = useState(true);
 
   const missionStates = useMemo(
     () =>
@@ -117,44 +118,31 @@ const DashboardPage = ({
     });
   }, [activityByDate, activityFeed]);
 
-  const weeklySummary = useMemo(() => {
-    const graph = weeklyTrack.map((day) => Math.max(1, Math.round((day.completed / Math.max(1, day.planned)) * 8)));
-    return {
-      missions: missionCompletedCount,
-      materials: completedMaterials,
-      xp: gamification?.totalPoints || 0,
-      streak: streakCount,
-      graph,
-    };
-  }, [completedMaterials, gamification?.totalPoints, missionCompletedCount, streakCount, weeklyTrack]);
-
   const recommendedMaterials = useMemo(
     () =>
       materials
-        .slice(0, 3)
+        .slice(0, 5)
         .map((material) => ({
           ...material,
           duration: material.estimatedTime ? `${material.estimatedTime} мин` : "коротко",
           typeLabel: material.type === "course" ? "Курс" : material.type === "article" ? "Статья" : "Тест",
           to: `/material/${material.id}`,
+          badge: "Учёба",
         })),
     []
   );
 
   const recommendedGames = [
-    { id: "logic", title: "MindGame: Фокус", description: "5 вопросов на внимание и скорость", best: "+320 XP", to: "/library" },
-    { id: "finance", title: "MindGame: Финансы", description: "Практика решений с деньгами", best: "+280 XP", to: "/library" },
+    { id: "logic", title: "MindGame: Фокус", description: "5 вопросов на внимание", duration: "7 мин", typeLabel: "MindGame", to: "/library", badge: "Игра" },
+    { id: "finance", title: "MindGame: Финансы", description: "Практика решений", duration: "10 мин", typeLabel: "MindGame", to: "/library", badge: "Игра" },
   ];
-
-  const recommendedMaterial = recommendedMaterials[0];
-  const recommendedGame = recommendedGames[0];
 
   const achievementTimeline = useMemo(() => {
     if (activityFeed?.length) return activityFeed;
     return [
-      { id: "a1", title: "Завершил 2 миссии и прошёл MindGame «Фокус»", type: "Сегодня" },
-      { id: "a2", title: "Добавлена новая запись в Память", type: "Вчера" },
-      { id: "a3", title: "Ответ в сообществе отмечен как лучший", type: "Недавно" },
+      { id: "a1", title: "Завершил 2 миссии и прошёл MindGame «Фокус»", type: "Сегодня", points: "+220 XP" },
+      { id: "a2", title: "Добавлена новая запись в Память", type: "Вчера", points: "+60 XP" },
+      { id: "a3", title: "Ответ в сообществе отмечен как лучший", type: "Недавно", points: "+80 XP" },
     ];
   }, [activityFeed]);
 
@@ -171,30 +159,23 @@ const DashboardPage = ({
       { id: "c1", name: "Аня, 16", action: "Проходит миссию про цели", tag: "миссии" },
       { id: "c2", name: "Влад, 18", action: "Набрал 340 XP в MindGame", tag: "игра" },
       { id: "c3", name: "Соня, 15", action: "Делится заметкой в Памяти", tag: "память" },
+      { id: "c4", name: "Марк, 17", action: "Запустил новый трек", tag: "трек" },
     ];
   }, [community]);
 
-  const calendarEvents = useMemo(() => {
-    const generated = trackData?.generatedTrack || [];
-    const mapped = generated.slice(0, 4).map((item, idx) => {
-      const date = new Date();
-      date.setDate(date.getDate() + idx + 1);
-      return {
-        id: item.id || `event-${idx}`,
-        day: date.getDate(),
-        month: date.toLocaleDateString("ru-RU", { month: "short" }),
-        title: item.title || "Шаг трека",
-        description: item.description || "Задание из твоего трека",
-        tag: "трек",
-      };
-    });
-    if (mapped.length) return mapped;
-    return [
-      { id: "e1", day: "Сегодня", month: "", title: "Мини-квиз по финансам", description: "15 минут", tag: "тест" },
-      { id: "e2", day: "Завтра", month: "", title: "MindGame спринт", description: "5 сценариев", tag: "mindgame" },
-      { id: "e3", day: "Суббота", month: "", title: "Созвон клуба", description: "Комьюнити-ивент", tag: "сообщество" },
-    ];
-  }, [trackData]);
+  const insight = {
+    title: "Заверши миссию до 17:00 — мозг держит высокую энергию",
+    context: "На основе твоих предыдущих сессий и времени входа",
+    action: "Поставь 20 минут фокуса и отметь привычку. Я добавлю +5% к XP",
+    tags: ["фокус", "дисциплина", "мягкий дедлайн"],
+  };
+
+  const achievements = [
+    { id: "m1", title: "Серия 5 дней", subtitle: "Не пропускал активности", reward: "+120 XP", icon: "🔥" },
+    { id: "m2", title: "MindGame Sprint", subtitle: "Сделал 3 игры подряд", reward: "+90 XP", icon: "🎮" },
+    { id: "m3", title: "Память", subtitle: "2 заметки за неделю", reward: "+60 XP", icon: "🧠" },
+    { id: "m4", title: "Миссии", subtitle: "3/4 закрытых", reward: "+110 XP", icon: "🎯" },
+  ];
 
   const handleContinue = () => {
     if (todayMission?.link) {
@@ -204,27 +185,41 @@ const DashboardPage = ({
     navigate("/missions");
   };
 
-  return (
-    <div className="dashboard-shell">
-      <div className="dashboard-layout">
-        <div className="dashboard-main">
-          <DashboardHero user={user} streak={streakInfo} mood={mood} onContinue={handleContinue} />
-          <GrowthProgressCard stats={stats} />
-          <HabitDashboardWidget />
-          <WeeklyProgressSummary summary={weeklySummary} />
-          <WeeklyTrack week={weeklyTrack} />
-          <div className="dashboard-row">
-            <AchievementsFeed feed={achievementTimeline} />
-            <CommunitySnapshot items={communitySnapshot} />
-          </div>
-        </div>
+  const handleReflect = (entry) => {
+    console.log("Reflection saved", entry);
+  };
 
-        <aside className="dashboard-aside">
-          <TodayMissionCard mission={todayMission} onStart={handleContinue} />
-          <RecommendationsPanel material={recommendedMaterial} game={recommendedGame} insightLink="/memory" />
-          <WeeklyCalendar events={calendarEvents} />
-          <MoodSelector onChange={setMood} />
-        </aside>
+  return (
+    <div className="space-y-6 pb-10">
+      <GreetingHero
+        user={user}
+        streak={streakCount}
+        level={getLevelFromPoints(gamification?.totalPoints || 0).level}
+        xp={gamification?.totalPoints || 0}
+        role={progressToNextStatus(gamification?.totalPoints || 0).current}
+        morningMode={morningMode}
+        onToggleMode={() => setMorningMode((prev) => !prev)}
+        mood={mood}
+        onMoodChange={setMood}
+      />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="space-y-4">
+          <ProgressPanel xp={gamification?.totalPoints || 0} levelLabel={stats.levelLabel} streakLabel={stats.streakLabel} rings={stats.rings} />
+          <WeeklyRoadmap week={weeklyTrack} />
+          <FocusMission mission={todayMission} onStart={handleContinue} />
+          <HabitPreview />
+          <ContentRail title="Рекомендованный контент" content={recommendedMaterials} />
+          <ContentRail title="MindGames & практика" content={recommendedGames} />
+          <ActivityHistory feed={achievementTimeline} />
+        </div>
+        <div className="space-y-4">
+          <QuoteCard seed={gamification?.totalPoints || 0} />
+          <MoodReflection onChangeMood={setMood} onReflect={handleReflect} />
+          <InsightCard insight={insight} />
+          <CommunityPulse members={communitySnapshot} />
+          <AchievementsStream items={achievements} />
+        </div>
       </div>
     </div>
   );
