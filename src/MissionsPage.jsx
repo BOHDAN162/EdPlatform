@@ -165,7 +165,7 @@ const MissionDetail = ({ mission, progress, onNavigate, onStart, onComplete }) =
       <div className="mission-detail-footer">
         <div>
           <div className="stat-label">Куда идти</div>
-          <p className="meta">{mission.category === "библиотека" ? "Открой материалы или MindGames в библиотеке." : mission.category === "память" ? "Создавай заметки и карточки в разделе Память." : mission.category === "сообщество" ? "Отвечай и помогай ребятам в сообществе." : mission.category === "трек" ? "Проходи шаги своего трека развития." : "Закрывай ежедневные миссии и удерживай серию."}</p>
+          <p className="meta">{mission.category === "библиотека" ? "Открой материалы или MindGames в библиотеке." : mission.category === "память" ? "Создавай заметки и карточки в разделе Память." : mission.category === "сообщество" ? "Отвечай и помогай ребятам в сообществе." : mission.category === "трек" ? "Проходи шаги своего трека развития." : "Закрывай ежедневные задания и удерживай серию."}</p>
         </div>
         <button className="ghost" onClick={onNavigate}>Перейти в раздел</button>
       </div>
@@ -180,7 +180,7 @@ const MissionOverview = ({ gamification, streakCount, completedWeek }) => {
   return (
     <div className="mission-overview">
       <div>
-        <p className="meta subtle">Миссии</p>
+        <p className="meta subtle">Задания</p>
         <h1>Задания и квесты</h1>
         <p className="meta">
           Задания и квесты, которые прокачивают твой уровень, привычки и статус в комьюнити.
@@ -201,7 +201,7 @@ const MissionOverview = ({ gamification, streakCount, completedWeek }) => {
         <div className="overview-card">
           <div className="label">Выполнено за неделю</div>
           <div className="value">{completedWeek}</div>
-          <p className="meta subtle">Миссий закрыто за последние 7 дней.</p>
+          <p className="meta subtle">Заданий закрыто за последние 7 дней.</p>
         </div>
       </div>
     </div>
@@ -273,7 +273,7 @@ const AchievementLegend = () => (
       <p className="meta subtle">Как это работает</p>
       <h3>XP, уровни, streak и ачивки</h3>
       <p className="meta">
-        За каждую миссию ты получаешь XP и продвигаешься по уровням. Серии усиливают награды, а бейджи растут от серого до
+        За каждое задание ты получаешь XP и продвигаешься по уровням. Серии усиливают награды, а бейджи растут от серого до
         изумруда.
       </p>
     </div>
@@ -409,8 +409,8 @@ const MissionsPage = ({
     <div className="page missions-page-v3">
       <div className="missions-hero-v3">
         <div>
-          <p className="meta subtle">Миссии</p>
-          <h1>Миссии</h1>
+          <p className="meta subtle">Задания</p>
+          <h1>Задания</h1>
           <p className="meta">
             Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
           </p>
@@ -429,7 +429,7 @@ const MissionsPage = ({
         <div className="section-head">
           <div>
             <h2>Календарь активности</h2>
-            <p className="meta">Следи за днями с действиями, чтобы удерживать серию и миссии месяца.</p>
+            <p className="meta">Следи за днями с действиями, чтобы удерживать серию и задания месяца.</p>
           </div>
           <div className="chip-row">
             <span className="chip">Активные дни: {activeDays}</span>
@@ -443,7 +443,7 @@ const MissionsPage = ({
       <section className="mission-section">
         <div className="section-head">
           <div>
-            <h2>Миссии по дням</h2>
+            <h2>Задания по дням</h2>
             <p className="meta">Удерживай активные дни и серии — данные из ActivityLog.</p>
           </div>
         </div>
@@ -497,7 +497,7 @@ const MissionsPage = ({
         <div className="section-head">
           <div>
             <h2>На этой неделе</h2>
-            <p className="meta">Средние миссии, чтобы закрепить навыки и собрать XP.</p>
+            <p className="meta">Средние задания, чтобы закрепить навыки и собрать XP.</p>
           </div>
           <div className="section-progress">
             <span>Закрыто {weekCompleted} из {weeklyMissions.length}</span>
@@ -559,8 +559,8 @@ const MissionsPage = ({
       <section className="mission-catalog">
         <div className="section-head">
           <div>
-            <h2>Каталог миссий</h2>
-            <p className="meta">Отфильтруй нужные миссии или изучи детали выбранной задачи.</p>
+            <h2>Каталог заданий</h2>
+            <p className="meta">Отфильтруй нужные задания или изучи детали выбранной задачи.</p>
           </div>
         </div>
         <div className="mission-filter-card">

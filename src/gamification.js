@@ -275,7 +275,7 @@ const baseMessages = {
   material_completed: `+${XP_REWARDS.materialCompleted} XP за материал`,
   test_completed: `+${XP_REWARDS.testCompleted} XP за тест`,
   inline_quiz: `+${XP_REWARDS.inlineQuiz} XP за проверку себя`,
-  mission_completed: `+${XP_REWARDS.missionCompleted} XP за миссию`,
+  mission_completed: `+${XP_REWARDS.missionCompleted} XP за задание`,
   community_answer: `+${XP_REWARDS.communityAnswer} XP за помощь в сообществе`,
   community_best: `+${XP_REWARDS.communityBestAnswer} XP за лучший ответ`,
   mindgame_logic: "+XP за логическую игру",

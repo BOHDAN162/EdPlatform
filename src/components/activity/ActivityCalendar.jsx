@@ -178,7 +178,7 @@ const ActivityCalendar = ({
               <div className="tooltip-value">{detail.completedMaterialsCount || 0}</div>
             </div>
             <div>
-              <div className="tooltip-label">Миссии</div>
+              <div className="tooltip-label">Задания</div>
               <div className="tooltip-value">{detail.missionsCompletedCount || 0}</div>
             </div>
             <div>

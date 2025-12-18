@@ -1,8 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "./routerShim";
+import { Link } from "./routerShim";
 
-// Настройки сохраняем в localStorage для фронтового превью.
-// TODO: заменить на синхронизацию с бэкендом профиля.
+const STORAGE_KEYS = {
+  appearance: "ep_appearance",
+  account: "ep_account_settings",
+  notifications: "ep_notifications",
+  avatar: "ep_avatar_upload",
+};
+
 const loadLocalJSON = (key, fallback) => {
   if (typeof localStorage === "undefined") return fallback;
   try {
@@ -14,373 +19,479 @@ const loadLocalJSON = (key, fallback) => {
   }
 };
 
-const FAQItem = ({ question, answer, open, onToggle }) => (
-  <div className={`faq-item ${open ? "open" : ""}`}>
-    <button className="faq-question" onClick={onToggle}>
-      <span>{question}</span>
-      <span className="faq-icon">{open ? "−" : "+"}</span>
-    </button>
-    {open && <p className="faq-answer">{answer}</p>}
-  </div>
-);
-
 const SettingToggle = ({ label, description, checked, onChange }) => (
-  <div className="preference-row">
+  <label className="preference-row">
     <div className="preference-text">
       <div className="preference-label">{label}</div>
       {description && <p className="meta subtle">{description}</p>}
     </div>
-    <label className="switch">
+    <div className="switch">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       <span className="slider" />
-    </label>
-  </div>
+    </div>
+  </label>
+);
+
+const SectionCard = ({ title, subtitle, children, footer }) => (
+  <section className="card settings-panel modern">
+    <div className="panel-header">
+      <div>
+        <div className="panel-title">{title}</div>
+        {subtitle && <p className="meta">{subtitle}</p>}
+      </div>
+    </div>
+    <div className="space-y-4">{children}</div>
+    {footer}
+  </section>
 );
 
 const accentOptions = [
-  { id: "purple", label: "Фиолетовый", value: "#7c3aed" },
-  { id: "indigo", label: "Сине-фиолетовый", value: "#6366f1" },
-  { id: "blue", label: "Холодный синий", value: "#2563eb" },
-  { id: "teal", label: "Бирюзовый", value: "#0ea5e9" },
-  { id: "emerald", label: "Зелёный", value: "#10b981" },
+  { id: "purple", label: "Фиолетовый", value: "#8A3FFC" },
+  { id: "indigo", label: "Индиго", value: "#6366f1" },
+  { id: "emerald", label: "Изумрудный", value: "#10b981" },
+  { id: "orange", label: "Апельсин", value: "#f59e0b" },
 ];
 
-const themeOptions = [
-  { id: "dark", label: "Тёмная" },
-  { id: "light", label: "Светлая" },
-  { id: "system", label: "Авто (скоро)", disabled: true },
+const fontOptions = [
+  { id: "normal", label: "Обычный размер" },
+  { id: "large", label: "Крупнее", hint: "+2px" },
 ];
 
-const focusOptions = [
-  { id: "missions", label: "Миссии и проекты" },
-  { id: "mindgames", label: "MindGames" },
-  { id: "habits", label: "Трекер привычек" },
-  { id: "library", label: "Библиотека" },
+const tabList = [
+  { id: "appearance", label: "Оформление" },
+  { id: "account", label: "Данные" },
+  { id: "notifications", label: "Уведомления" },
+  { id: "security", label: "Безопасность" },
+  { id: "about", label: "О сервисе" },
 ];
 
-const SettingsPage = ({ theme, setTheme }) => {
-  const navigate = useNavigate();
-  const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-
-  const [appearance, setAppearance] = useState(() =>
-    loadLocalJSON("ep_appearance", { accent: "purple", reduceMotion: false })
+const SettingsPage = ({ theme, setTheme, user, onUserUpdate }) => {
+  const initialAccount = useMemo(
+    () =>
+      loadLocalJSON(STORAGE_KEYS.account, {
+        name: user?.name || "Твое имя",
+        email: user?.email || "you@noesis.app",
+        username: user?.username || "noesis-user",
+      }),
+    [user]
   );
-  const [personalization, setPersonalization] = useState(() =>
-    loadLocalJSON("ep_personalization", {
-      focus: "missions",
-      missionReminder: true,
-      habitReminder: true,
+
+  const [activeTab, setActiveTab] = useState("appearance");
+  const [appearance, setAppearance] = useState(() =>
+    loadLocalJSON(STORAGE_KEYS.appearance, { accent: "purple", reduceMotion: false, fontSize: "normal" })
+  );
+  const [account, setAccount] = useState(initialAccount);
+  const [notifications, setNotifications] = useState(() =>
+    loadLocalJSON(STORAGE_KEYS.notifications, {
+      assignments: true,
+      streak: true,
+      comments: true,
+      newMaterials: true,
+      push: true,
+      email: true,
     })
   );
-  const [privacy, setPrivacy] = useState(() =>
-    loadLocalJSON("ep_privacy", { leaderboard: true, achievements: true, invites: true })
-  );
-
-  const accentChoice = useMemo(
-    () => accentOptions.find((option) => option.id === appearance.accent) || accentOptions[0],
-    [appearance.accent]
-  );
-
-  const faqItems = useMemo(
-    () => [
-      {
-        q: "Как платформа помогает развиваться?",
-        a: "Мы собираем твой маршрут по целям, добавляем практические задания и даём обратную связь, чтобы прогресс был видимым.",
-      },
-      {
-        q: "Что такое трек развития?",
-        a: "Это цепочка материалов, тестов и челленджей под твои цели. Ты видишь шаги и понимаешь, зачем делаешь каждый из них.",
-      },
-      {
-        q: "Как работают streak и серия дней?",
-        a: "Каждый день с активностью продлевает серию. Чем длиннее streak, тем больше бонусов и уважения в сообществе.",
-      },
-      {
-        q: "Как сменить пароль и данные профиля?",
-        a: "Пароль можно обновить здесь, а данные профиля редактируются в аккаунте и сохраняются мгновенно.",
-      },
-      {
-        q: "К кому обратиться, если что-то не работает?",
-        a: "Напиши в поддержку или в чат сообщества — ответим и поможем разобраться.",
-      },
-    ],
-    []
-  );
-
-  const [openFaq, setOpenFaq] = useState([0]);
+  const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
+  const [avatarPreview, setAvatarPreview] = useState(() => localStorage.getItem(STORAGE_KEYS.avatar) || "");
+  const [feedback, setFeedback] = useState({ appearance: "", account: "", notifications: "", security: "" });
+  const [errors, setErrors] = useState({ avatar: "", password: "" });
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      document.documentElement.style.setProperty("--accent", accentChoice.value);
+      document.documentElement.style.setProperty("--accent", accentOptions.find((o) => o.id === appearance.accent)?.value || "#8A3FFC");
       document.body.dataset.reduceMotion = appearance.reduceMotion ? "on" : "off";
+      document.body.dataset.fontScale = appearance.fontSize;
     }
-    localStorage.setItem("ep_appearance", JSON.stringify(appearance));
-  }, [appearance, accentChoice]);
+    localStorage.setItem(STORAGE_KEYS.appearance, JSON.stringify(appearance));
+  }, [appearance]);
 
   useEffect(() => {
-    localStorage.setItem("ep_personalization", JSON.stringify(personalization));
-  }, [personalization]);
+    localStorage.setItem(STORAGE_KEYS.account, JSON.stringify(account));
+  }, [account]);
 
   useEffect(() => {
-    localStorage.setItem("ep_privacy", JSON.stringify(privacy));
-  }, [privacy]);
+    localStorage.setItem(STORAGE_KEYS.notifications, JSON.stringify(notifications));
+  }, [notifications]);
 
-  const handlePasswordChange = (field, value) => {
-    setPasswordForm((prev) => ({ ...prev, [field]: value }));
-    setPasswordError("");
-    setPasswordSuccess("");
+  const handleAccentSelect = (id) => {
+    setAppearance((prev) => ({ ...prev, accent: id }));
+    setFeedback((prev) => ({ ...prev, appearance: "Цвет акцента сохранён" }));
+  };
+
+  const handleFontSelect = (id) => {
+    setAppearance((prev) => ({ ...prev, fontSize: id }));
+    setFeedback((prev) => ({ ...prev, appearance: "Размер шрифта применён" }));
+  };
+
+  const handleAvatarUpload = (file) => {
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, avatar: "Размер файла должен быть до 2 МБ" }));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const preview = reader.result;
+      setAvatarPreview(preview);
+      localStorage.setItem(STORAGE_KEYS.avatar, preview);
+      setErrors((prev) => ({ ...prev, avatar: "" }));
+      setFeedback((prev) => ({ ...prev, account: "Аватар обновлён" }));
+      if (onUserUpdate) {
+        onUserUpdate({ ...(user || {}), avatar: preview });
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    setPasswordError("");
-    setPasswordSuccess("");
-
-    if (passwordForm.next.length < 6) {
-      setPasswordError("Новый пароль должен быть не короче 6 символов.");
+    if (passwords.next.length < 6) {
+      setErrors((prev) => ({ ...prev, password: "Новый пароль должен быть длиннее 6 символов" }));
       return;
     }
-
-    if (passwordForm.next !== passwordForm.confirm) {
-      setPasswordError("Пароли не совпадают.");
+    if (passwords.next !== passwords.confirm) {
+      setErrors((prev) => ({ ...prev, password: "Пароли не совпадают" }));
       return;
     }
-
-    localStorage.setItem("ep_mock_password", passwordForm.next);
-    setPasswordSuccess("Пароль успешно обновлён");
-    setPasswordForm({ current: "", next: "", confirm: "" });
+    setErrors((prev) => ({ ...prev, password: "" }));
+    setPasswords({ current: "", next: "", confirm: "" });
+    setFeedback((prev) => ({ ...prev, security: "Пароль обновлён" }));
   };
 
-  const handleThemeSelect = (option) => {
-    if (option.disabled) return;
-    setTheme(option.id);
-    // TODO: добавить автоопределение темы при support "system".
+  const handleAccountSave = () => {
+    setFeedback((prev) => ({ ...prev, account: "Данные сохранены" }));
+    if (onUserUpdate) {
+      onUserUpdate({ ...(user || {}), name: account.name, email: account.email, username: account.username, avatar: avatarPreview });
+    }
   };
 
-  const handleAccentSelect = (option) => {
-    setAppearance((prev) => ({ ...prev, accent: option.id }));
+  const handleNotificationsSave = () => {
+    setFeedback((prev) => ({ ...prev, notifications: "Предпочтения уведомлений сохранены" }));
   };
 
-  const handleReduceMotionToggle = (value) => {
-    setAppearance((prev) => ({ ...prev, reduceMotion: value }));
+  const handleAppearanceSave = (themeId) => {
+    if (themeId) {
+      setTheme(themeId);
+    }
+    setFeedback((prev) => ({ ...prev, appearance: "Оформление обновлено" }));
   };
 
-  const handleFocusChange = (id) => {
-    setPersonalization((prev) => ({ ...prev, focus: id }));
-  };
+  const appearanceTab = (
+    <>
+      <SectionCard
+        title="Тема и акцент"
+        subtitle="Переключай тёмную/светлую тему и выбирай цветовой акцент."
+        footer={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="meta subtle">{feedback.appearance}</div>
+            <button className="primary" onClick={() => handleAppearanceSave()}>
+              Сохранить изменения
+            </button>
+          </div>
+        }
+      >
+        <div className="flex flex-wrap gap-3">
+          {["dark", "light"].map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={`theme-option ${theme === mode ? "active" : ""}`}
+              onClick={() => handleAppearanceSave(mode)}
+            >
+              <div className="theme-option-title">{mode === "dark" ? "Тёмная" : "Светлая"}</div>
+              <p className="meta subtle">{mode === "dark" ? "Фиолетовый акцент и тёмный фон" : "Светлые панели"}</p>
+            </button>
+          ))}
+        </div>
+        <div className="accent-grid">
+          {accentOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`accent-chip ${appearance.accent === option.id ? "active" : ""}`}
+              onClick={() => handleAccentSelect(option.id)}
+            >
+              <span className="accent-dot" style={{ backgroundColor: option.value }} />
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <div className="chip-row">
+          {fontOptions.map((font) => (
+            <button
+              key={font.id}
+              className={`chip ${appearance.fontSize === font.id ? "active" : ""}`}
+              onClick={() => handleFontSelect(font.id)}
+            >
+              {font.label} {font.hint && <span className="meta subtle">{font.hint}</span>}
+            </button>
+          ))}
+        </div>
+        <SettingToggle
+          label="Минимум анимаций"
+          description="Сокращаем движения для комфортного чтения."
+          checked={appearance.reduceMotion}
+          onChange={(value) => setAppearance((prev) => ({ ...prev, reduceMotion: value }))}
+        />
+      </SectionCard>
+    </>
+  );
 
-  const handleReminderToggle = (key, value) => {
-    setPersonalization((prev) => ({ ...prev, [key]: value }));
-  };
+  const accountTab = (
+    <>
+      <SectionCard
+        title="Данные аккаунта"
+        subtitle="Имя, контактный email и короткий ник для карточек."
+        footer={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="meta subtle">{feedback.account}</div>
+            <button className="primary" type="button" onClick={handleAccountSave}>
+              Сохранить данные
+            </button>
+          </div>
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="settings-field">
+            Имя
+            <input value={account.name} onChange={(e) => setAccount((prev) => ({ ...prev, name: e.target.value }))} placeholder="Твоё имя" />
+          </label>
+          <label className="settings-field">
+            Email
+            <input
+              type="email"
+              value={account.email}
+              onChange={(e) => setAccount((prev) => ({ ...prev, email: e.target.value }))}
+              placeholder="you@noesis.app"
+            />
+          </label>
+          <label className="settings-field">
+            Имя пользователя
+            <input
+              value={account.username}
+              onChange={(e) => setAccount((prev) => ({ ...prev, username: e.target.value }))}
+              placeholder="noesis-user"
+            />
+          </label>
+        </div>
+        <div className="avatar-upload">
+          <div>
+            <div className="preference-label">Аватар</div>
+            <p className="meta subtle">Загрузи квадратное изображение до 2 МБ — превью появится сразу.</p>
+            {errors.avatar && <div className="error">{errors.avatar}</div>}
+            <div className="flex items-center gap-3">
+              <label className="ghost">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  hidden
+                  onChange={(e) => handleAvatarUpload(e.target.files?.[0])}
+                />
+                Загрузить
+              </label>
+              <span className="meta subtle">webp / jpg</span>
+            </div>
+          </div>
+          <div className="avatar-preview">
+            {avatarPreview ? <img src={avatarPreview} alt="avatar preview" /> : <div className="avatar empty">🙂</div>}
+          </div>
+        </div>
+      </SectionCard>
 
-  const handlePrivacyToggle = (key, value) => {
-    setPrivacy((prev) => ({ ...prev, [key]: value }));
+      <SectionCard
+        title="Пароль"
+        subtitle="Минимум 6 символов, раз в несколько месяцев."
+        footer={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="meta subtle">{feedback.security}</div>
+            <button className="primary" type="submit" form="password-form">
+              Сохранить пароль
+            </button>
+          </div>
+        }
+      >
+        <form id="password-form" className="grid gap-4 md:grid-cols-3" onSubmit={handlePasswordSubmit}>
+          <label className="settings-field">
+            Текущий пароль
+            <input
+              type="password"
+              value={passwords.current}
+              onChange={(e) => setPasswords((prev) => ({ ...prev, current: e.target.value }))}
+              placeholder="●●●●●●"
+            />
+          </label>
+          <label className="settings-field">
+            Новый пароль
+            <input
+              type="password"
+              value={passwords.next}
+              onChange={(e) => setPasswords((prev) => ({ ...prev, next: e.target.value }))}
+              placeholder="Минимум 6 символов"
+            />
+          </label>
+          <label className="settings-field">
+            Подтверждение
+            <input
+              type="password"
+              value={passwords.confirm}
+              onChange={(e) => setPasswords((prev) => ({ ...prev, confirm: e.target.value }))}
+              placeholder="Повтори новый пароль"
+            />
+          </label>
+          {errors.password && <div className="error md:col-span-3">{errors.password}</div>}
+        </form>
+      </SectionCard>
+    </>
+  );
+
+  const notificationsTab = (
+    <SectionCard
+      title="Уведомления"
+      subtitle="Выбирай, что напоминать: задания, streak, комментарии и новые материалы."
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="meta subtle">{feedback.notifications}</div>
+          <button className="primary" onClick={handleNotificationsSave}>
+            Сохранить уведомления
+          </button>
+        </div>
+      }
+    >
+      <div className="preference-list">
+        <SettingToggle
+          label="Новые задания"
+          description="Уведомлять о старте свежих квестов."
+          checked={notifications.assignments}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, assignments: value }))}
+        />
+        <SettingToggle
+          label="Напоминания о streak"
+          description="Сигнал перед тем как серия оборвётся."
+          checked={notifications.streak}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, streak: value }))}
+        />
+        <SettingToggle
+          label="Комментарии и ответы"
+          description="Уведомлять, если пришёл ответ или отметили в обсуждении."
+          checked={notifications.comments}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, comments: value }))}
+        />
+        <SettingToggle
+          label="Новые материалы по избранным темам"
+          description="Push или email, когда появляется полезный контент."
+          checked={notifications.newMaterials}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, newMaterials: value }))}
+        />
+        <SettingToggle
+          label="Push-уведомления"
+          description="Мгновенные напоминания в браузере."
+          checked={notifications.push}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, push: value }))}
+        />
+        <SettingToggle
+          label="Email-уведомления"
+          description="Редкие дайджесты и важные изменения."
+          checked={notifications.email}
+          onChange={(value) => setNotifications((prev) => ({ ...prev, email: value }))}
+        />
+      </div>
+    </SectionCard>
+  );
+
+  const securityTab = (
+    <SectionCard
+      title="Безопасность"
+      subtitle="Двухфакторная аутентификация и активные сессии (прототип)."
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="meta subtle">{feedback.security}</div>
+          <button className="primary" onClick={() => setFeedback((prev) => ({ ...prev, security: "Настройки сохранены" }))}>
+            Сохранить
+          </button>
+        </div>
+      }
+    >
+      <SettingToggle
+        label="Включить 2FA"
+        description="Получать код подтверждения при входе."
+        checked={false}
+        onChange={() => {}}
+      />
+      <div className="card subtle">
+        <div className="card-header">Активные сессии</div>
+        <p className="meta subtle">Прототип: текущая сессия отмечена, управление скоро появится.</p>
+      </div>
+    </SectionCard>
+  );
+
+  const aboutTab = (
+    <SectionCard title="О сервисе" subtitle="Версия прототипа, полезные ссылки и поддержка.">
+      <div className="grid gap-3 md:grid-cols-2">
+        <div className="card subtle">
+          <div className="card-header">Версия приложения</div>
+          <p className="meta">v0.8 · обновлено сегодня</p>
+        </div>
+        <div className="card subtle">
+          <div className="card-header">Политика и соглашение</div>
+          <div className="flex gap-3">
+            <Link to="/legal/privacy" className="ghost">Политика конфиденциальности</Link>
+            <Link to="/legal/terms" className="ghost">Пользовательское соглашение</Link>
+          </div>
+        </div>
+      </div>
+      <div className="help-links">
+        <button type="button" className="ghost link-row">
+          <span>Как настроить профиль?</span>
+          <span className="meta subtle">Пошаговая инструкция и чек-лист</span>
+        </button>
+        <button type="button" className="ghost link-row">
+          <span>Написать в поддержку</span>
+          <span className="meta subtle">support@noesis.app</span>
+        </button>
+      </div>
+    </SectionCard>
+  );
+
+  const renderTab = () => {
+    switch (activeTab) {
+      case "appearance":
+        return appearanceTab;
+      case "account":
+        return accountTab;
+      case "notifications":
+        return notificationsTab;
+      case "security":
+        return securityTab;
+      case "about":
+        return aboutTab;
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="page settings-page">
       <div className="settings-page-header">
-        <button className="ghost back-link" onClick={() => navigate("/profile")}>← Назад в профиль</button>
         <div>
-          <h1 className="page-title">Настройки профиля</h1>
-          <p className="meta large">Управляй аккаунтом, внешним видом и персонализацией платформы.</p>
+          <p className="section-kicker">Настройки</p>
+          <h1 className="page-title">Настройки</h1>
+          <p className="meta large">Управляй своим аккаунтом, внешним видом и уведомлениями.</p>
         </div>
       </div>
 
-      <div className="settings-stack">
-        <section className="card settings-panel">
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Аккаунт и безопасность</div>
-              <p className="meta">Данные входа</p>
-            </div>
-          </div>
-          <form className="settings-form wide" onSubmit={handlePasswordSubmit}>
-            <label>
-              Старый пароль
-              <input
-                type="password"
-                value={passwordForm.current}
-                onChange={(e) => handlePasswordChange("current", e.target.value)}
-                placeholder="Введи текущий пароль"
-              />
-            </label>
-            <label>
-              Новый пароль
-              <input
-                type="password"
-                value={passwordForm.next}
-                onChange={(e) => handlePasswordChange("next", e.target.value)}
-                placeholder="Минимум 6 символов"
-              />
-            </label>
-            <label>
-              Подтверждение пароля
-              <input
-                type="password"
-                value={passwordForm.confirm}
-                onChange={(e) => handlePasswordChange("confirm", e.target.value)}
-                placeholder="Повтори новый пароль"
-              />
-            </label>
-            {passwordError && <div className="error">{passwordError}</div>}
-            {passwordSuccess && <div className="success">{passwordSuccess}</div>}
-            <button className="primary" type="submit">
-              Сохранить пароль
+      <div className="settings-shell">
+        <div className="settings-tabs">
+          {tabList.map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab-chip ${activeTab === tab.id ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
             </button>
-          </form>
-          <p className="meta subtle">
-            Пароль обновляется локально для прототипа. TODO: подключить реальное обновление на backend.
-          </p>
-        </section>
-
-        <section className="card settings-panel">
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Внешний вид и стиль</div>
-              <p className="meta">Внешний вид платформы</p>
-            </div>
-          </div>
-          <div className="theme-options">
-            {themeOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`theme-option ${theme === option.id ? "active" : ""} ${option.disabled ? "disabled" : ""}`}
-                onClick={() => handleThemeSelect(option)}
-              >
-                <div className="theme-option-title">{option.label}</div>
-                {option.disabled && <div className="meta subtle">TODO: подключить авто по системе</div>}
-              </button>
-            ))}
-          </div>
-          <div className="accent-grid">
-            {accentOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`accent-chip ${accentChoice.id === option.id ? "active" : ""}`}
-                onClick={() => handleAccentSelect(option)}
-              >
-                <span className="accent-dot" style={{ backgroundColor: option.value }} />
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <SettingToggle
-            label="Минимум анимаций"
-            description="Рекомендуется, если отвлекают движения интерфейса."
-            checked={appearance.reduceMotion}
-            onChange={handleReduceMotionToggle}
-          />
-          <p className="meta subtle">
-            Выбор темы и цвета сохраняется на устройстве (localStorage). TODO: синхронизировать с аккаунтом.
-          </p>
-        </section>
-
-        <section className="card settings-panel">
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Персонализация развития</div>
-              <p className="meta">Как ты хочешь использовать платформу</p>
-            </div>
-          </div>
-          <div className="focus-grid">
-            {focusOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`focus-chip ${personalization.focus === option.id ? "active" : ""}`}
-                onClick={() => handleFocusChange(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <div className="preference-list">
-            <SettingToggle
-              label="Напоминать о дневной миссии"
-              description="Флаг для будущих пушей/писем с напоминаниями."
-              checked={personalization.missionReminder}
-              onChange={(value) => handleReminderToggle("missionReminder", value)}
-            />
-            <SettingToggle
-              label="Напоминать о трекере привычек"
-              description="Напомнить обновить прогресс и привычки."
-              checked={personalization.habitReminder}
-              onChange={(value) => handleReminderToggle("habitReminder", value)}
-            />
-          </div>
-          <p className="meta subtle">Все значения пока хранятся локально. TODO: отправить выбор на backend.</p>
-        </section>
-
-        <section className="card settings-panel">
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Приватность и социальные настройки</div>
-              <p className="meta">Видимость и взаимодействие</p>
-            </div>
-          </div>
-          <div className="preference-list">
-            <SettingToggle
-              label="Показывать меня в рейтинге и таблице лидеров"
-              description="Имя и XP будут видны другим участникам в рейтингах."
-              checked={privacy.leaderboard}
-              onChange={(value) => handlePrivacyToggle("leaderboard", value)}
-            />
-            <SettingToggle
-              label="Показывать мои достижения другим участникам"
-              description="Публикуем бейджи и прогресс в профиле."
-              checked={privacy.achievements}
-              onChange={(value) => handlePrivacyToggle("achievements", value)}
-            />
-            <SettingToggle
-              label="Разрешать приглашать меня в челленджи и клубы"
-              description="Участники могут звать тебя в совместные активности."
-              checked={privacy.invites}
-              onChange={(value) => handlePrivacyToggle("invites", value)}
-            />
-          </div>
-          <p className="meta subtle">TODO: привязать социальные флаги к профилю пользователя на backend.</p>
-        </section>
-
-        <section className="card settings-panel faq-panel">
-          <div className="panel-header">
-            <div>
-              <div className="panel-title">Помощь и данные</div>
-              <p className="meta">Поддержка и данные</p>
-            </div>
-          </div>
-          <div className="help-links">
-            <button type="button" className="ghost link-row">
-              <span>Как работает трек развития?</span>
-              <span className="meta subtle">Откроем подробный разбор твоего маршрута</span>
-            </button>
-            <button type="button" className="ghost link-row">
-              <span>Как сбросить прогресс?</span>
-              <span className="meta subtle">TODO: добавить подтверждение перед сбросом</span>
-            </button>
-            <button type="button" className="ghost link-row">
-              <span>Как связаться с поддержкой?</span>
-              <span className="meta subtle">TODO: добавить реальный контакт (почта/чат)</span>
-            </button>
-          </div>
-          <div className="faq-list tall">
-            {faqItems.map((item, idx) => (
-              <FAQItem
-                key={item.q}
-                question={item.q}
-                answer={item.a}
-                open={openFaq.includes(idx)}
-                onToggle={() =>
-                  setOpenFaq((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]))
-                }
-              />
-            ))}
-          </div>
-        </section>
+          ))}
+        </div>
+        <div className="settings-stack">{renderTab()}</div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ const badgeSets = {
     { label: "Твой трек", accent: "muted" },
   ],
   missions: [
-    { label: "Миссии 7 дней", accent: "primary" },
+  { label: "Задания 7 дней", accent: "primary" },
     { label: "Серия +5", accent: "success" },
     { label: "+240 XP", accent: "muted" },
   ],

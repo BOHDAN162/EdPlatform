@@ -272,7 +272,7 @@ const MissionsCard = ({ completed = 0, active = 0 }) => {
   const total = completed + active;
   return (
     <div className="insight-card">
-      <div className="insight-title">Миссии выполнено</div>
+      <div className="insight-title">Задания выполнено</div>
       <div className="mission-value">
         <span className="number">{completed}</span>
         <span className="meta subtle">из {total} в прогрессе</span>
@@ -305,7 +305,7 @@ const MissionPlaylistCard = ({ mission, status, onOpen }) => (
   <div className={`hub-card mission ${status}`} onClick={onOpen}>
     <div className="hub-card-top">
       <div>
-        <div className="meta subtle">Миссия недели</div>
+        <div className="meta subtle">Задание недели</div>
         <div className="hub-title">{mission.title}</div>
         <div className="meta">{mission.description}</div>
       </div>
@@ -424,10 +424,10 @@ const ActivityCard = ({ activityLog = [] }) => (
             ? "материал"
             : type === "memoryEntryCreated"
             ? "память"
-            : type === "communityAction"
+          : type === "communityAction"
             ? "сообщество"
             : type === "missionCompleted"
-            ? "миссия"
+            ? "задание"
             : type === "mindgameCompleted"
             ? "mindgame"
             : item.type || "действие";
@@ -663,11 +663,11 @@ const ProfileDashboard = ({
           <div>
             <div className="section-kicker">Твоя панель развития</div>
             <h2>Персональный хаб, как в Spotify</h2>
-            <p className="meta">Миссии недели, рекомендации, мини-игры и достижения в одном месте.</p>
+            <p className="meta">Задания недели, рекомендации, мини-игры и достижения в одном месте.</p>
           </div>
           <div className="ghost-group">
             <button className="ghost" onClick={handleNextAction}>Продолжить трек</button>
-            <button className="ghost" onClick={() => navigate("/missions")}>Все миссии</button>
+            <button className="ghost" onClick={() => navigate("/missions")}>Все задания</button>
           </div>
         </div>
 
@@ -711,14 +711,14 @@ const ProfileDashboard = ({
         <div className="section-heading compact">
           <div>
             <div className="section-kicker">Твой прогресс</div>
-            <h3>Стиль Strava: XP, привычки, миссии за 7 дней</h3>
+            <h3>Стиль Strava: XP, привычки, задания за 7 дней</h3>
           </div>
           <button className="ghost" onClick={() => navigate("/activity")}>Детальный отчёт</button>
         </div>
         <div className="chart-grid">
           <MiniChart title="XP последние 7 дней" data={trends.xp} color="linear-gradient(135deg, #a855f7, #7c3aed)" />
           <MiniChart title="Привычки за день" data={trends.habits} color="linear-gradient(135deg, #bef264, #22c55e)" />
-          <MiniChart title="Активность по миссиям" data={trends.missions} color="linear-gradient(135deg, #22d3ee, #6366f1)" />
+          <MiniChart title="Активность по заданиям" data={trends.missions} color="linear-gradient(135deg, #22d3ee, #6366f1)" />
         </div>
       </div>
 
@@ -749,7 +749,7 @@ const ProfileDashboard = ({
                 <div className="meta">Шаги из твоего маршрута</div>
               </div>
               <div className="summary-item">
-                <div className="meta subtle">Миссии</div>
+                <div className="meta subtle">Задания</div>
                 <div className="summary-value">{missionStats.completed} выполнено</div>
                 <div className="meta">Активных: {missionStats.active}</div>
               </div>
@@ -760,7 +760,7 @@ const ProfileDashboard = ({
               </div>
             </div>
             <div className="summary-actions">
-              <button className="primary" onClick={() => navigate("/missions")}>Перейти в миссии</button>
+              <button className="primary" onClick={() => navigate("/missions")}>Перейти в задания</button>
               <button className="ghost" onClick={() => navigate("/library")}>Открыть библиотеку</button>
             </div>
           </div>
@@ -775,7 +775,7 @@ const ProfileDashboard = ({
           <div className="card">
             <div className="card-header">Быстрые действия</div>
             <div className="quick-actions">
-              <button className="ghost" onClick={() => navigate("/missions")}>Миссии и проекты</button>
+              <button className="ghost" onClick={() => navigate("/missions")}>Задания и проекты</button>
               <button className="ghost" onClick={() => navigate("/community")}>Сообщество</button>
               <button className="ghost" onClick={() => navigate("/memory")}>Память</button>
               <button className="ghost" onClick={() => navigate("/library")}>Библиотека</button>

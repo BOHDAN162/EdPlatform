@@ -5,8 +5,8 @@ const CATEGORY_LABELS = {
   navigation: "Навигация",
   actions: "Мои действия",
   search: "Материалы",
-  missions: "Миссии",
-  user: "Профиль",
+  missions: "Задания",
+  user: "Настройки",
   memory: "Память",
 };
 
@@ -15,8 +15,6 @@ const MAX_VISIBLE = 9;
 const CommandPalette = ({
   open,
   onClose,
-  theme,
-  toggleTheme,
   materials = [],
   missions = [],
   memoryLandmarks = [],
@@ -70,8 +68,8 @@ const CommandPalette = ({
       { id: "nav-home", title: "Go to Главная", subtitle: "Перейти на главную", category: "navigation", action: () => navigate("/") },
       { id: "nav-library", title: "Go to Библиотека", subtitle: "Материалы и MindGames", category: "navigation", action: () => navigate("/library") },
       { id: "nav-community", title: "Go to Сообщество", subtitle: "Общение и вопросы", category: "navigation", action: () => navigate("/community") },
-      { id: "nav-profile", title: "Go to Профиль", subtitle: "Твой прогресс и настройки", category: "navigation", action: () => navigate("/profile") },
-      { id: "nav-missions", title: "Go to Миссии", subtitle: "Все активные квесты", category: "navigation", action: () => navigate("/missions") },
+      { id: "nav-profile", title: "Go to Настройки", subtitle: "Твои данные и темы", category: "navigation", action: () => navigate("/profile") },
+      { id: "nav-missions", title: "Go to Задания", subtitle: "Все активные квесты", category: "navigation", action: () => navigate("/missions") },
       { id: "nav-memory", title: "Go to Память", subtitle: "Город знаний", category: "navigation", action: () => navigate("/memory") },
       {
         id: "action-track",
@@ -91,16 +89,16 @@ const CommandPalette = ({
       {
         id: "action-progress",
         title: "Открыть сегодняшний прогресс",
-        subtitle: "Профиль и миссии",
+        subtitle: "Главная и задания",
         category: "actions",
         action: () => {
-          navigate("/profile");
+          navigate("/");
           onClose();
         },
       },
       {
         id: "action-active-missions",
-        title: "Открыть активные миссии",
+        title: "Открыть активные задания",
         subtitle: "Перейти к заданиям",
         category: "actions",
         action: () => {
@@ -133,19 +131,9 @@ const CommandPalette = ({
         },
       },
       {
-        id: "user-theme",
-        title: "Switch theme",
-        subtitle: theme === "dark" ? "Включить светлую" : "Включить тёмную",
-        category: "user",
-        action: () => {
-          toggleTheme();
-          onClose();
-        },
-      },
-      {
         id: "user-settings",
         title: "Open Settings",
-        subtitle: "Профиль и персонализация",
+        subtitle: "Персонализация и уведомления",
         category: "user",
         action: () => {
           navigate("/profile");
@@ -158,7 +146,7 @@ const CommandPalette = ({
         subtitle: "Все награды и статусы",
         category: "user",
         action: () => {
-          navigate("/profile");
+          navigate("/");
           onClose();
         },
       },
@@ -168,12 +156,12 @@ const CommandPalette = ({
         subtitle: "Серия дней",
         category: "user",
         action: () => {
-          navigate("/profile");
+          navigate("/");
           onClose();
         },
       },
     ],
-    [navigate, nextTrackStep, onClose, theme, toggleTheme]
+    [navigate, nextTrackStep, onClose]
   );
 
   const materialCommands = useMemo(
@@ -279,7 +267,7 @@ const CommandPalette = ({
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Поиск команд, материалов, миссий…"
+            placeholder="Поиск команд, материалов, заданий…"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
@@ -317,4 +305,3 @@ const CommandPalette = ({
 };
 
 export default CommandPalette;
-

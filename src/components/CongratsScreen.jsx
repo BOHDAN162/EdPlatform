@@ -74,7 +74,7 @@ const CongratsScreen = ({ profileResult, onBuild, onRestart }) => {
             Пройти опрос заново
           </button>
           <Link className="ghost" to="/missions">
-            Перейти к миссиям
+            Перейти к заданиям
           </Link>
         </div>
       </div>

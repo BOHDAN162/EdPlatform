@@ -12,7 +12,7 @@ const TodayMissionCard = ({ mission, onStart }) => {
       <div className="section-head">
         <div>
           <p className="meta">Сегодня твой фокус</p>
-          <h3>{mission?.title || "Миссия загрузится"}</h3>
+          <h3>{mission?.title || "Задание загрузится"}</h3>
           <p className="meta subtle">{mission?.description || "Когда данные появятся, здесь будет главная цель дня."}</p>
         </div>
         <div className="pill accent">{mission?.period || "ежедневно"}</div>
@@ -24,7 +24,7 @@ const TodayMissionCard = ({ mission, onStart }) => {
           </div>
           <div className="focus-details">
             <div>
-              <p className="meta subtle">Прогресс миссии</p>
+              <p className="meta subtle">Прогресс задания</p>
               <div className="focus-figure">{percent}%</div>
               <div className="meta subtle">Цель: {target}</div>
             </div>
@@ -48,7 +48,7 @@ const TodayMissionCard = ({ mission, onStart }) => {
           )}
           {isCompleted && <div className="meta subtle">Можно взять бонус-челлендж</div>}
           <Link to="/missions" className="ghost">
-            Все миссии
+            Все задания
           </Link>
         </div>
       </div>

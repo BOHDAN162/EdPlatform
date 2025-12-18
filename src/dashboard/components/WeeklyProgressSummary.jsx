@@ -3,7 +3,7 @@ import React from "react";
 const WeeklyProgressSummary = ({ summary }) => {
   const safeSummary = summary || {};
   const stats = [
-    { label: "Миссий", value: safeSummary.missions ?? 0 },
+    { label: "Заданий", value: safeSummary.missions ?? 0 },
     { label: "Материалов", value: safeSummary.materials ?? 0 },
     { label: "XP", value: safeSummary.xp ?? 0 },
     { label: "Streak", value: safeSummary.streak ?? 0 },

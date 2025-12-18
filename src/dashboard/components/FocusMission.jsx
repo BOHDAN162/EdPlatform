@@ -13,7 +13,7 @@ const FocusMission = ({ mission, onStart }) => {
     <div className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#1a0b2b] via-[#0f172a] to-[#111827] p-5 shadow-lg">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.08em] text-white/60">Миссия дня</p>
+          <p className="text-xs uppercase tracking-[0.08em] text-white/60">Задание дня</p>
           <h3 className="text-xl font-semibold text-white">{mission.title}</h3>
           <p className="text-sm text-white/70">{mission.description}</p>
           <div className="mt-2 flex items-center gap-2 text-xs text-white/60">
@@ -45,7 +45,7 @@ const FocusMission = ({ mission, onStart }) => {
               to="/missions"
               className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:border-[#8A3FFC]/70 hover:text-white"
             >
-              Все миссии
+              Все задания
             </Link>
           </div>
         </div>

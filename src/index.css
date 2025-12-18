@@ -4071,9 +4071,52 @@ body {
   gap: 16px;
 }
 
+.settings-shell {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.settings-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: sticky;
+  top: 92px;
+}
+
+.tab-chip {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--card);
+  color: var(--fg);
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.18s ease;
+}
+
+.tab-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tab-chip.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(138, 63, 252, 0.18);
+  color: var(--accent);
+}
+
 .settings-panel {
   display: grid;
   gap: 14px;
+}
+
+.settings-panel.modern {
+  padding: 18px;
 }
 
 .panel-header {
@@ -4204,6 +4247,59 @@ body {
   gap: 8px;
 }
 
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-field input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: var(--fg);
+}
+
+.settings-field input:focus {
+  outline: 2px solid rgba(138, 63, 252, 0.35);
+  border-color: var(--accent);
+}
+
+.avatar-upload {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card.subtle {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  border-style: dashed;
+}
+
 .link-row {
   width: 100%;
   border-radius: 12px;
@@ -4275,6 +4371,23 @@ body {
 @media (max-width: 960px) {
   .settings-page-header {
     align-items: flex-start;
+  }
+
+  .settings-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-tabs {
+    flex-direction: row;
+    position: relative;
+    top: 0;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .tab-chip {
+    width: auto;
+    white-space: nowrap;
   }
 }
 

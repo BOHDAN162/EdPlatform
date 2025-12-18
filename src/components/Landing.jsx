@@ -13,7 +13,7 @@ const steps = [
   {
     number: 2,
     title: "Получишь свой трек",
-    text: "Соберём маршрут из миссий, игр и материалов.",
+    text: "Соберём маршрут из заданий, игр и материалов.",
   },
   {
     number: 3,
@@ -29,7 +29,7 @@ const modules = [
     to: "/track-quiz",
   },
   {
-    title: "Миссии",
+    title: "Задания",
     desc: "Задачи и челленджи с XP и сериями.",
     to: "/missions",
   },
@@ -62,13 +62,13 @@ const audience = [
 ];
 
 const testimonials = [
-  "Поняла, что мне реально интересно. Миссии короткие — не сливаюсь. — Аня, 15 лет",
+  "Поняла, что мне реально интересно. Задания короткие — не сливаюсь. — Аня, 15 лет",
   "Ребёнок сам напоминает про трек. Видим прогресс, а не просто ролики. — Родитель",
 ];
 
 const stats = [
   { number: "12 400+", label: "часов развития внутри платформы" },
-  { number: "3 200", label: "миссий пройдено подростками" },
+  { number: "3 200", label: "заданий пройдено подростками" },
 ];
 
 export default function Landing() {
@@ -79,7 +79,7 @@ export default function Landing() {
           <p className="text-sm uppercase tracking-[0.2em] text-purple-300 font-semibold">NOESIS • платформа развития</p>
           <h1 className="text-4xl md:text-5xl font-bold leading-tight">Твой трек роста без хаоса</h1>
           <p className="text-lg text-gray-300">
-            Ответь на 10 вопросов — получи личный маршрут и двигайся по миссиям, играм и материалам.
+            Ответь на 10 вопросов — получи личный маршрут и двигайся по заданиям, играм и материалам.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <Link

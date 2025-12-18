@@ -51,12 +51,12 @@ const ResultCard = ({ result, track, onRestart, onGoMissions, onGoLesson }) => {
           <div className="card-header">Твои первые шаги</div>
           {recommendedMission && (
             <div className="mini-mission">
-              <p className="pill outline">Первая миссия</p>
+              <p className="pill outline">Первое задание</p>
               <div className="next-title">{recommendedMission.title}</div>
               <p className="meta">{recommendedMission.description}</p>
               <p className="meta subtle">{recommendedMission.estimatedTime} · +{recommendedMission.xpReward} XP</p>
               <button className="primary" onClick={onGoMissions}>
-                Перейти к миссиям
+                Перейти к заданиям
               </button>
             </div>
           )}
@@ -76,7 +76,7 @@ const ResultCard = ({ result, track, onRestart, onGoMissions, onGoLesson }) => {
 
       <div className="quiz-actions">
         <button className="primary" onClick={onGoMissions}>
-          Перейти к миссиям
+          Перейти к заданиям
         </button>
         {firstMaterial && (
           <button className="ghost" onClick={() => onGoLesson(firstMaterial.id)}>
@@ -154,14 +154,14 @@ const OnboardingPage = ({ user, trackData, onSaveTrack, onRetake }) => {
         <div>
           <p className="hero-kicker">Сформируем твой трек развития</p>
           <h1>Соберём твой трек развития</h1>
-          <p className="meta">Ответь честно на 10 вопросов — и мы подберём миссии и материалы под тебя.</p>
+          <p className="meta">Ответь честно на 10 вопросов — и мы подберём задания и материалы под тебя.</p>
         </div>
         {hasExistingTrack && showQuiz && (
           <div className="card compact">
             <div className="card-header">Ты уже проходил опрос</div>
-            <p className="meta">Хочешь обновить маршрут или вернуться к текущим миссиям?</p>
+            <p className="meta">Хочешь обновить маршрут или вернуться к текущим заданиям?</p>
             <div className="chip-row">
-              <button className="ghost" onClick={() => navigate("/missions")}>Перейти к миссиям</button>
+              <button className="ghost" onClick={() => navigate("/missions")}>Перейти к заданиям</button>
               <button className="primary" onClick={restart}>Перепройти опрос</button>
             </div>
           </div>
