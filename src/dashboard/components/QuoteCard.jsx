@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 
-const quotes = [
+export const quotePool = [
   {
     text: "Люди, которые достаточно безумны, чтобы думать, что они могут изменить мир, обычно так и делают.",
     author: "Стив Джобс",
@@ -24,7 +24,7 @@ const quotes = [
 ];
 
 const QuoteCard = ({ seed = 0 }) => {
-  const quote = useMemo(() => quotes[seed % quotes.length], [seed]);
+  const quote = useMemo(() => quotePool[seed % quotePool.length], [seed]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg">
