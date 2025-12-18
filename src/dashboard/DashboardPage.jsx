@@ -132,10 +132,11 @@ const DashboardPage = ({
     { id: "finance", title: "MindGame: Финансы", description: "Практика решений", duration: "10 мин", typeLabel: "MindGame", to: "/library", badge: "Игра" },
   ];
 
-  const heroQuote = useMemo(
-    () => quotePool[(gamification?.totalPoints || 0) % quotePool.length],
-    [gamification?.totalPoints]
-  );
+  const heroQuote = useMemo(() => {
+    if (!quotePool?.length) return null;
+    const index = Math.floor(Math.random() * quotePool.length);
+    return quotePool[index];
+  }, []);
 
   const communitySnapshot = useMemo(() => {
     if (community?.length) {
