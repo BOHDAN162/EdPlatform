@@ -81,8 +81,8 @@ export function useSmartCommands({
     if (inactiveDays >= 3) {
       commands.push({
         id: "smart-warmup-mission",
-        title: "Вернуться в строй: начнём с лёгкой миссии",
-        description: "Открой раздел миссий и выбери простой шаг",
+        title: "Вернуться в строй: начнём с лёгкого задания",
+        description: "Открой раздел заданий и выбери простой шаг",
         category: "Рекомендации",
         priority: 90,
         action: { type: "navigate", to: "/missions" },
@@ -105,9 +105,9 @@ export function useSmartCommands({
         if (remaining <= 1) {
           commands.push({
             id: `smart-mission-${mission.id}`,
-            title: `Закончить миссию “${mission.title}” — осталось ${remaining} действие`,
-            description: "Открыть миссии и закрыть задачу",
-            category: "Миссии",
+            title: `Закончить задание “${mission.title}” — осталось ${remaining} действие`,
+            description: "Открыть задания и закрыть задачу",
+            category: "Задания",
             priority: 80,
             action: { type: "navigate", to: "/missions", meta: { focusMissionId: mission.id } },
           });
@@ -168,13 +168,13 @@ export function useSmartCommands({
     }
 
     // 7. Mission heavy, library light
-    const missionActions = activityLog?.filter((item) => ["миссия", "missionCompleted"].includes(item.type))?.length || 0;
+    const missionActions = activityLog?.filter((item) => ["задание", "missionCompleted"].includes(item.type))?.length || 0;
     const libraryActions = activityLog?.filter((item) => ["материал", "materialCompleted"].includes(item.type))?.length || 0;
     if (missionActions > 2 && libraryActions < 2) {
       commands.push({
         id: "smart-library-pick",
-        title: "Подобрать короткий материал под миссии",
-        description: "Выберем лёгкий урок, чтобы ускорить миссии",
+        title: "Подобрать короткий материал под задания",
+        description: "Выберем лёгкий урок, чтобы ускорить задания",
         category: "Библиотека",
         priority: 55,
         action: { type: "navigate", to: "/library" },

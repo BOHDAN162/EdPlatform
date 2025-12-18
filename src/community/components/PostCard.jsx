@@ -5,7 +5,7 @@ const typeMeta = {
   progress: { label: "Прогресс", emoji: "📈" },
   announcement: { label: "Анонс", emoji: "📣" },
   story: { label: "История", emoji: "🎯" },
-  mission_share: { label: "Миссия", emoji: "🚀" },
+  mission_share: { label: "Задание", emoji: "🚀" },
   question: { label: "Вопрос", emoji: "❓" },
   generic: { label: "Активность", emoji: "✨" },
 };
@@ -27,7 +27,7 @@ const PostCard = ({ post, clubName, onLike }) => {
       <div className="post-body">
         <div className="post-title">{post.title}</div>
         <p className="meta">{post.content || post.body}</p>
-        {post.relatedMissionId && <span className="pill subtle">Миссия</span>}
+        {post.relatedMissionId && <span className="pill subtle">Задание</span>}
         {post.relatedMaterialId && <span className="pill subtle">Урок</span>}
       </div>
       <div className="post-footer">

@@ -174,7 +174,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             <li>Статусы «Помогатор» и «Ментор» открываются за стабильную активность.</li>
           </ul>
           <div className="mission-highlight">
-            <p className="meta">Миссии с упором на комьюнити</p>
+            <p className="meta">Задания с упором на комьюнити</p>
             <div className="chip-column">
               {highlightMissions.map((mission) => (
                 <Link key={mission.id} className="pill outline" to="/missions">

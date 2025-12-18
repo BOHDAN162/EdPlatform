@@ -53,7 +53,7 @@ const ProgressPanel = ({ xp, levelLabel, streakLabel, rings }) => (
           to="/profile"
           className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 transition hover:border-[#8A3FFC]/70 hover:text-white"
         >
-          В профиль
+          В настройки
         </Link>
       </div>
       <div className="grid grid-cols-2 gap-3">

@@ -346,7 +346,7 @@ const MaterialPage = ({
                 <p className="meta">Посмотри похожие материалы по теме {theme.title}.</p>
                 <div className="next-actions">
                   <Link className="ghost" to="/library">Вернуться в библиотеку</Link>
-                  <button className="primary outline" onClick={() => navigate("/missions")}>Вернуться в миссии</button>
+                  <button className="primary outline" onClick={() => navigate("/missions")}>Вернуться в задания</button>
                 </div>
               </>
             )}

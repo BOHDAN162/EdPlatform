@@ -5,7 +5,7 @@ const filters = [
   { id: "all", label: "Все" },
   { id: "my", label: "Мои клубы" },
   { id: "achievement", label: "Достижения" },
-  { id: "mission_share", label: "Миссии" },
+  { id: "mission_share", label: "Задания" },
   { id: "question", label: "Вопросы" },
   { id: "announcement", label: "Анонсы" },
 ];

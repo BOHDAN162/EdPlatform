@@ -69,12 +69,12 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
           <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 shadow-lg">
             <p className="text-xs uppercase tracking-[0.12em] text-white/60">Совет от платформы</p>
             <p className="mt-2 text-base font-semibold text-white">{insight?.title || "Продолжи главный шаг на сегодня"}</p>
-            <p className="mt-1 text-sm text-white/60">{insight?.context || "Открой миссии и закрой одну задачу, чтобы удержать серию."}</p>
+            <p className="mt-1 text-sm text-white/60">{insight?.context || "Открой задания и закрой одну задачу, чтобы удержать серию."}</p>
             <Link
               to={insight?.to || "/missions"}
               className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#8A3FFC] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#8A3FFC]/30 transition hover:-translate-y-0.5"
             >
-              {insight?.cta || "Продолжить миссию"}
+              {insight?.cta || "Продолжить задание"}
               <span className="text-xs">→</span>
             </Link>
           </div>

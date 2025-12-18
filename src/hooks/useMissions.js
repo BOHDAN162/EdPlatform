@@ -34,7 +34,7 @@ const loadProgress = (userId) => {
     if (!raw) return {};
     return JSON.parse(raw);
   } catch (err) {
-    console.warn("Не удалось загрузить прогресс миссий", err);
+    console.warn("Не удалось загрузить прогресс заданий", err);
     return {};
   }
 };

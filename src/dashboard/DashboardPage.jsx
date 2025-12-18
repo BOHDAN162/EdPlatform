@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "../routerShim";
-import { materials } from "../libraryData";
+import { learningPaths, materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
 import { getLevelFromPoints, progressToNextStatus } from "../gamification";
+import { getPathProgress } from "../progress";
 import GreetingHero from "./components/GreetingHero";
 import { quotePool } from "./components/QuoteCard";
 import WeeklyRoadmap from "./components/WeeklyRoadmap";
@@ -43,6 +44,11 @@ const DashboardPage = ({
     return activeDaily || missionStates[0];
   }, [missionStates]);
 
+  const levelInfo = useMemo(
+    () => getLevelFromPoints(gamification?.totalPoints || 0),
+    [gamification?.totalPoints]
+  );
+
   const completedMaterials = progress.completedMaterialIds?.length || 0;
   const missionCompletedCount = missionStates.filter((m) => m.progress.status === "completed").length;
   const streakCount = streakInfo?.current || streakInfo?.count || 0;
@@ -59,7 +65,7 @@ const DashboardPage = ({
       {
         label: "Действия",
         value: Math.min(100, Math.round((missionCompletedCount / Math.max(1, missions.length)) * 100)),
-        hint: `${missionCompletedCount} из ${missions.length} миссий`,
+        hint: `${missionCompletedCount} из ${missions.length} заданий`,
         color: "#22c55e",
         to: "/missions",
       },
@@ -102,7 +108,7 @@ const DashboardPage = ({
         completed,
         progress: progressValue,
         status,
-        focus: progressValue >= 80 ? "Отлично" : "Миссии + рефлексия",
+        focus: progressValue >= 80 ? "Отлично" : "Задания + рефлексия",
       };
     });
   }, [activityByDate, activityFeed]);
@@ -141,7 +147,7 @@ const DashboardPage = ({
       }));
     }
     return [
-      { id: "c1", name: "Аня, 16", action: "Проходит миссию про цели", tag: "миссии" },
+      { id: "c1", name: "Аня, 16", action: "Проходит задание про цели", tag: "задания" },
       { id: "c2", name: "Влад, 18", action: "Набрал 340 XP в MindGame", tag: "игра" },
       { id: "c3", name: "Соня, 15", action: "Делится заметкой в Памяти", tag: "память" },
       { id: "c4", name: "Марк, 17", action: "Запустил новый трек", tag: "трек" },
@@ -149,9 +155,9 @@ const DashboardPage = ({
   }, [community]);
 
   const heroInsight = {
-    title: "Заверши миссию до 17:00 — мозг держит высокую энергию",
+    title: "Заверши задание до 17:00 — мозг держит высокую энергию",
     context: "На основе твоих предыдущих сессий и времени входа",
-    cta: "Перейти к миссиям",
+    cta: "Перейти к заданиям",
     to: "/missions",
   };
 
@@ -159,7 +165,44 @@ const DashboardPage = ({
     { id: "m1", title: "Серия 5 дней", subtitle: "Не пропускал активности", reward: "+120 XP", icon: "🔥" },
     { id: "m2", title: "MindGame Sprint", subtitle: "Сделал 3 игры подряд", reward: "+90 XP", icon: "🎮" },
     { id: "m3", title: "Память", subtitle: "2 заметки за неделю", reward: "+60 XP", icon: "🧠" },
-    { id: "m4", title: "Миссии", subtitle: "3/4 закрытых", reward: "+110 XP", icon: "🎯" },
+    { id: "m4", title: "Задания", subtitle: "3/4 закрытых", reward: "+110 XP", icon: "🎯" },
+  ];
+
+  const pathCards = useMemo(
+    () =>
+      learningPaths.slice(0, 4).map((path) => {
+        const progressInfo = getPathProgress(path, progress?.completedMaterialIds || []);
+        const ratio = progressInfo.totalCount ? Math.round((progressInfo.completedCount / progressInfo.totalCount) * 100) : 0;
+        return { path, ratio, progressInfo };
+      }),
+    [progress?.completedMaterialIds]
+  );
+
+  const recentActivityGrid = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 35 }).map((_, idx) => {
+      const date = new Date();
+      date.setDate(now.getDate() - (34 - idx));
+      const key = date.toISOString().slice(0, 10);
+      const dayActivity = activityByDate?.[key];
+      const count = Array.isArray(dayActivity) ? dayActivity.length : dayActivity?.events?.length || 0;
+      return { key, label: date.getDate(), active: count > 0 };
+    });
+  }, [activityByDate]);
+
+  const quickStats = [
+    { label: "Уровень", value: levelInfo.level, hint: `${levelInfo.toNext} XP до следующего` },
+    { label: "XP всего", value: gamification?.totalPoints || 0, hint: `${progressToNextStatus(gamification?.totalPoints || 0).current}` },
+    { label: "Серия", value: `${streakCount} дн.`, hint: `Лучший: ${streakInfo?.best || streakCount}` },
+    { label: "Материалы", value: completedMaterials, hint: "Закрыто" },
+    { label: "Задания", value: missionCompletedCount, hint: "Готово" },
+    { label: "Тесты", value: gamification.completedTestsCount || 0, hint: "Пройдено" },
+  ];
+
+  const snapshot = [
+    { title: "XP за неделю", value: `${gamification.weeklyXp || 0} XP`, note: "с учётом MindGames" },
+    { title: "Новые материалы", value: `${materials?.slice(0, 3).length} рекомендовано`, note: "смотри Библиотеку" },
+    { title: "Лучший стрик", value: `${streakInfo?.best || streakCount} дней`, note: "держи темп" },
   ];
 
   const handleContinue = () => {
@@ -202,6 +245,122 @@ const DashboardPage = ({
           </div>
           <div className="h-full">
             <AchievementsStream items={achievements} />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="card lg:col-span-2">
+            <div className="card-header">Панель развития</div>
+            <p className="meta">Ключевые показатели и подсказки в одном месте.</p>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              {snapshot.map((item) => (
+                <div key={item.title} className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                  <div className="meta subtle">{item.title}</div>
+                  <div className="text-2xl font-semibold">{item.value}</div>
+                  <div className="meta subtle">{item.note}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header">Уровень и XP</div>
+            <p className="meta">До следующего уровня: {levelInfo.toNext} XP</p>
+            <div className="progress-shell steady mt-2">
+              <div className="progress-fill" style={{ width: `${Math.min(100, levelInfo.progress)}%` }} />
+            </div>
+            <div className="chip-row mt-3">
+              <span className="chip">Уровень {levelInfo.level}</span>
+              <span className="chip ghost">Серия {streakCount} дн.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">Твой прогресс</div>
+          <p className="meta">XP, задания, материалы и серия дней.</p>
+          <div className="grid gap-3 md:grid-cols-3">
+            {quickStats.map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                <div className="meta subtle">{stat.label}</div>
+                <div className="text-xl font-semibold">{stat.value}</div>
+                <div className="meta subtle">{stat.hint}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">Твои треки</div>
+          <p className="meta">Выбери направление и продолжи маршрут.</p>
+          <div className="grid gap-3 md:grid-cols-2">
+            {pathCards.map(({ path, ratio }) => (
+              <button
+                key={path.id}
+                className="rounded-2xl border border-white/5 bg-white/5 p-4 text-left transition hover:border-[#8A3FFC]/50"
+                onClick={() => navigate(`/library/paths/${path.slug}`)}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="meta subtle">{path.title}</div>
+                    <div className="text-sm text-white/70">{path.description}</div>
+                  </div>
+                  <span className="pill outline">{ratio}%</span>
+                </div>
+                <div className="progress-shell steady mt-3">
+                  <div className="progress-fill" style={{ width: `${ratio}%` }} />
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="card md:col-span-2">
+            <div className="card-header">Активные дни</div>
+            <p className="meta">Подсветка последних 5 недель и серии.</p>
+            <div className="grid grid-cols-7 gap-1 rounded-2xl border border-white/5 bg-white/5 p-3">
+              {recentActivityGrid.map((day) => (
+                <div
+                  key={day.key}
+                  className={`h-8 rounded-md ${day.active ? "bg-[#8A3FFC]" : "bg-white/10"}`}
+                  title={`${day.key} · ${day.active ? "Активный" : "Без действий"}`}
+                />
+              ))}
+            </div>
+            <div className="chip-row mt-3">
+              <span className="chip">Серия: {streakCount} дн.</span>
+              <span className="chip ghost">Лучший стрик: {streakInfo?.best || streakCount}</span>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-header">Задания и материалы</div>
+            <div className="grid gap-3">
+              <div className="rounded-xl border border-white/5 bg-white/5 p-3">
+                <div className="meta subtle">Задания</div>
+                <div className="text-2xl font-semibold">{missionCompletedCount}</div>
+                <div className="meta subtle">Выполнено за всё время</div>
+              </div>
+              <div className="rounded-xl border border-white/5 bg-white/5 p-3">
+                <div className="meta subtle">Материалы</div>
+                <div className="text-2xl font-semibold">{completedMaterials}</div>
+                <div className="meta subtle">Закрытые уроки</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-header">Короткий обзор</div>
+          <div className="grid gap-3 md:grid-cols-3">
+            {snapshot.map((item) => (
+              <div key={item.title} className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                <div className="meta subtle">{item.title}</div>
+                <div className="text-xl font-semibold">{item.value}</div>
+                <div className="meta subtle">{item.note}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ const DashboardHero = ({ user, streak, mood = "happy", onContinue }) => {
           </div>
           <div className="metric">
             <span className="metric-label">Фокус сегодня</span>
-            <span className="metric-value">Миссии и MindGames</span>
+            <span className="metric-value">Задания и MindGames</span>
           </div>
         </div>
       </div>

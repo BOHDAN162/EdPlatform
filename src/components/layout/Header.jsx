@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, NavLink } from "../../routerShim";
 import { navLinks } from "../../utils/navigation";
 
-const Header = ({ user, onLogout, theme, toggleTheme }) => {
+const Header = ({ user, onLogout }) => {
   const [open, setOpen] = useState(false);
 
   return (
@@ -27,9 +27,6 @@ const Header = ({ user, onLogout, theme, toggleTheme }) => {
         ))}
       </nav>
       <div className="header-actions">
-        <button className="ghost" onClick={toggleTheme}>
-          {theme === "dark" ? "Тёмная" : "Светлая"}
-        </button>
         {!user && <Link to="/auth" className="primary">Войти</Link>}
         {user && (
           <div className="user-chip">

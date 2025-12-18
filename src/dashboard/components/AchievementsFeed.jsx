@@ -10,7 +10,7 @@ const AchievementsFeed = ({ feed = [] }) => {
         </div>
       </div>
       <div className="timeline">
-        {feed.length === 0 && <p className="meta subtle">Пока нет событий — закрой миссию или материал, чтобы увидеть движение.</p>}
+        {feed.length === 0 && <p className="meta subtle">Пока нет событий — закрой задание или материал, чтобы увидеть движение.</p>}
         {feed.slice(0, 6).map((item) => (
           <div key={item.id} className="timeline-item">
             <div className="timeline-dot" />

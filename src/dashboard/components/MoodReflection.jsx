@@ -55,7 +55,7 @@ const MoodReflection = ({ onChangeMood, onReflect }) => {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           className="min-h-[96px] w-full rounded-2xl border border-white/10 bg-[#0f172a] p-3 text-sm text-white focus:border-[#8A3FFC]/60 focus:outline-none"
-          placeholder="Например: собрался, хочу закрыть миссию и походить 10к шагов"
+          placeholder="Например: собрался, хочу закрыть задание и походить 10к шагов"
         />
         <div className="flex justify-end">
           <button

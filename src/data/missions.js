@@ -182,7 +182,7 @@ export const missions = [
   {
     id: "missions-streak",
     title: "В движении 3 дня подряд",
-    description: "Выполняй хотя бы одну миссию 3 дня подряд.",
+    description: "Выполняй хотя бы одно задание 3 дня подряд.",
     category: "геймификация",
     period: "3-дневная",
     difficulty: "средняя",
@@ -198,7 +198,7 @@ export const missions = [
   {
     id: "missions-week",
     title: "Неделя прогресса",
-    description: "Выполни минимум 5 миссий за неделю.",
+    description: "Выполни минимум 5 заданий за неделю.",
     category: "геймификация",
     period: "недельная",
     difficulty: "сложная",
@@ -262,7 +262,7 @@ export const missions = [
   {
     id: "weekly-xp",
     title: "Получить 200 XP",
-    description: "Закрывай уроки, игры и миссии, чтобы собрать 200 XP за неделю.",
+    description: "Закрывай уроки, игры и задания, чтобы собрать 200 XP за неделю.",
     category: "геймификация",
     period: "недельная",
     difficulty: "сложная",
@@ -293,8 +293,8 @@ export const missions = [
   },
   {
     id: "missions-daily",
-    title: "Миссии дня",
-    description: "Выполни минимум 3 миссии за день.",
+    title: "Задания дня",
+    description: "Выполни минимум 3 задания за день.",
     category: "геймификация",
     period: "ежедневная",
     difficulty: "средняя",

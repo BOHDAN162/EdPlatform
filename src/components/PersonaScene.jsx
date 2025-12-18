@@ -20,7 +20,7 @@ const variants = {
     floaters: ["Курс", "Новая заметка", "MindGame"],
   },
   community: {
-    label: "Сообщество и миссии",
+    label: "Сообщество и задания",
     gradient: "linear-gradient(135deg, #f59e0b, #ef4444)",
     accent: "#f97316",
     floaters: ["Команда", "Чат", "Флажок"],

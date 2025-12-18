@@ -175,7 +175,7 @@ export const logActivityEvent = (userId, eventType, payload = {}, prevStore) => 
     (eventType === "sessionStarted"
       ? "Вход в платформу"
       : eventType === "missionCompleted"
-      ? "Миссия выполнена"
+      ? "Задание выполнено"
       : eventType === "materialCompleted"
       ? "Материал завершён"
       : "Активность");
@@ -267,4 +267,3 @@ export function useActivityLog(userId) {
     activeDaysThisMonth,
   };
 }
-

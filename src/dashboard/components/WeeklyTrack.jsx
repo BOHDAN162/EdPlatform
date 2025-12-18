@@ -23,7 +23,7 @@ const WeeklyTrack = ({ week }) => {
               <div className="progress-bar small">
                 <div className="progress-fill" style={{ width: `${day.progress}%` }} />
               </div>
-              <div className="meta subtle">{day.completed} / {day.planned} миссий</div>
+              <div className="meta subtle">{day.completed} / {day.planned} заданий</div>
             </div>
             <div className="day-actions">
               <span className="pill accent">{day.focus}</span>
