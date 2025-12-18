@@ -21,7 +21,7 @@ import { getPathProgress, loadProgress, markMaterialCompleted } from "./progress
 import PathCard from "./components/PathCard";
 import TrackQuizPage from "./TrackQuizPage";
 import MindGamesSection from "./components/MindGamesSection";
-import LibraryCard from "./components/LibraryCard";
+import LibraryTrackView from "./components/LibraryTrackView";
 import { loadCurrentUser, loginUser, logoutUser, registerUser } from "./auth";
 import { clearTrack, loadTrack, saveTrack } from "./trackStorage";
 import SettingsPage from "./SettingsPage";
@@ -33,7 +33,7 @@ import { useMissions } from "./hooks/useMissions";
 import { useTheme } from "./hooks/useTheme";
 import { useToasts } from "./hooks/useToasts";
 import AppLayout from "./components/layout/AppLayout";
-import { statusFromProgress, statusProgressValue } from "./utils/materialStatus";
+import { statusFromProgress } from "./utils/materialStatus";
 import { baseCommunityState, createCommunityPost, loadCommunityState, saveCommunityState } from "./communityState";
 import MemoryPage from "./MemoryPage";
 import CommandPalette from "./components/CommandPalette";
@@ -53,24 +53,42 @@ const typeFilterOptions = [
   { id: "game", label: "Игры" },
 ];
 
-const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData }) => {
+const LibraryPage = ({
+  completedMaterialIds,
+  trackData,
+  user,
+  onMindGameComplete,
+  onTrackUpdate,
+  onRetakeTrack,
+}) => {
   const navigate = useNavigate();
   const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [themeFilter, setThemeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [scopeFilter, setScopeFilter] = useState(trackData?.trackSteps?.length ? "track" : "all");
   const [selectedId, setSelectedId] = useState(null);
 
-  const activeTrackMaterialId = null;
-  const trackMaterials = useMemo(
-    () => new Set(trackData?.generatedTrack?.map((item) => item.materialId || item.id) || []),
-    [trackData]
-  );
+  const trackMaterials = useMemo(() => {
+    const steps = trackData?.trackSteps || [];
+    const ids = steps.flatMap((step) => step.materialId || step.materials || []);
+    return new Set(ids.filter(Boolean));
+  }, [trackData]);
+
+  const activeTrackMaterialId = useMemo(() => {
+    if (!trackData?.trackSteps?.length) return null;
+    const firstIncomplete = trackData.trackSteps.find((step) => {
+      const candidate = step.materialId || step.materials?.[0];
+      return candidate && !completedSet.has(candidate);
+    });
+    return firstIncomplete?.materialId || firstIncomplete?.materials?.[0] || null;
+  }, [trackData, completedSet]);
 
   const filteredMaterials = useMemo(() => {
     const query = search.trim().toLowerCase();
     return materials.filter((material) => {
+      if (scopeFilter === "track" && trackMaterials.size && !trackMaterials.has(material.id)) return false;
       if (typeFilter !== "all" && material.type !== typeFilter) return false;
       if (themeFilter !== "all" && material.theme !== themeFilter) return false;
       const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
@@ -81,7 +99,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
         material.description?.toLowerCase().includes(query)
       );
     });
-  }, [search, typeFilter, themeFilter, statusFilter, completedSet, activeTrackMaterialId]);
+  }, [search, typeFilter, themeFilter, statusFilter, scopeFilter, completedSet, activeTrackMaterialId, trackMaterials]);
 
   useEffect(() => {
     if (filteredMaterials.length === 0) {
@@ -98,6 +116,11 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
     [filteredMaterials, selectedId]
   );
 
+  const handleRetake = () => {
+    onRetakeTrack?.();
+    navigate("/track-quiz");
+  };
+
   const statusOptions = [
     { id: "all", label: "Все" },
     { id: "new", label: "Новое" },
@@ -106,8 +129,6 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
   ];
 
   const openMaterial = (materialId) => navigate(`/material/${materialId}`);
-
-  const statusLabels = { new: "Новое", inProgress: "В процессе", completed: "Завершено" };
 
   return (
     <div className="page library-page">
@@ -120,20 +141,11 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
         </div>
       </div>
 
-      <section className="library-main">
-        <div className="library-toolbar card">
-          <div className="toolbar-left">
-            <div className="search-block">
-              <label className="meta subtle" htmlFor="library-search">Поиск</label>
-              <input
-                id="library-search"
-                type="search"
-                placeholder="Поиск по материалам…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="chip-row">
+      <div className="library-layout">
+        <aside className="library-sidebar card">
+          <div className="filter-group">
+            <p className="filter-title">Типы</p>
+            <div className="filter-chips">
               {typeFilterOptions.map((option) => (
                 <button
                   key={option.id}
@@ -144,12 +156,16 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
                 </button>
               ))}
             </div>
-            <div className="chip-row">
+          </div>
+
+          <div className="filter-group">
+            <p className="filter-title">Темы</p>
+            <div className="filter-chips column">
               <button
                 className={`chip ${themeFilter === "all" ? "active" : ""}`}
                 onClick={() => setThemeFilter("all")}
               >
-                Все темы
+                Все
               </button>
               {materialThemes.map((theme) => (
                 <button
@@ -162,133 +178,146 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete, trackData
               ))}
             </div>
           </div>
-          <div className="toolbar-actions">
+
+          <div className="filter-group">
+            <p className="filter-title">Область</p>
             <div className="chip-row">
-              {statusOptions.map((option) => (
-                <button
-                  key={option.id}
-                  className={`chip ${statusFilter === option.id ? "active" : ""}`}
-                  onClick={() => setStatusFilter(option.id)}
-                >
-                  {option.label}
-                </button>
-              ))}
+              <button
+                className={`chip ${scopeFilter === "track" ? "active" : ""}`}
+                onClick={() => setScopeFilter("track")}
+              >
+                Только в моём треке
+              </button>
+              <button
+                className={`chip ${scopeFilter === "all" ? "active" : ""}`}
+                onClick={() => setScopeFilter("all")}
+              >
+                Все материалы
+              </button>
             </div>
-            <button className="ghost focus-btn">Пройти сессию фокуса (20 минут)</button>
           </div>
-        </div>
+        </aside>
 
-        <div className="card">
-          <div className="card-header-row">
-            <div>
-              <div className="card-header">История</div>
-              <p className="meta">Недавние дорожки и подборки по интересам.</p>
-            </div>
-            <button className="ghost small" onClick={() => navigate("/library")}>Больше</button>
-          </div>
-          <div className="path-grid">
-            {learningPaths.map((path) => (
-              <PathCard
-                key={path.id}
-                path={path}
-                progress={getPathProgress(path, completedMaterialIds)}
-                onOpen={() => navigate(`/library/paths/${path.slug}`)}
+        <section className="library-main">
+          <div className="library-toolbar card">
+            <div className="search-block">
+              <label className="meta subtle" htmlFor="library-search">Поиск</label>
+              <input
+                id="library-search"
+                type="search"
+                placeholder="Поиск по материалам…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
-            ))}
-          </div>
-        </div>
-
-        <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
-
-        <div className="card materials-card">
-          <div className="card-header-row">
-            <div>
-              <div className="card-header">Все материалы</div>
-              <p className="meta">Карточки курсов, лонгридов, тестов и игр в едином стиле.</p>
+            </div>
+            <div className="toolbar-actions">
+              <div className="chip-row">
+                {statusOptions.map((option) => (
+                  <button
+                    key={option.id}
+                    className={`chip ${statusFilter === option.id ? "active" : ""}`}
+                    onClick={() => setStatusFilter(option.id)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <button className="ghost focus-btn">Пройти сессию фокуса (20 минут)</button>
             </div>
           </div>
-          <div className="material-grid">
-            {filteredMaterials.map((material) => {
-              const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
-              const theme = themeLabels[material.theme] || { title: "Тема", accent: "#7c3aed" };
-              const typeLabel = typeFilterOptions.find((t) => t.id === material.type)?.label || "Материал";
 
-              return (
-                <LibraryCard
-                  key={material.id}
-                  onClick={() => setSelectedId(material.id)}
-                  active={selectedId === material.id}
-                  badges={[
-                    <span key="type" className="pill outline">{typeLabel}</span>,
-                    <span
-                      key="theme"
-                      className="material-badge"
-                      style={{ background: `${theme.accent}20`, color: theme.accent }}
+          <LibraryTrackView
+            track={trackData}
+            materials={materials}
+            completedMaterialIds={completedMaterialIds}
+            onUpdateSteps={(steps) => onTrackUpdate?.({ trackSteps: steps, generatedTrack: steps })}
+            onRetake={handleRetake}
+          />
+
+          <div className="library-split">
+            <div className="card list-card">
+              <div className="list-head">
+                <span>Название</span>
+                <span>Тип</span>
+                <span>Тема</span>
+                <span>Статус</span>
+                <span>Длительность</span>
+              </div>
+              <div className="material-list">
+                {filteredMaterials.map((material) => {
+                  const status = statusFromProgress(material.id, completedSet, activeTrackMaterialId);
+                  return (
+                    <button
+                      key={material.id}
+                      className={`material-row ${selectedId === material.id ? "active" : ""}`}
+                      onClick={() => setSelectedId(material.id)}
                     >
-                      {theme.title}
-                    </span>,
-                    <span key="status" className={`pill status ${status}`}>
-                      {statusLabels[status]}
-                    </span>,
-                    trackMaterials.has(material.id) ? <span key="track" className="pill accent">Трек</span> : null,
-                  ].filter(Boolean)}
-                  title={material.title}
-                  description={material.description}
-                  progress={statusProgressValue[status] || 0}
-                  footer={
-                    <div className="material-card-footer">
-                      <span className="material-foot-note">{material.estimatedTime || "15 минут"}</span>
-                      <button
-                        className="ghost small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openMaterial(material.id);
-                        }}
-                      >
-                        Открыть
-                      </button>
-                    </div>
-                  }
-                />
-              );
-            })}
-            {filteredMaterials.length === 0 && (
-              <div className="empty-state">
-                <p>Нет материалов по выбранным фильтрам.</p>
+                      <div className="material-cell">
+                        <div className="material-title-row">
+                          <span className="material-name">{material.title}</span>
+                          {trackMaterials.has(material.id) && <span className="pill outline">Трек</span>}
+                        </div>
+                        <p className="meta">{material.description}</p>
+                      </div>
+                      <span className="badge subtle">{typeFilterOptions.find((t) => t.id === material.type)?.label || "Материал"}</span>
+                      <span className="badge theme">{themeLabels[material.theme]?.title || "Тема"}</span>
+                      <span className={`badge status ${status}`}>{status === "new" ? "Новое" : status === "inProgress" ? "В процессе" : "Завершено"}</span>
+                      <span className="badge subtle">{material.estimatedTime || "15 минут"}</span>
+                    </button>
+                  );
+                })}
+                {filteredMaterials.length === 0 && (
+                  <div className="empty-state">
+                    <p>Нет материалов по выбранным фильтрам.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedMaterial && (
+              <div className="card detail-card">
+                <div className="panel-header">
+                  <div>
+                    <p className="section-kicker">Детали</p>
+                    <h3>{selectedMaterial.title}</h3>
+                  </div>
+                  <button className="ghost" onClick={() => openMaterial(selectedMaterial.id)}>Открыть полностью</button>
+                </div>
+                <div className="chip-row">
+                  <span className="material-badge" style={{ background: `${(themeLabels[selectedMaterial.theme]?.accent || "#7c3aed")}20`, color: themeLabels[selectedMaterial.theme]?.accent || "#7c3aed" }}>
+                    {themeLabels[selectedMaterial.theme]?.title || "Тема"}
+                  </span>
+                  <span className="material-badge outline">{selectedMaterial.type === "course" ? "Курс" : selectedMaterial.type === "article" ? "Лонгрид" : "Тест"}</span>
+                  <span className="material-badge outline">{selectedMaterial.estimatedTime || "15 минут"}</span>
+                </div>
+                <p className="meta">{selectedMaterial.description}</p>
+                <div className="detail-actions">
+                  <button className="primary" onClick={() => openMaterial(selectedMaterial.id)}>
+                    Начать / продолжить
+                  </button>
+                  <button className="ghost" onClick={() => navigate("/")}>На главную</button>
+                </div>
               </div>
             )}
           </div>
-        </div>
 
-        {selectedMaterial && (
-          <div className="card detail-card material-detail-card">
-            <div className="panel-header">
-              <div>
-                <p className="section-kicker">Детали</p>
-                <h3>{selectedMaterial.title}</h3>
-              </div>
-              <button className="ghost" onClick={() => openMaterial(selectedMaterial.id)}>Открыть полностью</button>
-            </div>
-            <div className="chip-row">
-              <span
-                className="material-badge"
-                style={{ background: `${(themeLabels[selectedMaterial.theme]?.accent || "#7c3aed")}20`, color: themeLabels[selectedMaterial.theme]?.accent || "#7c3aed" }}
-              >
-                {themeLabels[selectedMaterial.theme]?.title || "Тема"}
-              </span>
-              <span className="material-badge outline">{selectedMaterial.type === "course" ? "Курс" : selectedMaterial.type === "article" ? "Лонгрид" : "Тест"}</span>
-              <span className="material-badge outline">{selectedMaterial.estimatedTime || "15 минут"}</span>
-            </div>
-            <p className="meta">{selectedMaterial.description}</p>
-            <div className="detail-actions">
-              <button className="primary" onClick={() => openMaterial(selectedMaterial.id)}>
-                Начать / продолжить
-              </button>
-              <button className="ghost" onClick={() => navigate("/")}>На главную</button>
+          <div className="card">
+            <div className="card-header">Твои дорожки</div>
+            <div className="path-grid">
+              {learningPaths.map((path) => (
+                <PathCard
+                  key={path.id}
+                  path={path}
+                  progress={getPathProgress(path, completedMaterialIds)}
+                  onOpen={() => navigate(`/library/paths/${path.slug}`)}
+                />
+              ))}
             </div>
           </div>
-        )}
-      </section>
+
+          <MindGamesSection userId={user?.id} onGameComplete={onMindGameComplete} />
+        </section>
+      </div>
     </div>
   );
 };

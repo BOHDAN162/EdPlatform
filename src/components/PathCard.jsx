@@ -1,7 +1,12 @@
 import React from "react";
 import { Link } from "../routerShim";
 import { themeLabels } from "../libraryData";
-import LibraryCard from "./LibraryCard";
+
+const ProgressBar = ({ value }) => (
+  <div className="progress-shell">
+    <div className="progress-fill" style={{ width: `${value}%` }} />
+  </div>
+);
 
 const PathCard = ({ path, progress, onOpen }) => {
   const { completedCount, totalCount } = progress;
@@ -11,32 +16,23 @@ const PathCard = ({ path, progress, onOpen }) => {
   const cta = completedCount === 0 ? "Начать путь" : completedCount < totalCount ? "Продолжить" : "Повторить";
 
   return (
-    <LibraryCard
-      className="path-card"
-      badges={[
-        <span
-          key="theme"
-          className="path-theme"
-          style={{ background: `${theme.accent}20`, color: theme.accent }}
-        >
-          {theme.title || "Тема"}
-        </span>,
-        <span key="progress" className="pill subtle">
-          {completedCount} из {totalCount} шагов
-        </span>,
-      ]}
-      title={path.title}
-      description={path.description}
-      progress={ratio}
-      footer={
-        <div className="path-actions">
-          <button className="primary" onClick={onOpen}>{cta}</button>
-          <Link className="ghost" to={`/library/paths/${path.slug}`}>
-            Детали пути
-          </Link>
+    <div className="path-card">
+      <div className="path-card-top">
+        <div className="path-meta">
+          <span className="path-theme" style={{ background: `${theme.accent}20`, color: theme.accent }}>
+            {theme.title || "Тема"}
+          </span>
+          <span className="path-progress">{completedCount} из {totalCount} шагов</span>
         </div>
-      }
-    />
+        <h3 className="path-title">{path.title}</h3>
+        <p className="path-description">{path.description}</p>
+      </div>
+      <ProgressBar value={ratio} />
+      <div className="path-actions">
+        <button className="primary" onClick={onOpen}>{cta}</button>
+        <Link className="ghost" to={`/library/paths/${path.slug}`}>Детали пути</Link>
+      </div>
+    </div>
   );
 };
 
