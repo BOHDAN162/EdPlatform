@@ -57,7 +57,7 @@ const MascotFace = ({ tone, pupilX, pupilY, blink }) => (
   </div>
 );
 
-const Mascot = ({ mood = "happy", streak = 0, level = 1 }) => {
+const Mascot = ({ mood = "happy", streak = 0, level = 1, showMeta = true }) => {
   const [blink, setBlink] = useState(false);
   const [pupilX, setPupilX] = useState(0);
   const [pupilY, setPupilY] = useState(0);
@@ -82,16 +82,18 @@ const Mascot = ({ mood = "happy", streak = 0, level = 1 }) => {
   }, []);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0c0c12]/80 p-5 shadow-lg">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#111827]/50 via-transparent to-[#8A3FFC]/10" />
-      <div className="relative flex items-center gap-4">
+    <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-lg shadow-black/10">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#8A3FFC]/12 via-transparent to-[#8A3FFC]/10" />
+      <div className={`relative flex gap-4 ${showMeta ? "items-center" : "justify-center"}`}>
         <MascotFace tone={tone} pupilX={pupilX} pupilY={pupilY} blink={blink} />
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.12em] text-white/60">Маскот</p>
-          <h3 className="text-lg font-semibold text-white">Flux рядом</h3>
-          <p className="text-sm text-white/70">Серия {streakLabel} · уровень {level}</p>
-          <p className="text-xs text-white/60">Настроение: {tone.label}</p>
-        </div>
+        {showMeta && (
+          <div className="space-y-2">
+            <p className="text-xs uppercase tracking-[0.12em] text-[var(--muted)]">Маскот</p>
+            <h3 className="text-lg font-semibold text-[var(--fg)]">Flux рядом</h3>
+            <p className="text-sm text-[var(--muted)]">Серия {streakLabel} · уровень {level}</p>
+            <p className="text-xs text-[var(--muted)]">Настроение: {tone.label}</p>
+          </div>
+        )}
       </div>
     </div>
   );
