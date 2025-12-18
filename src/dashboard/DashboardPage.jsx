@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "../routerShim";
 import { learningPaths, materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
@@ -132,10 +132,12 @@ const DashboardPage = ({
     { id: "finance", title: "MindGame: Финансы", description: "Практика решений", duration: "10 мин", typeLabel: "MindGame", to: "/library", badge: "Игра" },
   ];
 
-  const heroQuote = useMemo(() => {
-    if (!quotePool?.length) return null;
+  const [heroQuote, setHeroQuote] = useState(null);
+
+  useEffect(() => {
+    if (!quotePool || quotePool.length === 0) return;
     const index = Math.floor(Math.random() * quotePool.length);
-    return quotePool[index];
+    setHeroQuote(quotePool[index]);
   }, []);
 
   const communitySnapshot = useMemo(() => {
