@@ -44,6 +44,7 @@ import DashboardPage from "./dashboard/DashboardPage";
 import { HabitProvider } from "./habits/habitsStore";
 import HabitTrackerPage from "./habits/HabitTrackerPage";
 import UserProfilePage from "./community/UserProfilePage";
+import MemoryQuickAddFab from "./components/MemoryQuickAddFab";
 
 const LearningPathPage = ({ completedMaterialIds }) => {
   const { slug } = useParams();
@@ -814,20 +815,23 @@ function App() {
   const HomeRoute = () => {
     if (user) {
       return (
-        <DashboardPage
-          user={user}
-          gamification={gamification}
-          missions={missions}
-          missionProgress={missionProgress}
-          getMissionProgress={getMissionProgress}
-          trackData={trackData}
-          progress={progress}
-          activityFeed={activityFeed}
-          activityByDate={activityByDate}
-          community={community}
-          streakInfo={streakInfo}
-          completedThisWeek={completedThisWeek}
-        />
+        <>
+          <DashboardPage
+            user={user}
+            gamification={gamification}
+            missions={missions}
+            missionProgress={missionProgress}
+            getMissionProgress={getMissionProgress}
+            trackData={trackData}
+            progress={progress}
+            activityFeed={activityFeed}
+            activityByDate={activityByDate}
+            community={community}
+            streakInfo={streakInfo}
+            completedThisWeek={completedThisWeek}
+          />
+          <MemoryQuickAddFab />
+        </>
       );
     }
     return <Landing />;

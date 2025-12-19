@@ -40,14 +40,20 @@ export function useMemory(userId) {
 
   const addEntry = useCallback((landmarkId, data) => {
     const now = new Date().toISOString();
+    const landmark = memoryLandmarks.find((item) => item.id === landmarkId);
     const entry = {
       id: createId(),
       landmarkId,
-      title: data.title,
-      text: data.text,
+      category: data.category || landmark?.category,
+      title: data.title || "Без названия",
+      text: data.text || "",
       tags: data.tags?.length ? data.tags : [],
       relatedMaterialIds: data.relatedMaterialIds || [],
       createdAt: now,
+      type: data.type || "text",
+      link: data.link || "",
+      attachmentName: data.attachmentName || "",
+      sketchNote: data.sketchNote || "",
     };
     setEntries((prev) => [entry, ...prev]);
     setSelectedLandmarkId(landmarkId);
@@ -88,7 +94,8 @@ export function useMemory(userId) {
         const inTitle = entry.title?.toLowerCase().includes(normalized);
         const inText = entry.text?.toLowerCase().includes(normalized);
         const inTags = entry.tags?.some((tag) => tag.toLowerCase().includes(normalized));
-        return matchTag && (inTitle || inText || inTags);
+        const inLink = entry.link?.toLowerCase().includes(normalized);
+        return matchTag && (inTitle || inText || inTags || inLink);
       });
     },
     [entries]
