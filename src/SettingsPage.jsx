@@ -65,7 +65,7 @@ const tabList = [
   { id: "about", label: "О сервисе" },
 ];
 
-const SettingsPage = ({ theme, setTheme, user, onUserUpdate }) => {
+const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   const initialAccount = useMemo(
     () =>
       loadLocalJSON(STORAGE_KEYS.account, {
@@ -295,6 +295,15 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate }) => {
           <div className="avatar-preview">
             {avatarPreview ? <img src={avatarPreview} alt="avatar preview" /> : <div className="avatar empty">🙂</div>}
           </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div>
+            <div className="preference-label">Выйти из аккаунта</div>
+            <p className="meta subtle">Сессия завершится на всех вкладках. Можно войти позже.</p>
+          </div>
+          <button type="button" className="ghost danger" onClick={() => onLogout?.()}>
+            Выйти
+          </button>
         </div>
       </SectionCard>
 

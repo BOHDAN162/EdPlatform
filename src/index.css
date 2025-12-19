@@ -55,8 +55,15 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  background: var(--bg);
-  z-index: 10;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.app.light .header {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .logo {
@@ -117,6 +124,76 @@ body {
   display: flex;
   gap: 12px;
   align-items: center;
+}
+
+.header-actions .ghost-button {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 16px;
+  top: calc(100% + 10px);
+  min-width: 220px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  gap: 8px;
+  animation: fade-in 0.18s ease;
+}
+
+.profile-menu__header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-menu__name {
+  font-weight: 700;
+}
+
+.profile-menu__meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.profile-menu__item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--fg);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-menu__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+}
+
+.avatar.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .avatar {
@@ -217,6 +294,16 @@ body {
   border-radius: 12px;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.ghost.danger {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+.ghost.danger:hover {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.7);
 }
 
 .ghost.small {
