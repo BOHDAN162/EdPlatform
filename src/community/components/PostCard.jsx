@@ -10,7 +10,7 @@ const typeMeta = {
   generic: { label: "Активность", emoji: "✨" },
 };
 
-const PostCard = ({ post, clubName, onLike }) => {
+const PostCard = ({ post, onLike }) => {
   const meta = typeMeta[post.type] || typeMeta.story;
   return (
     <div className="card post-card">
@@ -31,7 +31,6 @@ const PostCard = ({ post, clubName, onLike }) => {
         {post.relatedMaterialId && <span className="pill subtle">Урок</span>}
       </div>
       <div className="post-footer">
-        {clubName && <span className="pill outline">{clubName}</span>}
         <div className="post-actions">
           <button className="ghost" onClick={() => onLike(post.id)}>
             ❤ {post.likes ?? post.likesCount ?? 0}

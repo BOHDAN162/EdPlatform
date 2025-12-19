@@ -44,6 +44,7 @@ import Landing from "./components/Landing";
 import DashboardPage from "./dashboard/DashboardPage";
 import { HabitProvider } from "./habits/habitsStore";
 import HabitTrackerPage from "./habits/HabitTrackerPage";
+import UserProfilePage from "./community/UserProfilePage";
 
 const typeFilterOptions = [
   { id: "all", label: "Все" },
@@ -1167,6 +1168,24 @@ function App() {
                   gamification={gamification}
                   onCommunityAction={handleCommunityAction}
                   onToast={addToast}
+                />
+              }
+            />
+            <Route
+              path="/user/:id"
+              element={
+                <UserProfilePage
+                  currentUser={
+                    user
+                      ? {
+                          ...user,
+                          xp: gamification.totalPoints,
+                          level: getLevelFromPoints(gamification.totalPoints).level,
+                          role: getStatusByPoints(gamification.totalPoints),
+                        }
+                      : null
+                  }
+                  gamification={gamification}
                 />
               }
             />
