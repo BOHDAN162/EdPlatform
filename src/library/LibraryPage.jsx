@@ -284,37 +284,32 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
               <label className="meta subtle" htmlFor="library-search">
                 Поиск
               </label>
-              <LibrarySearchBar
-                query={search}
-                onChange={setSearch}
-                materials={allSearchMaterials}
-                onOpenFilters={() => setFiltersExpanded((v) => !v)}
-              />
+              <LibrarySearchBar query={search} onChange={setSearch} materials={allSearchMaterials} />
             </div>
-            <div className="hidden md:flex justify-end">
+            <div className="flex justify-end">
               <button className="ghost" onClick={() => setFiltersExpanded((v) => !v)}>
-                Больше
+                {filtersExpanded ? "Скрыть" : "Больше"}
               </button>
             </div>
           </div>
+
+          <LibraryFiltersModal
+            open={filtersExpanded}
+            filters={filters}
+            onClose={() => setFiltersExpanded(false)}
+            onApply={onApplyFilters}
+            onReset={() => {
+              setFilters({ durations: [], levels: [], topics: [], formats: [] });
+              setFiltersExpanded(false);
+            }}
+          />
+        </div>
       </div>
-    </div>
 
-      <LibraryFiltersModal
-        open={filtersExpanded}
-        filters={filters}
-        onClose={() => setFiltersExpanded(false)}
-        onApply={onApplyFilters}
-        onReset={() => {
-          setFilters({ durations: [], levels: [], topics: [], formats: [] });
-          setFiltersExpanded(false);
-        }}
-      />
-
-    <SectionShell
-      id="history"
-      title="История"
-      action={
+      <SectionShell
+        id="history"
+        title="История"
+        action={
           <button className="ghost small" onClick={() => setHistoryExpanded((v) => !v)}>
             {historyExpanded ? "Скрыть" : "Больше"}
           </button>
@@ -334,7 +329,6 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                     <span className="font-semibold" style={{ color: theme.accent }}>
                       {theme.title}
                     </span>
-                    <span className="pill outline">Дорожка</span>
                   </div>
                   <h3 className="text-base font-semibold mt-2 leading-snug line-clamp-2">{path.title}</h3>
                   <p className="text-sm text-gray-400 line-clamp-2 mt-1">{path.description}</p>
@@ -357,7 +351,6 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                     <span className="font-semibold" style={{ color: theme.accent }}>
                       {theme.title}
                     </span>
-                    <span className="pill outline">Дорожка</span>
                   </div>
                   <h3 className="text-lg font-semibold mt-2 leading-snug line-clamp-2">{path.title}</h3>
                   <p className="text-sm text-gray-400 line-clamp-3 mt-1">{path.description}</p>

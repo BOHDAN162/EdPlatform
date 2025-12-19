@@ -4,5 +4,5 @@ export const navLinks = [
   { to: "/missions", label: "Задания" },
   { to: "/memory", label: "Память" },
   { to: "/community", label: "Сообщество" },
-  { to: "/profile", label: "Настройки" },
+  { to: "/settings", label: "Настройки" },
 ];
