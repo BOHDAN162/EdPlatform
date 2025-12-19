@@ -1,9 +1,12 @@
 import React, { useMemo, useState, useEffect } from "react";
-import MemoryMiniMap from "./components/MemoryMiniMap";
-import MemorySidebar from "./components/MemorySidebar";
+import { useLocation, useNavigate } from "./routerShim";
 import MemoryEntryForm from "./components/MemoryEntryForm";
+import MemoryPavilionMap from "./components/MemoryPavilionMap";
+import MemoryPavilionModal from "./components/MemoryPavilionModal";
+import MemoryEmptyState from "./components/MemoryEmptyState";
+import MemoryRelatedMaterials from "./components/MemoryRelatedMaterials";
+import MemoryEntryCard from "./components/MemoryEntryCard";
 import { useMemory } from "./hooks/useMemory";
-import { materialIndex } from "./libraryData";
 import { memoryCategories } from "./data/memoryLandmarks";
 
 const MemoryPage = ({ user, onEntryAdded }) => {
@@ -24,6 +27,12 @@ const MemoryPage = ({ user, onEntryAdded }) => {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [editingEntry, setEditingEntry] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [prefillType, setPrefillType] = useState("text");
+  const [prefillText, setPrefillText] = useState("");
+  const [pavilionModalOpen, setPavilionModalOpen] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const selectedLandmark = useMemo(
     () => landmarks.find((l) => l.id === selectedLandmarkId) || landmarks[0],
@@ -41,6 +50,15 @@ const MemoryPage = ({ user, onEntryAdded }) => {
     () => new Set(searchResults.map((entry) => entry.landmarkId)),
     [searchResults]
   );
+
+  useEffect(() => {
+    if (location.state?.quickAdd) {
+      setPrefillText("Быстрая заметка о том, что хочу запомнить...");
+      setPrefillType("text");
+      setShowForm(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const filteredLandmarks = useMemo(
     () => {
@@ -71,20 +89,11 @@ const MemoryPage = ({ user, onEntryAdded }) => {
     }
   }, [selectLandmark]);
 
-  const handleAdd = () => {
+  const openForm = (type = "text", text = "") => {
+    setPrefillType(type);
+    setPrefillText(text);
     setEditingEntry(null);
     setShowForm(true);
-  };
-
-  const handleQuickAdd = () => {
-    const placeholder = {
-      title: "Быстрая заметка",
-      text: "Коротко запиши мысль, потом можно дополнить.",
-      tags: ["быстро"],
-      relatedMaterialIds: [],
-    };
-    const entry = addEntry(selectedLandmark?.id, placeholder);
-    if (onEntryAdded) onEntryAdded(entry);
   };
 
   const handleSave = (payload) => {
@@ -92,11 +101,12 @@ const MemoryPage = ({ user, onEntryAdded }) => {
       updateEntry(editingEntry.id, payload);
       if (onEntryAdded) onEntryAdded({ ...editingEntry, ...payload });
     } else {
-      const entry = addEntry(selectedLandmark?.id, payload);
+      const entry = addEntry(selectedLandmark?.id, { ...payload, category: selectedLandmark?.category });
       if (onEntryAdded) onEntryAdded(entry);
     }
     setShowForm(false);
     setEditingEntry(null);
+    setPrefillText("");
   };
 
   const handleEdit = (entry) => {
@@ -161,6 +171,7 @@ const MemoryPage = ({ user, onEntryAdded }) => {
             {searchResults.length === 0 && <p className="meta">Ничего не найдено. Попробуй другой запрос.</p>}
             {searchResults.map((entry) => {
               const landmark = landmarks.find((l) => l.id === entry.landmarkId);
+              const preview = entry.text || entry.link || entry.sketchNote || "";
               return (
                 <div key={entry.id} className="search-card" onClick={() => selectLandmark(entry.landmarkId)}>
                   <div className="chip-row">
@@ -168,7 +179,7 @@ const MemoryPage = ({ user, onEntryAdded }) => {
                     <span className="material-badge outline">{entry.tags?.slice(0, 2).join(", ")}</span>
                   </div>
                   <div className="search-card-title">{entry.title}</div>
-                  <p className="meta">{entry.text.slice(0, 110)}{entry.text.length > 110 ? "…" : ""}</p>
+                  <p className="meta">{preview.slice(0, 110)}{preview.length > 110 ? "…" : ""}</p>
                 </div>
               );
             })}
@@ -177,27 +188,65 @@ const MemoryPage = ({ user, onEntryAdded }) => {
       )}
 
       <div className="memory-layout">
-        <MemoryMiniMap
-          landmarks={filteredLandmarks}
-          selectedLandmarkId={selectedLandmark?.id}
+        <MemoryPavilionMap
           entries={entries}
-          highlightedLandmarkIds={highlightedLandmarks}
-          onSelectLandmark={selectLandmark}
+          selectedId={selectedLandmark?.id}
+          highlighted={highlightedLandmarks}
+          landmarks={filteredLandmarks}
+          onSelect={(id) => {
+            selectLandmark(id);
+            setPavilionModalOpen(true);
+          }}
         />
-        <MemorySidebar
-          landmark={selectedLandmark}
-          entries={entriesForSelected}
-          onAdd={handleAdd}
-          onQuickAdd={handleQuickAdd}
-          onEdit={handleEdit}
-          materialsIndex={materialIndex}
-        />
+
+        <div className="memory-right">
+          <div className="card pavilion-spotlight">
+            <div className="pavilion-spotlight-head">
+              <div>
+                <div className="chip-row">
+                  <span className="material-badge" style={{ background: `${selectedLandmark?.color}20`, color: selectedLandmark?.color }}>
+                    {selectedLandmark?.category}
+                  </span>
+                  <span className="material-badge outline">{selectedLandmark?.district}</span>
+                </div>
+                <h2>{selectedLandmark?.name}</h2>
+                <p className="meta">{selectedLandmark?.description}</p>
+              </div>
+              <button className="primary" onClick={() => openForm("text")}>Добавить запись</button>
+            </div>
+
+            {entriesForSelected.length === 0 ? (
+              <MemoryEmptyState onTemplate={(type, text) => openForm(type, text)} />
+            ) : (
+              <div className="spotlight-list">
+                {entriesForSelected.slice(0, 3).map((entry) => (
+                  <MemoryEntryCard key={entry.id} entry={entry} onClick={() => handleEdit(entry)} />
+                ))}
+                <button className="ghost" onClick={() => setPavilionModalOpen(true)}>Смотреть все записи павильона</button>
+              </div>
+            )}
+          </div>
+
+          <MemoryRelatedMaterials entries={entries} />
+        </div>
       </div>
+
+      <MemoryPavilionModal
+        open={pavilionModalOpen}
+        pavilion={selectedLandmark}
+        entries={entriesForSelected}
+        onClose={() => setPavilionModalOpen(false)}
+        onCreate={(type) => openForm(type)}
+        onQuickAction={(type, text) => openForm(type, text)}
+        onSelectEntry={(entry) => handleEdit(entry)}
+      />
 
       {showForm && (
         <MemoryEntryForm
           entry={editingEntry}
           landmark={selectedLandmark}
+          defaultType={prefillType}
+          prefillText={prefillText}
           onCancel={() => setShowForm(false)}
           onSave={handleSave}
           onDelete={handleDelete}
