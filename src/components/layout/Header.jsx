@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "../../routerShim";
 import { navLinks } from "../../utils/navigation";
 
+const AVATAR_KEY = "noesis_user_avatar";
+
 const Header = ({ user }) => {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -23,11 +26,29 @@ const Header = ({ user }) => {
 
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEsc);
+    const handleStorage = () => {
+      if (typeof localStorage === "undefined") return;
+      setAvatarUrl(localStorage.getItem(AVATAR_KEY) || "");
+    };
+    window.addEventListener("storage", handleStorage);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEsc);
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
+
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarUrl(user.avatar);
+      return;
+    }
+    if (typeof localStorage !== "undefined") {
+      setAvatarUrl(localStorage.getItem(AVATAR_KEY) || "");
+    }
+  }, [user?.avatar]);
+
+  const handleImageError = () => setAvatarUrl("");
 
   const closeMenus = () => {
     setOpen(false);
@@ -64,17 +85,37 @@ const Header = ({ user }) => {
         {user && (
           <>
             <button
-              className="avatar ghost-button"
+              className="avatar ghost-button overflow-hidden"
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-haspopup="true"
               aria-expanded={menuOpen}
             >
-              {user.name?.[0] || "Я"}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Аватар пользователя"
+                  className="h-full w-full object-cover"
+                  onError={handleImageError}
+                />
+              ) : (
+                user.name?.[0] || "Я"
+              )}
             </button>
             {menuOpen && (
               <div className="profile-menu" role="menu">
                 <div className="profile-menu__header">
-                  <div className="avatar small">{user.name?.[0] || "Я"}</div>
+                  <div className="avatar small overflow-hidden">
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Аватар пользователя"
+                        className="h-full w-full object-cover"
+                        onError={handleImageError}
+                      />
+                    ) : (
+                      user.name?.[0] || "Я"
+                    )}
+                  </div>
                   <div>
                     <div className="profile-menu__name">{user.name}</div>
                     <div className="profile-menu__meta">{user.email || "Аккаунт"}</div>
