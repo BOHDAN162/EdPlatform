@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
+import InlineCta from "./InlineCta";
 
 const difficultyColors = {
   легкий: "#22c55e",
@@ -53,9 +54,7 @@ const TestCard = ({ test, stats }) => {
             <p>Ещё не проходил</p>
           )}
         </div>
-        <span className="primary small inline-flex items-center gap-1">
-          Открыть →
-        </span>
+        <InlineCta />
       </div>
     </Link>
   );

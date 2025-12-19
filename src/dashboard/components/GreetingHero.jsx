@@ -27,7 +27,7 @@ const formatDays = (value) => {
   return `${value} дней`;
 };
 
-const ProgressCard = ({ goal, onToggleTip, isTipOpen }) => {
+const ProgressCard = ({ goal }) => {
   const percent = Math.min(100, Math.max(0, goal.percent || 0));
 
   return (
@@ -43,17 +43,6 @@ const ProgressCard = ({ goal, onToggleTip, isTipOpen }) => {
             <div className="text-xs text-[var(--muted)]">{goal.targetLabel}</div>
           </div>
         </div>
-        <button
-          type="button"
-          className="rounded-full border border-white/10 px-2 text-xs text-[var(--muted)] transition hover:border-[#8A3FFC]/50 hover:text-[var(--fg)]"
-          onClick={(e) => {
-            e.preventDefault();
-            onToggleTip(goal.id);
-          }}
-          aria-label="Как увеличить прогресс?"
-        >
-          ?
-        </button>
       </div>
       <div className="relative mt-1 h-3 overflow-hidden rounded-full bg-white/10">
         <div
@@ -69,16 +58,6 @@ const ProgressCard = ({ goal, onToggleTip, isTipOpen }) => {
         <span>Награда за завершение</span>
         <span className="font-semibold text-white">{goal.reward}</span>
       </div>
-      {isTipOpen && (
-        <div className="mt-2 rounded-xl border border-white/10 bg-black/30 p-3 text-xs text-[var(--fg)] shadow-inner">
-          <div className="font-semibold">Как увеличить прогресс?</div>
-          <ul className="mt-1 list-disc pl-4 text-[var(--muted)]">
-            {goal.tips?.map((tip) => (
-              <li key={tip}>{tip}</li>
-            ))}
-          </ul>
-        </div>
-      )}
     </Link>
   );
 };
@@ -96,21 +75,8 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
   const tips = useMemo(() => tipsList.map((text, index) => ({ id: `tip-${index + 1}`, text, to: "/missions" })), []);
 
   const [tipIndex, setTipIndex] = useState(0);
-  const [feedback, setFeedback] = useState({});
-  const [openTip, setOpenTip] = useState(null);
   const [startX, setStartX] = useState(null);
   const [isAnimating, setIsAnimating] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("noesis_tip_feedback");
-    if (stored) {
-      try {
-        setFeedback(JSON.parse(stored));
-      } catch (error) {
-        setFeedback({});
-      }
-    }
-  }, []);
 
   useEffect(() => {
     setIsAnimating(true);
@@ -119,19 +85,6 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
   }, [tipIndex]);
 
   const visibleAdvice = tips[tipIndex] || insight;
-
-  const persistFeedback = (next) => {
-    setFeedback(next);
-    localStorage.setItem("noesis_tip_feedback", JSON.stringify(next));
-  };
-
-  const handleFeedback = (type) => {
-    const current = tips[tipIndex];
-    if (!current) return;
-    const nextState = { ...feedback, [tipIndex]: type === "like" ? "up" : "down" };
-    persistFeedback(nextState);
-    setTipIndex((i) => (i + 1) % tips.length);
-  };
 
   const handlePrev = () => setTipIndex((i) => (i - 1 + tips.length) % tips.length);
   const handleNext = () => setTipIndex((i) => (i + 1) % tips.length);
@@ -180,9 +133,9 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
               <p className="mt-2 text-sm text-[var(--muted)]">{quoteAuthor}</p>
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {goals.map((goal) => (
-                <ProgressCard key={goal.id} goal={goal} onToggleTip={(id) => setOpenTip((prev) => (prev === id ? null : id))} isTipOpen={openTip === goal.id} />
-              ))}
+            {goals.map((goal) => (
+              <ProgressCard key={goal.id} goal={goal} />
+            ))}
             </div>
           </div>
           <div className="flex flex-col items-center gap-4 lg:items-stretch">
@@ -233,30 +186,6 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 >
                   {insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
                 </p>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
-                    feedback[tipIndex] === "up" ? "border-[#8A3FFC]/70 text-white" : "border-white/10 text-[var(--muted)]"
-                  }`}
-                  onClick={() => handleFeedback("like")}
-                  aria-label="Совет полезен"
-                >
-                  👍 Полезно
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
-                    feedback[tipIndex] === "down"
-                      ? "border-[#8A3FFC]/70 text-white"
-                      : "border-white/10 text-[var(--muted)]"
-                  }`}
-                  onClick={() => handleFeedback("dislike")}
-                  aria-label="Совет неинтересен"
-                >
-                  👎 Неинтересно
-                </button>
               </div>
               <Link
                 to="/missions"

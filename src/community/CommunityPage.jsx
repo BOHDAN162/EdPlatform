@@ -46,10 +46,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   const [rewardTab, setRewardTab] = useState("avatars");
   const [showIntro, setShowIntro] = useState(false);
   const [rewardClaimed, setRewardClaimed] = useState(false);
-  const [followingIds, setFollowingIds] = useState(() => {
-    const saved = localStorage.getItem("community_following");
-    return saved ? JSON.parse(saved) : [];
-  });
   const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
   const [refLink, setRefLink] = useState("");
@@ -76,10 +72,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       setAvatarUrl(localStorage.getItem("noesis_user_avatar") || "");
     }
   }, [user?.avatar]);
-
-  useEffect(() => {
-    localStorage.setItem("community_following", JSON.stringify(followingIds));
-  }, [followingIds]);
 
   const community =
     useCommunity(communityUser, {
@@ -144,14 +136,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     setRewardClaimed(true);
     localStorage.setItem("community_weekly_reward_claimed", "true");
     onToast?.("Награда получена!");
-  };
-
-  const handleFollowToggle = (userId) => {
-    setFollowingIds((prev) => {
-      const set = new Set(prev);
-      set.has(userId) ? set.delete(userId) : set.add(userId);
-      return Array.from(set);
-    });
   };
 
   const openMessageModal = (userTarget) => {
@@ -369,9 +353,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
                 isCurrent={communityUser?.id === p.id}
                 metricLabel={p.metricLabel}
                 metricValue={p.metricValue}
-                isFollowing={followingIds.includes(p.id)}
-                onFollowToggle={handleFollowToggle}
-                onMessage={openMessageModal}
               />
             ))}
         </div>

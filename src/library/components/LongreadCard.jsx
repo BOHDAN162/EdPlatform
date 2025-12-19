@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
+import InlineCta from "./InlineCta";
 
 const levelPalette = {
   Начальный: { color: "#22c55e", label: "Начальный" },
@@ -30,7 +31,7 @@ const LongreadCard = ({ item, theme }) => {
       </div>
       <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--fg)] line-clamp-2">{item.title}</h3>
       <p className="mt-2 text-sm text-[var(--muted)] line-clamp-2">{item.description}</p>
-      <div className="mt-auto pt-4">
+      <div className="mt-auto pt-4 flex items-center justify-between gap-3">
         <span
           className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-[var(--fg)] ring-1 ring-white/10"
           aria-label={`Уровень: ${level.label}`}
@@ -38,6 +39,7 @@ const LongreadCard = ({ item, theme }) => {
           <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: level.color }} />
           {level.label}
         </span>
+        <InlineCta />
       </div>
     </Link>
   );
