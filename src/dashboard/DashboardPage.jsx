@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "../routerShim";
+import { Link, useNavigate } from "../routerShim";
 import { learningPaths, materials } from "../libraryData";
 import { missions as missionCatalog } from "../data/missions";
 import { getLevelFromPoints, progressToNextStatus } from "../gamification";
@@ -53,27 +53,36 @@ const DashboardPage = ({
   const missionCompletedCount = missionStates.filter((m) => m.progress.status === "completed").length;
   const streakCount = streakInfo?.current || streakInfo?.count || 0;
 
-  const progressRings = useMemo(
+  const progressGoals = useMemo(
     () => [
       {
+        id: "learning",
         label: "Обучение",
-        value: Math.min(100, Math.round((completedMaterials / 20) * 100)),
-        hint: `${completedMaterials} материалов`,
-        color: "#8b5cf6",
+        percent: Math.min(100, Math.round((completedMaterials / 20) * 100)),
+        targetLabel: `${completedMaterials} из 20 материалов`,
+        progressLabel: `${completedMaterials} материалов`,
+        reward: "+50 XP 💎",
+        tips: ["Пройди 1 материал из библиотеки", "Закрепи тестом после статьи"],
         to: "/library",
       },
       {
+        id: "actions",
         label: "Действия",
-        value: Math.min(100, Math.round((missionCompletedCount / Math.max(1, missions.length)) * 100)),
-        hint: `${missionCompletedCount} из ${missions.length} заданий`,
-        color: "#22c55e",
+        percent: Math.min(100, Math.round((missionCompletedCount / Math.max(1, missions.length)) * 100)),
+        targetLabel: `${missionCompletedCount} из ${missions.length} заданий`,
+        progressLabel: `${missionCompletedCount} заданий`,
+        reward: "+40 XP",
+        tips: ["Выполни задание дня", "Закрой чек-лист трека"],
         to: "/missions",
       },
       {
+        id: "awareness",
         label: "Осознанность",
-        value: Math.min(100, Math.round((streakCount / 7) * 100)),
-        hint: `Серия ${streakCount} дней`,
-        color: "#0ea5e9",
+        percent: Math.min(100, Math.round((streakCount / 7) * 100)),
+        targetLabel: `Серия: ${streakCount} из 7 дней`,
+        progressLabel: `${streakCount} дней серии`,
+        reward: "+1 бейдж",
+        tips: ["Отметь практику/рефлексию", "Удержи серию без пропусков"],
         to: "/memory",
       },
     ],
@@ -165,10 +174,10 @@ const DashboardPage = ({
   };
 
   const achievements = [
-    { id: "m1", title: "Серия 5 дней", subtitle: "Не пропускал активности", reward: "+120 XP", icon: "🔥" },
-    { id: "m2", title: "MindGame Sprint", subtitle: "Сделал 3 игры подряд", reward: "+90 XP", icon: "🎮" },
-    { id: "m3", title: "Память", subtitle: "2 заметки за неделю", reward: "+60 XP", icon: "🧠" },
-    { id: "m4", title: "Задания", subtitle: "3/4 закрытых", reward: "+110 XP", icon: "🎯" },
+    { id: "m1", title: "Серия 5 дней", subtitle: "Не пропускал активности", reward: "+120 XP", icon: "🔥", progress: 80 },
+    { id: "m2", title: "MindGame Sprint", subtitle: "Сделал 3 игры подряд", reward: "+90 XP", icon: "🎮", progress: 60 },
+    { id: "m3", title: "Память", subtitle: "2 заметки за неделю", reward: "+60 XP", icon: "🧠", progress: 50 },
+    { id: "m4", title: "Бейдж 'Стабильность'", subtitle: "Закрыть 7 дней подряд", reward: "+1 бейдж", icon: "🛡️", locked: true, progress: 30 },
   ];
 
   const pathCards = useMemo(
@@ -194,18 +203,18 @@ const DashboardPage = ({
   }, [activityByDate]);
 
   const quickStats = [
-    { label: "Уровень", value: levelInfo.level, hint: `${levelInfo.toNext} XP до следующего` },
-    { label: "XP всего", value: gamification?.totalPoints || 0, hint: `${progressToNextStatus(gamification?.totalPoints || 0).current}` },
-    { label: "Серия", value: `${streakCount} дн.`, hint: `Лучший: ${streakInfo?.best || streakCount}` },
-    { label: "Материалы", value: completedMaterials, hint: "Закрыто" },
-    { label: "Задания", value: missionCompletedCount, hint: "Готово" },
-    { label: "Тесты", value: gamification.completedTestsCount || 0, hint: "Пройдено" },
+    { label: "Уровень", value: levelInfo.level, hint: `${levelInfo.toNext} XP до следующего`, icon: "🏆" },
+    { label: "XP всего", value: gamification?.totalPoints || 0, hint: `${progressToNextStatus(gamification?.totalPoints || 0).current}`, icon: "💎", to: "/dashboard" },
+    { label: "Серия", value: `${streakCount} дн.`, hint: `Лучший: ${streakInfo?.best || streakCount}`, icon: "🔥" },
+    { label: "Материалы", value: completedMaterials, hint: "Закрыто", icon: "📚", to: "/library" },
+    { label: "Задания", value: missionCompletedCount, hint: "Готово", icon: "✅", to: "/missions" },
+    { label: "Тесты", value: gamification.completedTestsCount || 0, hint: "Пройдено", icon: "🧠", to: "/library#tests" },
   ];
 
   const snapshot = [
-    { title: "XP за неделю", value: `${gamification.weeklyXp || 0} XP`, note: "с учётом MindGames" },
-    { title: "Новые материалы", value: `${materials?.slice(0, 3).length} рекомендовано`, note: "смотри Библиотеку" },
-    { title: "Лучший стрик", value: `${streakInfo?.best || streakCount} дней`, note: "держи темп" },
+    { title: "XP за неделю", value: `${gamification.weeklyXp || 0} XP`, note: "оценка", delta: "+12%" },
+    { title: "Новые материалы", value: `${materials?.slice(0, 3).length} рекомендовано`, note: "за неделю", delta: "+1" },
+    { title: "Лучший стрик", value: `${streakInfo?.best || streakCount} дней`, note: "держи темп", delta: streakInfo?.best ? "= " : "новый" },
   ];
 
   const handleContinue = () => {
@@ -214,10 +223,6 @@ const DashboardPage = ({
       return;
     }
     navigate("/missions");
-  };
-
-  const handleReflect = (entry) => {
-    console.log("Reflection saved", entry);
   };
 
   return (
@@ -229,7 +234,7 @@ const DashboardPage = ({
         xp={gamification?.totalPoints || 0}
         role={progressToNextStatus(gamification?.totalPoints || 0).current}
         mood={mood}
-        rings={progressRings}
+        goals={progressGoals}
         quote={heroQuote}
         insight={heroInsight}
       />
@@ -241,7 +246,7 @@ const DashboardPage = ({
         <ContentRail title="MindGames & практика" content={recommendedGames} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:auto-rows-fr">
           <div className="h-full">
-            <MoodReflection onChangeMood={setMood} onReflect={handleReflect} />
+            <MoodReflection onChangeMood={setMood} />
           </div>
           <div className="h-full">
             <CommunityPulse members={communitySnapshot} />
@@ -255,15 +260,34 @@ const DashboardPage = ({
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="card lg:col-span-2">
-            <div className="card-header">Панель развития</div>
+            <div className="flex items-center justify-between gap-2">
+              <div className="card-header">Панель развития</div>
+              <span className="chip ghost">Динамика недели</span>
+            </div>
             <p className="meta">Ключевые показатели и подсказки в одном месте.</p>
             <div className="mt-3 grid gap-3 md:grid-cols-3">
               {snapshot.map((item) => (
-                <div key={item.title} className="rounded-2xl border border-white/5 bg-white/5 p-4">
-                  <div className="meta subtle">{item.title}</div>
+                <button
+                  key={item.title}
+                  className="flex flex-col gap-2 rounded-2xl border border-white/5 bg-white/5 p-4 text-left transition hover:border-[#8A3FFC]/60"
+                  onClick={() => navigate(item.title.includes("материалы") ? "/library" : "/dashboard")}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="meta subtle">{item.title}</div>
+                    <span className="pill outline">{item.delta || "—"}</span>
+                  </div>
                   <div className="text-2xl font-semibold">{item.value}</div>
                   <div className="meta subtle">{item.note}</div>
-                </div>
+                  <div className="flex items-end gap-1">
+                    {weeklyTrack.map((day) => (
+                      <span
+                        key={day.date}
+                        className="h-2 w-full rounded-full bg-white/10"
+                        style={{ maxWidth: "calc(100%/8)", height: `${Math.max(8, day.progress / 8)}px` }}
+                      />
+                    ))}
+                  </div>
+                </button>
               ))}
             </div>
           </div>
@@ -280,17 +304,38 @@ const DashboardPage = ({
           </div>
         </div>
 
-        <div className="card">
-          <div className="card-header">Твой прогресс</div>
-          <p className="meta">XP, задания, материалы и серия дней.</p>
+          <div className="card">
+            <div className="card-header">Твой прогресс</div>
+            <p className="meta">XP, задания, материалы и серия дней.</p>
           <div className="grid gap-3 md:grid-cols-3">
-            {quickStats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-white/5 bg-white/5 p-4">
-                <div className="meta subtle">{stat.label}</div>
-                <div className="text-xl font-semibold">{stat.value}</div>
-                <div className="meta subtle">{stat.hint}</div>
-              </div>
-            ))}
+            {quickStats.map((stat) => {
+              const content = (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{stat.icon}</span>
+                    <div className="meta subtle">{stat.label}</div>
+                  </div>
+                  <div className="text-xl font-semibold">{stat.value}</div>
+                  <div className="meta subtle">{stat.hint}</div>
+                </>
+              );
+              if (stat.to) {
+                return (
+                  <Link
+                    key={stat.label}
+                    to={stat.to}
+                    className="group rounded-2xl border border-white/5 bg-white/5 p-4 transition hover:-translate-y-0.5 hover:border-[#8A3FFC]/60"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+              return (
+                <div key={stat.label} className="group rounded-2xl border border-white/5 bg-white/5 p-4">
+                  {content}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -324,13 +369,17 @@ const DashboardPage = ({
             <div className="card-header">Активные дни</div>
             <p className="meta">Подсветка последних 5 недель и серии.</p>
             <div className="grid grid-cols-7 gap-1 rounded-2xl border border-white/5 bg-white/5 p-3">
-              {recentActivityGrid.map((day) => (
-                <div
-                  key={day.key}
-                  className={`h-8 rounded-md ${day.active ? "bg-[#8A3FFC]" : "bg-white/10"}`}
-                  title={`${day.key} · ${day.active ? "Активный" : "Без действий"}`}
-                />
-              ))}
+              {recentActivityGrid.map((day, index) => {
+                const inStreak = recentActivityGrid.length - index <= streakCount;
+                return (
+                  <button
+                    type="button"
+                    key={day.key}
+                    className={`h-8 rounded-md transition ${day.active ? "bg-[#8A3FFC]" : "bg-white/10"} ${inStreak ? "ring-2 ring-[#8A3FFC]/60" : ""}`}
+                    title={`${day.key} · ${day.active ? "Активный" : "Без действий"}`}
+                  />
+                );
+              })}
             </div>
             <div className="chip-row mt-3">
               <span className="chip">Серия: {streakCount} дн.</span>

@@ -939,8 +939,14 @@ function App() {
                 />
               }
             />
-            <Route path="/profile" element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} />} />
-            <Route path="/settings" element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} />} />
+            <Route
+              path="/profile"
+              element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} onLogout={handleLogout} />}
+            />
+            <Route
+              path="/settings"
+              element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} onLogout={handleLogout} />}
+            />
             <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
             <Route
               path="/track-quiz"
