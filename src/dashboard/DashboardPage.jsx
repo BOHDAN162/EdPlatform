@@ -135,10 +135,10 @@ const DashboardPage = ({
   const [heroQuote, setHeroQuote] = useState(null);
 
   useEffect(() => {
-    if (!quotePool || quotePool.length === 0) return;
+    if (heroQuote || !quotePool || quotePool.length === 0) return;
     const index = Math.floor(Math.random() * quotePool.length);
     setHeroQuote(quotePool[index]);
-  }, []);
+  }, [heroQuote]);
 
   const communitySnapshot = useMemo(() => {
     if (community?.length) {
