@@ -1,15 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import FeedTab from "./FeedTab";
-import QuestionsTab from "./QuestionsTab";
 import useCommunity from "../useCommunity";
 import { getLevelFromPoints, getStatusByPoints } from "../gamification";
 import RankingRow from "./components/RankingRow";
 import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewardsData";
-
-const contentTabs = [
-  { id: "feed", label: "Лента" },
-  { id: "questions", label: "Вопросы" },
-];
+import MeaningWall from "./components/MeaningWall";
 
 const leaderboardTabs = [
   { id: "active", label: "Топ активных", description: "XP за ответы и участие" },
@@ -44,7 +38,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
         : null,
     [user, gamification.totalPoints, levelInfo.level]
   );
-  const [activeTab, setActiveTab] = useState("feed");
   const [leaderboardTab, setLeaderboardTab] = useState("active");
   const [rewardTab, setRewardTab] = useState("avatars");
   const [showIntro, setShowIntro] = useState(false);
@@ -287,38 +280,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       </div>
 
       <div className="community-section" ref={contentRef}>
-        <div className="section-header">
-          <div>
-            <h2>Активность комьюнити</h2>
-            <p className="meta">Лента достижений и быстрые ответы.</p>
-          </div>
-          <div className="chip-row">
-            {contentTabs.map((tab) => (
-              <button key={tab.id} className={`pill ${activeTab === tab.id ? "active" : "outline"}`} onClick={() => setActiveTab(tab.id)}>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {activeTab === "feed" && (
-          <FeedTab
-            posts={community.posts}
-            onLike={community.likePost}
-            onCreatePost={community.addPost}
-          />
-        )}
-        {activeTab === "questions" && (
-          <QuestionsTab
-            questions={community.questions}
-            answers={community.answers}
-            currentUser={communityUser}
-            onAsk={community.addQuestion}
-            onAnswer={community.addAnswer}
-            onUpvoteQuestion={community.upvoteQuestion}
-            onUpvoteAnswer={community.upvoteAnswer}
-            onMarkBest={community.markBestAnswer}
-          />
-        )}
+        <MeaningWall onToast={onToast} />
       </div>
     </div>
   );
