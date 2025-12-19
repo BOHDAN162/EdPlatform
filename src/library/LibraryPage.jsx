@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "../routerShim";
-import { learningPaths, materialThemes, materials, themeLabels } from "../libraryData";
+import { learningPaths, materials, themeLabels } from "../libraryData";
 import { statusFromProgress } from "../utils/materialStatus";
 import { courses } from "../data";
 import { mindGames } from "../data/mindGames";
@@ -8,6 +8,18 @@ import LogicGame from "../components/LogicGame";
 import FinanceGame from "../components/FinanceGame";
 import MindGameModal from "../components/MindGameModal";
 import { useMindGames } from "../hooks/useMindGames";
+import LibraryTypeChips from "./components/LibraryTypeChips";
+import LibrarySearchBar from "./components/LibrarySearchBar";
+import LibraryFiltersModal from "./components/LibraryFiltersModal";
+import LibraryEmptyState from "./components/LibraryEmptyState";
+import LibraryVoteModal from "./components/LibraryVoteModal";
+import LibrarySuggestContentModal from "./components/LibrarySuggestContentModal";
+import TestCard from "./components/TestCard";
+import CourseCard from "./components/CourseCard";
+import MindGameCard from "./components/MindGameCard";
+import ChecklistCard from "./components/ChecklistCard";
+import ProgramBannerCard from "./components/ProgramBannerCard";
+import { cases, checklists, mindGameLeaders, programs, summaries, testStats } from "./libraryExtras";
 
 const filterTypeChips = [
   { id: "all", label: "Все", target: "catalog-top" },
@@ -21,44 +33,6 @@ const filterTypeChips = [
 ];
 
 const statusLabels = { new: "Новое", inProgress: "В процессе", completed: "Завершено" };
-
-const ProgramModal = ({ open, program, onClose }) => {
-  if (!open) return null;
-  return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal-card max-w-2xl w-full bg-[#111] text-white border border-[#262626]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm text-violet-300">Программа</p>
-            <h3 className="text-2xl font-semibold leading-tight">{program.title}</h3>
-            <p className="text-sm text-gray-300 mt-2">{program.description}</p>
-          </div>
-          <button className="ghost" onClick={onClose} aria-label="Закрыть">✕</button>
-        </div>
-        <div className="grid gap-3 mt-4 text-sm text-gray-200">
-          <div className="flex items-center gap-3">
-            <span className="pill outline">Формат</span>
-            <span>{program.format}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="pill outline">Темы</span>
-            <span>{program.topics}</span>
-          </div>
-          <p className="text-gray-300 leading-relaxed">{program.details}</p>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-6 justify-end">
-          {program.actionLink ? (
-            <Link to={program.actionLink} className="primary">
-              Участвовать
-            </Link>
-          ) : (
-            <button className="ghost" onClick={onClose}>Скоро</button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Tag = ({ label, accent }) => (
   <span
@@ -80,80 +54,111 @@ const SectionShell = ({ id, title, action, children }) => (
   </section>
 );
 
-const MaterialCard = ({ title, description, footer, badge, tags = [], extra }) => (
-  <div className="h-full flex flex-col rounded-2xl border border-[#1f1f1f] bg-gradient-to-b from-[#131313] to-[#0b0b0b] p-4 shadow-lg">
-    <div className="flex flex-wrap gap-2 text-xs font-semibold text-gray-200">{badge}{tags}</div>
-    <h3 className="text-lg font-semibold leading-snug mt-2 line-clamp-2">{title}</h3>
-    {description && <p className="text-sm text-gray-400 mt-2 line-clamp-2">{description}</p>}
-    {extra}
-    <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-300">{footer}</div>
-  </div>
-);
+const ProgramModal = ({ open, program, onClose }) => {
+  const [contact, setContact] = useState({ name: "", handle: "", interest: [] });
+  useEffect(() => {
+    if (open) setContact({ name: "", handle: "", interest: [] });
+  }, [open]);
 
-const GameCard = ({ game, onPlay, bestResult }) => {
-  const gradient =
-    game.id === "logic"
-      ? "linear-gradient(135deg, rgba(138,63,252,0.3), rgba(59,130,246,0.25))"
-      : "linear-gradient(135deg, rgba(16,185,129,0.28), rgba(59,130,246,0.18))";
-  const bestText = bestResult ? `${bestResult.correct} из ${bestResult.total}` : "—";
+  if (!open) return null;
+  const toggleInterest = (item) => {
+    setContact((prev) => ({
+      ...prev,
+      interest: prev.interest.includes(item)
+        ? prev.interest.filter((i) => i !== item)
+        : [...prev.interest, item],
+    }));
+  };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!contact.handle.trim()) return;
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("program-signups");
+      const parsed = saved ? JSON.parse(saved) : [];
+      window.localStorage.setItem("program-signups", JSON.stringify([...parsed, { program: program.id, ...contact }]));
+    }
+    onClose();
+  };
+
   return (
-    <div className="h-full flex flex-col rounded-2xl border border-[#1f1f1f] overflow-hidden bg-[#0b0b0b] shadow-lg">
-      <div className="h-32 w-full" style={{ background: gradient }} aria-hidden />
-      <div className="p-4 flex flex-col gap-2 h-full">
-        <div className="flex items-center gap-2 text-xs text-violet-200">
-          <span className="pill outline">MindGame</span>
-          <span className="text-gray-400">{game.questions.length} вопросов</span>
+    <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
+      <div
+        className="modal-card max-w-xl w-full bg-[#111] text-white border border-[#1f1f1f]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm text-violet-200">Запись скоро</p>
+            <h3 className="text-2xl font-semibold leading-tight">{program.title}</h3>
+            <p className="text-sm text-gray-300 mt-2">Оставь контакт — отправим, когда откроется набор.</p>
+          </div>
+          <button className="ghost" onClick={onClose} aria-label="Закрыть">
+            ✕
+          </button>
         </div>
-        <h3 className="text-lg font-semibold leading-snug">{game.title}</h3>
-        <p className="text-sm text-gray-400 line-clamp-2">{game.description}</p>
-        <div className="mt-auto flex items-center justify-between pt-3">
-          <span className="text-sm text-gray-300">Лучший результат: {bestText}</span>
-          <Link
-            to="/library"
-            className="primary small"
-            onClick={(e) => {
-              e.preventDefault();
-              onPlay(game.id);
-            }}
-          >
-            Играть
-          </Link>
-        </div>
+        <form className="grid gap-3 mt-4" onSubmit={submit}>
+          <div>
+            <label className="text-sm text-gray-300">Имя (опционально)</label>
+            <input
+              value={contact.name}
+              onChange={(e) => setContact((prev) => ({ ...prev, name: e.target.value }))}
+              className="w-full rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              placeholder="Как к тебе обращаться"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-gray-300">Телеграм/контакт *</label>
+            <input
+              required
+              value={contact.handle}
+              onChange={(e) => setContact((prev) => ({ ...prev, handle: e.target.value }))}
+              className="w-full rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              placeholder="@username"
+            />
+          </div>
+          <div>
+            <label className="text-sm text-gray-300">Что интересно?</label>
+            <div className="flex flex-wrap gap-2">
+              {program.topics.map((topic) => {
+                const active = contact.interest.includes(topic);
+                return (
+                  <button
+                    type="button"
+                    key={topic}
+                    className={`chip ${active ? "active" : ""}`}
+                    onClick={() => toggleInterest(topic)}
+                  >
+                    {topic}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="ghost" onClick={onClose}>
+              Отмена
+            </button>
+            <button type="submit" className="primary">
+              Отправить
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 };
 
-const ProgramCard = ({ program, onMore }) => (
-  <div className="h-full flex flex-col rounded-2xl border border-[#1f1f1f] bg-gradient-to-br from-[#151515] to-[#0d0d0d] p-4 shadow-lg">
-    <div className="flex items-center gap-2 text-xs text-violet-200">
-      <span className="pill outline">Программа</span>
-      <span className="text-gray-400">{program.format}</span>
-    </div>
-    <h3 className="text-lg font-semibold mt-2 leading-snug line-clamp-2">{program.title}</h3>
-    <p className="text-sm text-gray-400 mt-2 line-clamp-2">{program.description}</p>
-    <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-300">
-      <span className="text-gray-300">Темы: {program.topics}</span>
-      <button className="primary small" onClick={() => onMore(program)}>Подробнее</button>
-    </div>
-  </div>
-);
-
-const EmptyState = ({ text }) => (
-  <div className="rounded-xl border border-dashed border-[#2a2a2a] bg-[#0b0b0b] p-4 text-gray-400 text-sm text-center">
-    {text}
-  </div>
-);
-
 const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
   const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
   const [search, setSearch] = useState("");
   const [activeType, setActiveType] = useState("all");
-  const [selectedThemes, setSelectedThemes] = useState([]);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [filterModal, setFilterModal] = useState(false);
+  const [filters, setFilters] = useState({ durations: [], levels: [], topics: [], formats: [] });
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [openProgram, setOpenProgram] = useState(null);
+  const [voteOpen, setVoteOpen] = useState(false);
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
   const {
     currentGameId,
     startGame,
@@ -168,6 +173,20 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
 
   const courseTestIds = useMemo(() => new Set(courses.map((c) => c.testId).filter(Boolean)), []);
 
+  const summaryItems = useMemo(() => summaries.map((s) => ({ ...s, type: "summary", theme: "mindset" })), []);
+  const caseItems = useMemo(() => cases.map((c) => ({ ...c, type: "case", theme: "entrepreneur_skills" })), []);
+
+  const allSearchMaterials = useMemo(
+    () => [
+      ...materials,
+      ...summaryItems,
+      ...caseItems,
+      ...mindGames.map((g) => ({ ...g, type: "mindgame", to: "/library" })),
+      ...courses,
+    ],
+    [summaryItems, caseItems]
+  );
+
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (el) {
@@ -175,18 +194,46 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
     }
   };
 
-  const matchesFilters = (material) => {
+  const handleChipClick = (chip) => {
+    setActiveType(chip.id);
+    scrollToSection(chip.target);
+  };
+
+  const getFormatLabel = (item) => {
+    if (item.type === "article" || item.type === "summary" || item.type === "case") return "текст";
+    if (item.type === "test") return "тест";
+    if (item.type === "course") return "курс";
+    if (item.type === "mindgame") return "игра";
+    return item.type;
+  };
+
+  const durationBucket = (item) => {
+    const text = item.estimatedTime || item.duration || "";
+    if (text.includes("30") || text.includes("6 модулей") || text.includes("6 недель")) return "30+";
+    if (text.includes("20") || text.includes("15")) return "15–30";
+    if (text.includes("10")) return "5–15";
+    return "до 5 мин";
+  };
+
+  const matchesFilters = (item) => {
     const query = search.trim().toLowerCase();
-    if (selectedThemes.length && !selectedThemes.includes(material.theme)) return false;
-    if (statusFilter !== "all") {
-      const statusValue = statusFromProgress(material.id, completedSet, null);
-      if (statusValue !== statusFilter) return false;
+    if (query && !(`${item.title}`.toLowerCase().includes(query) || item.description?.toLowerCase().includes(query))) return false;
+    if (filters.topics.length) {
+      const label = `${item.theme || item.focus || ""}`.toLowerCase();
+      if (!filters.topics.some((t) => label.includes(t))) return false;
     }
-    if (!query) return true;
-    return (
-      material.title.toLowerCase().includes(query) ||
-      material.description?.toLowerCase().includes(query)
-    );
+    if (filters.formats.length) {
+      const format = getFormatLabel(item);
+      if (!filters.formats.includes(format)) return false;
+    }
+    if (filters.levels.length && item.level) {
+      if (!filters.levels.includes(item.level.toLowerCase())) return false;
+    }
+    if (filters.durations.length) {
+      const bucket = durationBucket(item);
+      if (!filters.durations.includes(bucket)) return false;
+    }
+    return true;
   };
 
   const longreads = materials.filter((m) => m.type === "article").filter(matchesFilters);
@@ -194,50 +241,10 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
   const tests = materials.filter((m) => m.type === "test");
   const postMaterialTests = tests.filter((t) => courseTestIds.has(t.id)).filter(matchesFilters);
   const standaloneTests = tests.filter((t) => !courseTestIds.has(t.id)).filter(matchesFilters);
+  const filteredSummaries = summaryItems.filter(matchesFilters);
+  const filteredCases = caseItems.filter(matchesFilters);
 
   const historyItems = learningPaths;
-
-  const programs = [
-    {
-      id: "deep-mindset",
-      title: "Глубокое мышление создателя",
-      description: "6 недель практики: эксперименты, разборы, поддержка наставника.",
-      format: "6 недель · 6 модулей",
-      topics: "Майндсет, эксперименты, обратная связь",
-      details:
-        "Подходит тем, кто хочет довести идею до первых пользователей. Внутри еженедельные спринты, групповые сессии и разборы кейсов.",
-      actionLink: user ? "/missions" : null,
-    },
-    {
-      id: "deep-communication",
-      title: "Коммуникации и публичные выступления",
-      description: "Практика сторителлинга, питчей и уверенного общения.",
-      format: "4 недели · воркшопы",
-      topics: "Коммуникации, питч, бренд",
-      details: "Тренируемся на реальных сценариях: питч проекта, презентация, ответы на вопросы аудитории.",
-      actionLink: user ? "/missions" : null,
-    },
-  ];
-
-  const summaries = [];
-  const cases = [];
-
-  const handleChipClick = (chip) => {
-    setActiveType(chip.id);
-    scrollToSection(chip.target);
-  };
-
-  const toggleTheme = (themeId) => {
-    setSelectedThemes((prev) =>
-      prev.includes(themeId) ? prev.filter((t) => t !== themeId) : [...prev, themeId]
-    );
-  };
-
-  const resetFilters = () => {
-    setSelectedThemes([]);
-    setStatusFilter("all");
-    setActiveType("all");
-  };
 
   const currentGame = currentGameId ? mindGames.find((g) => g.id === currentGameId) : null;
   const progress = getProgress();
@@ -256,77 +263,49 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
     }
   }, [lastResult, onMindGameComplete]);
 
+  const totalTests = tests.length;
+  const completedTests = Object.values(testStats).filter((s) => s.attemptsCount > 0).length;
+  const avgAccuracy = Math.round(
+    (Object.values(testStats).reduce((acc, cur) => acc + (cur.lastScore ? cur.lastScore.correct / cur.lastScore.total : 0), 0) /
+      Math.max(Object.values(testStats).length, 1)) *
+      100
+  );
+
+  const onApplyFilters = (next, close) => {
+    setFilters(next);
+    if (close) setFilterModal(false);
+  };
+
   return (
     <div className="page library-page">
       <div className="page-header">
         <div>
           <h1>Библиотека</h1>
+          <p className="text-sm text-gray-400">Находи форматы под своё настроение и время</p>
         </div>
       </div>
 
       <div className="card bg-[#0f0f0f] border border-[#1f1f1f]" id="catalog-top">
         <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
-            {filterTypeChips.map((chip) => (
-              <button
-                key={chip.id}
-                className={`chip ${activeType === chip.id ? "active" : ""}`}
-                onClick={() => handleChipClick(chip)}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-          <div className="grid gap-3 md:grid-cols-[1fr_auto] items-end">
+          <LibraryTypeChips chips={filterTypeChips} activeType={activeType} onSelect={handleChipClick} />
+          <div className="grid gap-3 md:grid-cols-[1.2fr_auto] items-end">
             <div className="grid gap-2">
-              <label className="meta subtle" htmlFor="library-search">Поиск</label>
-              <input
-                id="library-search"
-                type="search"
-                className="w-full rounded-xl border border-[#2a2a2a] bg-[#0b0b0b] px-3 py-2"
-                placeholder="Поиск по материалам…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+              <label className="meta subtle" htmlFor="library-search">
+                Поиск
+              </label>
+              <LibrarySearchBar
+                query={search}
+                onChange={setSearch}
+                materials={allSearchMaterials}
+                onOpenFilters={() => setFilterModal(true)}
               />
             </div>
-            <button className="ghost" onClick={() => setAdvancedOpen((v) => !v)}>
-              {advancedOpen ? "Свернуть расширенный поиск" : "Расширенный поиск"}
-            </button>
-          </div>
-          {advancedOpen && (
-            <div className="rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4 grid gap-4">
-              <div>
-                <p className="text-sm text-gray-300 mb-2">Темы</p>
-                <div className="flex flex-wrap gap-2">
-                  {materialThemes.map((theme) => (
-                    <button
-                      key={theme.id}
-                      className={`chip ${selectedThemes.includes(theme.id) ? "active" : ""}`}
-                      onClick={() => toggleTheme(theme.id)}
-                    >
-                      {theme.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 items-center">
-                <span className="text-sm text-gray-300">Статус</span>
-                {["all", "new", "inProgress", "completed"].map((option) => (
-                  <button
-                    key={option}
-                    className={`chip ${statusFilter === option ? "active" : ""}`}
-                    onClick={() => setStatusFilter(option)}
-                  >
-                    {option === "all" ? "Все" : statusLabels[option]}
-                  </button>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3 justify-end">
-                <button className="ghost" onClick={resetFilters}>Сбросить</button>
-                <button className="primary" onClick={() => setAdvancedOpen(false)}>Применить</button>
-              </div>
+            <div className="hidden md:flex justify-end">
+              <button className="ghost" onClick={() => setFilterModal(true)}>
+                Фильтры
+              </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -378,9 +357,8 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                     </span>
                     <span className="pill outline">Дорожка</span>
                   </div>
-                  <h3 className="text-base font-semibold mt-2 leading-snug line-clamp-2">{path.title}</h3>
-                  <p className="text-sm text-gray-400 line-clamp-2 mt-1">{path.description}</p>
-                  <span className="mt-auto text-xs text-gray-400">Материалов: {path.materials.length}</span>
+                  <h3 className="text-lg font-semibold mt-2 leading-snug line-clamp-2">{path.title}</h3>
+                  <p className="text-sm text-gray-400 line-clamp-3 mt-1">{path.description}</p>
                 </Link>
               );
             })}
@@ -388,104 +366,104 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
         )}
       </SectionShell>
 
-      <SectionShell id="longreads" title="Лонгриды и статьи">
+      <SectionShell id="longreads" title="Лонгриды">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {longreads.map((item) => {
-            const theme = themeLabels[item.theme] || { accent: "#8A3FFC", title: "" };
+            const theme = themeLabels[item.theme] || { accent: "#8A3FFC" };
             return (
-              <MaterialCard
+              <div
                 key={item.id}
-                badge={<Tag label={theme.title} accent={theme.accent} />}
-                tags={[
-                  <span key="time" className="pill outline text-xs text-gray-200">{item.estimatedTime || "10 минут"}</span>,
-                ]}
-                title={item.title}
-                description={item.description}
-                footer={
-                  <>
-                    <span className="text-gray-400">{item.level || "Начальный"}</span>
-                    <Link className="ghost small" to={`/library/article/${item.id}`}>
-                      Открыть
-                    </Link>
-                  </>
-                }
-              />
+                className="h-full flex flex-col rounded-2xl border border-[#1f1f1f] bg-gradient-to-b from-[#131313] to-[#0b0b0b] p-4 shadow-lg"
+              >
+                <div className="flex flex-wrap gap-2 text-xs font-semibold text-gray-200">
+                  <Tag label={theme.title} accent={theme.accent} />
+                  <span className="pill outline text-xs text-gray-200">{item.estimatedTime || "10 минут"}</span>
+                </div>
+                <h3 className="text-lg font-semibold leading-snug mt-2 line-clamp-2">{item.title}</h3>
+                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{item.description}</p>
+                <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-300">
+                  <span className="text-gray-400">{item.level || "Начальный"}</span>
+                  <Link className="ghost small" to={`/library/article/${item.id}`}>
+                    Открыть
+                  </Link>
+                </div>
+              </div>
             );
           })}
-          {longreads.length === 0 && <EmptyState text="Пока нет материалов" />}
+          {longreads.length === 0 && (
+            <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
+          )}
         </div>
       </SectionShell>
 
       <SectionShell id="summaries" title="Саммари книг">
-        {summaries.length === 0 ? (
-          <EmptyState text="Пока нет материалов" />
+        {filteredSummaries.length === 0 ? (
+          <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {summaries.map((item) => (
-              <MaterialCard
-                key={item.id}
-                badge={<span className="pill outline">Саммари</span>}
-                title={item.title}
-                description={item.description}
-                footer={
-                  <>
-                    <span className="text-gray-400">{item.author}</span>
-                    <Link className="ghost small" to={item.to}>Открыть</Link>
-                  </>
-                }
-              />
+            {filteredSummaries.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs text-gray-300">
+                  <span className="pill outline">Саммари</span>
+                  <span className="text-gray-400">{item.author}</span>
+                </div>
+                <h3 className="text-lg font-semibold leading-snug line-clamp-2">{item.title}</h3>
+                <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+                <div className="mt-auto pt-2 flex items-center justify-between text-sm text-gray-300">
+                  <span className="text-gray-400">7–10 минут</span>
+                  <Link className="ghost small" to={item.to}>
+                    Открыть
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </SectionShell>
 
       <SectionShell id="cases" title="Разборы кейсов">
-        {cases.length === 0 ? (
-          <EmptyState text="Пока нет материалов" />
+        {filteredCases.length === 0 ? (
+          <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {cases.map((item) => (
-              <MaterialCard
-                key={item.id}
-                badge={<span className="pill outline">Кейс</span>}
-                title={item.title}
-                description={item.description}
-                footer={
-                  <>
-                    <span className="text-gray-400">{item.level || "Средний"}</span>
-                    <Link className="ghost small" to={item.to}>Открыть</Link>
-                  </>
-                }
-              />
+            {filteredCases.map((item) => (
+              <div key={item.id} className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-2">
+                <div className="flex items-center justify-between text-xs text-gray-300">
+                  <span className="pill outline">Кейс</span>
+                  <span className="text-gray-400">{item.level || "Средний"}</span>
+                </div>
+                <h3 className="text-lg font-semibold leading-snug line-clamp-2">{item.title}</h3>
+                <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
+                <div className="mt-auto pt-2 flex items-center justify-between text-sm text-gray-300">
+                  <span className="text-gray-400">Практический разбор</span>
+                  <Link className="ghost small" to={item.to}>
+                    Открыть
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </SectionShell>
 
       <SectionShell id="tests" title="Тесты">
-        <div className="grid gap-3">
+        <div className="rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4 mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-200">
+          <span>Пройдено тестов: {completedTests} / {totalTests}</span>
+          <span>Средняя точность: {Number.isNaN(avgAccuracy) ? 0 : avgAccuracy}%</span>
+          <span>Лучшая серия: 🔥 {Math.max(...Object.values(testStats).map((s) => s.attemptsCount || 0), 0)}</span>
+        </div>
+        <div className="grid gap-4">
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-lg font-semibold">После материалов</h3>
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {postMaterialTests.map((test) => (
-                <MaterialCard
-                  key={test.id}
-                  badge={<span className="pill outline">Тест</span>}
-                  title={test.title}
-                  description={test.description}
-                  footer={
-                    <>
-                      <span className="text-gray-400">{test.questions.length} вопросов</span>
-                      <Link className="ghost small" to={`/library/test/${test.id}`}>
-                        Открыть
-                      </Link>
-                    </>
-                  }
-                />
+                <TestCard key={test.id} test={test} stats={testStats[test.id]} />
               ))}
-              {postMaterialTests.length === 0 && <EmptyState text="Пока нет материалов" />}
+              {postMaterialTests.length === 0 && (
+                <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
+              )}
             </div>
           </div>
           <div>
@@ -494,22 +472,11 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
             </div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {standaloneTests.map((test) => (
-                <MaterialCard
-                  key={test.id}
-                  badge={<span className="pill outline">Тест</span>}
-                  title={test.title}
-                  description={test.description}
-                  footer={
-                    <>
-                      <span className="text-gray-400">{test.questions.length} вопросов</span>
-                      <Link className="ghost small" to={`/library/test/${test.id}`}>
-                        Открыть
-                      </Link>
-                    </>
-                  }
-                />
+                <TestCard key={test.id} test={test} stats={testStats[test.id]} />
               ))}
-              {standaloneTests.length === 0 && <EmptyState text="Пока нет материалов" />}
+              {standaloneTests.length === 0 && (
+                <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
+              )}
             </div>
           </div>
         </div>
@@ -521,75 +488,46 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
             const theme = themeLabels[course.theme] || { accent: "#8A3FFC", title: "" };
             const status = statusFromProgress(course.id, completedSet, null);
             return (
-              <MaterialCard
+              <CourseCard
                 key={course.id}
-                badge={<Tag label={theme.title} accent={theme.accent} />}
-                tags={[
-                  <span key="duration" className="pill outline text-xs text-gray-200">{course.duration || "4 недели"}</span>,
-                  <span key="status" className={`pill status ${status}`}>{statusLabels[status]}</span>,
-                ]}
-                title={course.title}
-                description={course.description}
-                footer={
-                  <>
-                    <span className="text-gray-400">{course.focus || ""}</span>
-                    <Link className="ghost small" to={`/library/course/${course.id}`}>
-                      Открыть
-                    </Link>
-                  </>
-                }
+                course={{ ...course, themeLabel: theme.title }}
+                statusLabel={statusLabels[status]}
+                isPopular={course.id === "course-finance" || course.id === "course-mindset"}
               />
             );
           })}
-          {courseItems.length === 0 && <EmptyState text="Пока нет материалов" />}
+          {courseItems.length === 0 && (
+            <LibraryEmptyState onVote={() => setVoteOpen(true)} onSuggest={() => setSuggestOpen(true)} />
+          )}
         </div>
       </SectionShell>
 
       <SectionShell id="mindgames" title="Игры мышления">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {mindGames.map((game) => (
-            <GameCard key={game.id} game={game} onPlay={startGame} bestResult={history?.best?.[game.id]} />
+            <MindGameCard
+              key={game.id}
+              game={game}
+              leaderboard={mindGameLeaders[game.id] || []}
+              stats={{ maxScore: 10, avgScore: 8, best: history?.best?.[game.id]?.correct || "8/10" }}
+              onPlay={startGame}
+            />
           ))}
         </div>
       </SectionShell>
 
       <SectionShell id="checklists" title="Чек-листы">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <MaterialCard
-            title="Дисциплина недели"
-            description="Пошаговый чек-лист на 7 дней для фокуса и привычек."
-            badge={<span className="pill outline">Чек-лист</span>}
-            footer={
-              <>
-                <span className="text-gray-400">8 пунктов · 15 минут</span>
-                <Link className="ghost small" to="/missions">
-                  Перейти к заданиям
-                </Link>
-              </>
-            }
-            extra={<p className="text-xs text-amber-200 mt-2">Выполнение — в заданиях</p>}
-          />
-          <MaterialCard
-            title="Питч проекта"
-            description="Подготовка короткого питча: структура, ценность, финальный чек."
-            badge={<span className="pill outline">Чек-лист</span>}
-            footer={
-              <>
-                <span className="text-gray-400">6 пунктов · 12 минут</span>
-                <Link className="ghost small" to="/missions">
-                  Перейти к заданиям
-                </Link>
-              </>
-            }
-            extra={<p className="text-xs text-amber-200 mt-2">Выполнение — в заданиях</p>}
-          />
+          {checklists.map((item) => (
+            <ChecklistCard key={item.id} checklist={item} />
+          ))}
         </div>
       </SectionShell>
 
       <SectionShell id="programs" title="Программы">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {programs.map((program) => (
-            <ProgramCard key={program.id} program={program} onMore={setOpenProgram} />
+            <ProgramBannerCard key={program.id} program={program} onSignup={setOpenProgram} onMore={setOpenProgram} />
           ))}
         </div>
       </SectionShell>
@@ -622,6 +560,15 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
       </MindGameModal>
 
       <ProgramModal open={!!openProgram} program={openProgram} onClose={() => setOpenProgram(null)} />
+      <LibraryFiltersModal
+        open={filterModal}
+        filters={filters}
+        onClose={() => setFilterModal(false)}
+        onReset={() => setFilters({ durations: [], levels: [], topics: [], formats: [] })}
+        onApply={onApplyFilters}
+      />
+      <LibraryVoteModal open={voteOpen} onClose={() => setVoteOpen(false)} />
+      <LibrarySuggestContentModal open={suggestOpen} onClose={() => setSuggestOpen(false)} />
     </div>
   );
 };
