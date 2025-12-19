@@ -149,9 +149,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
 
   const mascotHints = {
     violet: "спокойный фокус",
-    cyan: "идеи на орбите",
-    lime: "энергия роста",
-    sunset: "тёплая поддержка",
+    cube: "умный и мягкий напарник",
   };
 
   const handleAvatarUpload = (file) => {

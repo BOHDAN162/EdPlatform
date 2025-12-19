@@ -1,6 +1,6 @@
 import React from "react";
 import { MASCOTS, getMascotById } from "./mascots";
-import { useMascot } from "./MascotContext";
+import { defaultMascotId, useMascot } from "./MascotContext";
 
 const variantStyles = {
   hero: "relative w-full max-w-[360px] aspect-square rounded-3xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-2xl shadow-black/20",
@@ -12,7 +12,8 @@ const variantStyles = {
 
 const MascotDisplay = ({ variant = "hero", mascotId, withName = false }) => {
   const { mascotId: activeMascotId } = useMascot();
-  const mascot = getMascotById(mascotId || activeMascotId);
+  const targetMascot = getMascotById(mascotId || activeMascotId) || getMascotById(defaultMascotId);
+  const mascot = targetMascot || MASCOTS[0];
   const Svg = mascot.Component;
 
   const palette = mascot.palette || { primary: "#8A3FFC", glow: "#A855F7" };
@@ -28,7 +29,7 @@ const MascotDisplay = ({ variant = "hero", mascotId, withName = false }) => {
         }}
       />
       <div className="relative flex h-full w-full items-center justify-center">
-        <Svg size={size} />
+        <Svg size={size} floating={variant === "hero"} />
       </div>
       {withName && (
         <div className="mt-2 text-sm font-semibold text-[var(--fg)]">{mascot.name}</div>
