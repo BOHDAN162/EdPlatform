@@ -19,6 +19,7 @@ import CourseCard from "./components/CourseCard";
 import MindGameCard from "./components/MindGameCard";
 import ChecklistCard from "./components/ChecklistCard";
 import ProgramBannerCard from "./components/ProgramBannerCard";
+import LongreadCard from "./components/LongreadCard";
 import { cases, checklists, mindGameLeaders, programs, summaries, testStats } from "./libraryExtras";
 
 const filterTypeChips = [
@@ -33,16 +34,6 @@ const filterTypeChips = [
 ];
 
 const statusLabels = { new: "Новое", inProgress: "В процессе", completed: "Завершено" };
-
-const Tag = ({ label, accent }) => (
-  <span
-    className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold"
-    style={{ background: `${accent}22`, color: accent, boxShadow: `0 0 0 1px ${accent}33` }}
-  >
-    <span className="inline-block h-2 w-2 rounded-full" style={{ background: accent }} />
-    {label}
-  </span>
-);
 
 const SectionShell = ({ id, title, action, children }) => (
   <section id={id} className="card bg-[#0f0f0f] border border-[#1f1f1f]">
@@ -371,23 +362,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
           {longreads.map((item) => {
             const theme = themeLabels[item.theme] || { accent: "#8A3FFC" };
             return (
-              <div
-                key={item.id}
-                className="h-full flex flex-col rounded-2xl border border-[#1f1f1f] bg-gradient-to-b from-[#131313] to-[#0b0b0b] p-4 shadow-lg"
-              >
-                <div className="flex flex-wrap gap-2 text-xs font-semibold text-gray-200">
-                  <Tag label={theme.title} accent={theme.accent} />
-                  <span className="pill outline text-xs text-gray-200">{item.estimatedTime || "10 минут"}</span>
-                </div>
-                <h3 className="text-lg font-semibold leading-snug mt-2 line-clamp-2">{item.title}</h3>
-                <p className="text-sm text-gray-400 mt-2 line-clamp-2">{item.description}</p>
-                <div className="mt-auto pt-4 flex items-center justify-between text-sm text-gray-300">
-                  <span className="text-gray-400">{item.level || "Начальный"}</span>
-                  <Link className="ghost small" to={`/library/article/${item.id}`}>
-                    Открыть
-                  </Link>
-                </div>
-              </div>
+              <LongreadCard key={item.id} item={item} theme={theme} />
             );
           })}
           {longreads.length === 0 && (
@@ -402,7 +377,11 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredSummaries.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-2">
+              <Link
+                key={item.id}
+                to={item.to}
+                className="group flex h-full flex-col gap-2 rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg transition hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+              >
                 <div className="flex items-center justify-between text-xs text-gray-300">
                   <span className="pill outline">Саммари</span>
                   <span className="text-gray-400">{item.author}</span>
@@ -411,11 +390,9 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
                 <div className="mt-auto pt-2 flex items-center justify-between text-sm text-gray-300">
                   <span className="text-gray-400">7–10 минут</span>
-                  <Link className="ghost small" to={item.to}>
-                    Открыть
-                  </Link>
+                  <span className="text-indigo-300 group-hover:text-white">Открыть →</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -427,7 +404,11 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCases.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-2">
+              <Link
+                key={item.id}
+                to={item.to}
+                className="group flex h-full flex-col gap-2 rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg transition hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+              >
                 <div className="flex items-center justify-between text-xs text-gray-300">
                   <span className="pill outline">Кейс</span>
                   <span className="text-gray-400">{item.level || "Средний"}</span>
@@ -436,11 +417,9 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 <p className="text-sm text-gray-400 line-clamp-2">{item.description}</p>
                 <div className="mt-auto pt-2 flex items-center justify-between text-sm text-gray-300">
                   <span className="text-gray-400">Практический разбор</span>
-                  <Link className="ghost small" to={item.to}>
-                    Открыть
-                  </Link>
+                  <span className="text-indigo-300 group-hover:text-white">Открыть →</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -492,7 +471,6 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 key={course.id}
                 course={{ ...course, themeLabel: theme.title }}
                 statusLabel={statusLabels[status]}
-                isPopular={course.id === "course-finance" || course.id === "course-mindset"}
               />
             );
           })}

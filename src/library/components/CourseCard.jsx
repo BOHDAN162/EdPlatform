@@ -10,17 +10,17 @@ const themeAccents = {
   лидерство: "#a855f7",
 };
 
-const CourseCard = ({ course, statusLabel, isPopular }) => {
+const CourseCard = ({ course, statusLabel }) => {
   const accent = themeAccents[course.focus] || themeAccents[course.themeLabel] || "#8A3FFC";
   const status = statusLabel || "Новое";
   const progress = course.progress || 0;
 
   return (
-    <div className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-3 relative overflow-hidden">
+    <Link
+      to={`/library/course/${course.id}`}
+      className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-3 relative overflow-hidden transition hover:-translate-y-1 hover:shadow-xl hover:border-[#8A3FFC]/60"
+    >
       <div className="absolute inset-x-0 top-0 h-1" style={{ background: accent }} aria-hidden />
-      {isPopular && (
-        <span className="absolute right-3 top-3 text-xs px-2 py-1 rounded-full bg-white/10 text-amber-300">⭐ Популярный</span>
-      )}
       <div className="flex items-start justify-between text-xs text-gray-300 gap-3">
         <span className="font-semibold" style={{ color: accent }}>
           {course.focus || course.themeLabel || "Курс"} • {course.duration || "4 недели"}
@@ -41,11 +41,9 @@ const CourseCard = ({ course, statusLabel, isPopular }) => {
           <span className="pill subtle">{course.age || "13+"}</span>
           <span className="pill subtle">{course.difficulty || "средний"}</span>
         </div>
-        <Link className="primary small" to={`/library/course/${course.id}`}>
-          Открыть
-        </Link>
+        <span className="text-xs text-gray-400">{course.students ? `${course.students} ученика` : ""}</span>
       </div>
-    </div>
+    </Link>
   );
 };
 

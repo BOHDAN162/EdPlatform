@@ -1,14 +1,18 @@
-import React, { useState } from "react";
-import { Link } from "../../routerShim";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "../../routerShim";
 import Mascot from "./Mascot";
 
-const advicePool = [
-  { id: "focus", text: "Сделай одно важное задание до 17:00 — мозг в пике.", action: "Открыть задания", to: "/missions" },
-  { id: "mindgame", text: "Играй 1 MindGame — +30 XP и заряд на вечер.", action: "К MindGame", to: "/library" },
-  { id: "library", text: "Выбери короткий материал на 10 минут и закрой его.", action: "В библиотеку", to: "/library" },
-  { id: "streak", text: "Отметь рефлексию сегодня, чтобы удержать серию.", action: "К Памяти", to: "/memory" },
-  { id: "quiz", text: "Пройди быстрый тест — это +XP и новые рекомендации.", action: "Начать тест", to: "/library" },
-  { id: "track", text: "Вернись к треку: одно действие = шаг к цели.", action: "Продолжить трек", to: "/dashboard" },
+const tipsList = [
+  "Определи цель дня и начни с самой важной задачи.",
+  "Сделай шаг к проекту: запиши проблему, которую хочешь решить.",
+  "Поговори с человеком из другой сферы — свежий взгляд даёт идеи.",
+  "25 минут без отвлечений: включи таймер и проверь результат.",
+  "Составь план карманного бюджета на неделю.",
+  "Подумай, какой навык нужен мечте — найди материал в библиотеке.",
+  "Запиши 3 улучшения продукта и обсуди их с другом.",
+  "Сыграй MindGame на внимательность — разомни мозг перед учёбой.",
+  "Сделай чек-лист целей на неделю и отмечай выполненное.",
+  "Почитай саммари по лидерству и примени один совет сегодня.",
 ];
 
 const icons = {
@@ -89,33 +93,72 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
   const quoteText = quote?.text || "Движение важнее идеальной траектории. Сделай шаг — поймешь дорогу.";
   const quoteAuthor = quote?.author || "NOESIS";
 
-  const [activeAdvice, setActiveAdvice] = useState(0);
-  const [disliked, setDisliked] = useState({});
+  const tips = useMemo(
+    () =>
+      tipsList.map((text, index) => ({
+        id: `tip-${index + 1}`,
+        text,
+        to: "/missions",
+      })),
+    []
+  );
+
+  const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [feedback, setFeedback] = useState({});
   const [liked, setLiked] = useState({});
   const [openTip, setOpenTip] = useState(null);
+  const [startX, setStartX] = useState(null);
 
-  const visibleAdvice = advicePool[activeAdvice] || insight;
-
-  const findNextAdvice = (direction = 1) => {
-    const total = advicePool.length;
-    for (let i = 1; i <= total; i += 1) {
-      const candidate = (activeAdvice + direction * i + total) % total;
-      if (!disliked[advicePool[candidate].id]) {
-        return candidate;
-      }
+  useEffect(() => {
+    const stored = localStorage.getItem("noesis_tip_feedback");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setFeedback(parsed);
+      setLiked(
+        Object.entries(parsed).reduce((acc, [key, value]) => {
+          if (value === "up") acc[key] = true;
+          return acc;
+        }, {})
+      );
     }
-    return (activeAdvice + direction + total) % total;
+  }, []);
+
+  const visibleAdvice = tips[currentIndex] || insight;
+
+  const persistFeedback = (next) => {
+    setFeedback(next);
+    localStorage.setItem("noesis_tip_feedback", JSON.stringify(next));
+  };
+
+  const findNextIndex = (direction = 1) => {
+    const total = tips.length;
+    for (let step = 1; step <= total; step += 1) {
+      const candidate = (currentIndex + direction * step + total) % total;
+      if (feedback[tips[candidate].id] !== "down") return candidate;
+    }
+    return (currentIndex + direction + total) % total;
   };
 
   const handleFeedback = (type) => {
-    const current = advicePool[activeAdvice];
+    const current = tips[currentIndex];
     if (!current) return;
+    const nextState = { ...feedback, [current.id]: type === "like" ? "up" : "down" };
+    persistFeedback(nextState);
     if (type === "like") {
       setLiked((prev) => ({ ...prev, [current.id]: true }));
-    } else {
-      setDisliked((prev) => ({ ...prev, [current.id]: true }));
     }
-    setActiveAdvice(findNextAdvice(1));
+    setCurrentIndex(findNextIndex(1));
+  };
+
+  const handleSwipeStart = (clientX) => setStartX(clientX);
+  const handleSwipeEnd = (clientX) => {
+    if (startX === null) return;
+    const delta = clientX - startX;
+    if (Math.abs(delta) > 32) {
+      setCurrentIndex(findNextIndex(delta > 0 ? -1 : 1));
+    }
+    setStartX(null);
   };
 
   return (
@@ -158,38 +201,49 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
           </div>
           <div className="flex flex-col items-center gap-4 lg:items-stretch">
             <Mascot mood={mood} streak={streak} level={level} showMeta={false} />
-            <div className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg sm:p-5">
+            <div
+              className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg sm:p-5"
+              onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
+              onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
+              onPointerDown={(e) => handleSwipeStart(e.clientX)}
+              onPointerUp={(e) => handleSwipeEnd(e.clientX)}
+            >
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Совет от платформы</p>
-                <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
+                <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
                   <button
                     type="button"
-                    className="rounded-full border border-white/10 px-2 py-1 hover:border-[#8A3FFC]/60"
-                    onClick={() => setActiveAdvice(findNextAdvice(-1))}
+                    className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
+                    onClick={() => setCurrentIndex(findNextIndex(-1))}
                     aria-label="Предыдущий совет"
                   >
                     ←
                   </button>
+                  <span className="text-xs font-semibold text-[var(--muted)]">{`${currentIndex + 1}/${tips.length}`}</span>
                   <button
                     type="button"
-                    className="rounded-full border border-white/10 px-2 py-1 hover:border-[#8A3FFC]/60"
-                    onClick={() => setActiveAdvice(findNextAdvice(1))}
+                    className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
+                    onClick={() => setCurrentIndex(findNextIndex(1))}
                     aria-label="Следующий совет"
                   >
                     →
                   </button>
                 </div>
               </div>
-              <p className="mt-2 text-base font-semibold text-[var(--fg)]">
-                {visibleAdvice?.text || insight?.title || "Продолжи главный шаг на сегодня"}
-              </p>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
-              </p>
+              <div className="mt-2 space-y-1 overflow-hidden">
+                <p className="text-base font-semibold text-[var(--fg)] transition duration-300 ease-out" key={visibleAdvice?.id}>
+                  {visibleAdvice?.text || insight?.title || "Продолжи главный шаг на сегодня"}
+                </p>
+                <p className="text-sm text-[var(--muted)] transition duration-300 ease-out" key={`${visibleAdvice?.id}-desc`}>
+                  {insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
+                </p>
+              </div>
               <div className="mt-3 flex items-center gap-2">
                 <button
                   type="button"
-                  className="rounded-full border border-white/10 px-3 py-1 text-sm text-[var(--muted)] transition hover:border-[#8A3FFC]/70 hover:text-white"
+                  className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
+                    feedback[visibleAdvice?.id] === "up" ? "border-[#8A3FFC]/70 text-white" : "border-white/10 text-[var(--muted)]"
+                  }`}
                   onClick={() => handleFeedback("like")}
                   aria-label="Совет полезен"
                 >
@@ -197,20 +251,25 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 </button>
                 <button
                   type="button"
-                  className="rounded-full border border-white/10 px-3 py-1 text-sm text-[var(--muted)] transition hover:border-[#8A3FFC]/70 hover:text-white"
+                  className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
+                    feedback[visibleAdvice?.id] === "down"
+                      ? "border-[#8A3FFC]/70 text-white"
+                      : "border-white/10 text-[var(--muted)]"
+                  }`}
                   onClick={() => handleFeedback("dislike")}
                   aria-label="Совет неинтересен"
                 >
                   👎 Неинтересно
                 </button>
               </div>
-              <Link
-                to={visibleAdvice?.to || insight?.to || "/missions"}
+              <button
+                type="button"
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#8A3FFC] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(138,63,252,0.28)] transition hover:-translate-y-0.5"
+                onClick={() => navigate(`${visibleAdvice?.to || "/missions"}?tip=${visibleAdvice?.id || currentIndex}`)}
               >
-                {visibleAdvice?.action || insight?.cta || "Продолжить задание"}
+                Вперёд
                 <span className="text-xs">→</span>
-              </Link>
+              </button>
               {liked[visibleAdvice?.id] && <p className="mt-2 text-xs text-[#c084fc]">Будем показывать больше таких советов</p>}
             </div>
           </div>
