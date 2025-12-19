@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "./routerShim";
+import { MASCOTS } from "./mascots/mascots";
+import MascotDisplay from "./mascots/MascotDisplay";
+import { useMascot } from "./mascots/MascotContext";
 
 const STORAGE_KEYS = {
   appearance: "ep_appearance",
@@ -76,6 +79,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
     [user]
   );
 
+  const { mascotId, setMascotId } = useMascot();
   const [activeTab, setActiveTab] = useState("appearance");
   const [appearance, setAppearance] = useState(() =>
     loadLocalJSON(STORAGE_KEYS.appearance, { accent: "purple", reduceMotion: false, fontSize: "normal" })
@@ -93,7 +97,12 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   );
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [avatarPreview, setAvatarPreview] = useState(() => localStorage.getItem(STORAGE_KEYS.avatar) || "");
-  const [feedback, setFeedback] = useState({ appearance: "", account: "", notifications: "", security: "" });
+  const [feedback, setFeedback] = useState({ appearance: "", account: "", notifications: "", security: "", mascot: "" });
+  const [draftMascotId, setDraftMascotId] = useState(mascotId);
+
+  useEffect(() => {
+    setDraftMascotId(mascotId);
+  }, [mascotId]);
   const [errors, setErrors] = useState({ avatar: "", password: "" });
 
   useEffect(() => {
@@ -121,6 +130,28 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   const handleFontSelect = (id) => {
     setAppearance((prev) => ({ ...prev, fontSize: id }));
     setFeedback((prev) => ({ ...prev, appearance: "Размер шрифта применён" }));
+  };
+
+  const handleMascotSelect = (id) => {
+    setDraftMascotId(id);
+    setFeedback((prev) => ({ ...prev, mascot: "" }));
+  };
+
+  const handleMascotSave = () => {
+    setMascotId(draftMascotId);
+    setFeedback((prev) => ({ ...prev, mascot: "Персонаж сохранён" }));
+  };
+
+  const handleMascotCancel = () => {
+    setDraftMascotId(mascotId);
+    setFeedback((prev) => ({ ...prev, mascot: "Выбор отменён" }));
+  };
+
+  const mascotHints = {
+    violet: "спокойный фокус",
+    cyan: "идеи на орбите",
+    lime: "энергия роста",
+    sunset: "тёплая поддержка",
   };
 
   const handleAvatarUpload = (file) => {
@@ -304,6 +335,53 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
           <button type="button" className="ghost danger" onClick={() => onLogout?.()}>
             Выйти
           </button>
+        </div>
+      </SectionCard>
+
+      <SectionCard
+        title="Персонажи"
+        subtitle="Выбери персонажа — он появится на Главной и в Сообществе."
+        footer={
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="meta subtle">{feedback.mascot}</div>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="ghost" onClick={handleMascotCancel}>
+                Отмена
+              </button>
+              <button type="button" className="primary" onClick={handleMascotSave}>
+                Сохранить
+              </button>
+            </div>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {MASCOTS.map((mascot) => {
+            const selected = draftMascotId === mascot.id;
+            return (
+              <button
+                key={mascot.id}
+                type="button"
+                onClick={() => handleMascotSelect(mascot.id)}
+                className={`group relative flex flex-col items-center gap-3 rounded-2xl border p-4 text-left transition ${
+                  selected
+                    ? "border-[var(--accent)] bg-[var(--card)] shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
+                    : "border-[var(--border)] bg-white/5 hover:border-[var(--accent)]/70"
+                }`}
+              >
+                <MascotDisplay variant="picker" mascotId={mascot.id} />
+                <div className="text-center">
+                  <div className="text-base font-semibold text-[var(--fg)]">{mascot.name}</div>
+                  <p className="text-xs text-[var(--muted)]">{mascotHints[mascot.id]}</p>
+                </div>
+                {selected && (
+                  <span className="absolute right-3 top-3 rounded-full bg-[var(--accent)]/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white">
+                    ✓ выбран
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </SectionCard>
 
