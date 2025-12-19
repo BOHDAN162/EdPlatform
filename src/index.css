@@ -1620,6 +1620,15 @@ body {
   border-color: rgba(124, 58, 237, 0.35);
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .material-grid {
   display: grid;
   gap: 14px;
