@@ -1,290 +1,259 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "./routerShim";
-import TrackRoadmap from "./components/TrackRoadmap";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "./routerShim";
 import {
   badgePalette,
-  durationFilters,
   missionCategories,
   missions as missionList,
-  periodLabels,
-  difficultyFilters,
-  typeFilters,
 } from "./data/missions";
-import { getLevelFromXP, getRoleFromLevel } from "./gamification";
-import ActivityCalendar from "./components/activity/ActivityCalendar";
-import GroupChallengeCard from "./components/activity/GroupChallengeCard";
 
-const ProgressBar = ({ value }) => (
-  <div className="mission-progress-line">
-    <div className="mission-progress-fill" style={{ width: `${Math.min(100, value)}%` }} />
-  </div>
-);
-
-const hasDayActivity = (day) => {
-  if (!day) return false;
-  return (
-    (day.completedMaterialsCount || 0) +
-      (day.missionsCompletedCount || 0) +
-      (day.memoryEntriesCount || 0) +
-      (day.communityActionsCount || 0) +
-      (day.sessionsCount || 0) +
-      (day.totalXP || 0) >
-    0
-  );
+const durationMap = {
+  "ежедневная": { type: "today", label: "Сегодня" },
+  "ежечасная": { type: "today", label: "Сегодня" },
+  "3-дневная": { type: "week", label: "3 дня" },
+  "недельная": { type: "week", label: "Неделя" },
+  "месячная": { type: "month", label: "Месяц" },
+  разовая: { type: "today", label: "Разовое" },
 };
 
-const CalendarMissionCard = ({ title, description, current = 0, target = 0 }) => {
-  const percent = target ? Math.min(100, Math.round((current / target) * 100)) : 0;
-  return (
-    <div className="mission-card-v2 calendar-mini-card">
-      <div className="mission-card-title-row">
-        <h3>{title}</h3>
-        <span className="status-pill">{current}/{target}</span>
-      </div>
-      <p className="mission-card-desc">{description}</p>
-      <ProgressBar value={percent} />
-      <div className="mission-card-meta">Прогресс: {percent}%</div>
-    </div>
-  );
+const difficultyMap = {
+  лёгкая: { key: "easy", label: "Легкий", dots: 1 },
+  средняя: { key: "medium", label: "Средний", dots: 2 },
+  сложная: { key: "hard", label: "Сложный", dots: 3 },
 };
 
-const Badge = ({ label, color, outline = false }) => (
-  <span
-    className={`mission-badge ${outline ? "outline" : ""}`}
-    style={{ backgroundColor: outline ? "transparent" : `${color}1a`, color: color }}
-  >
-    {label}
-  </span>
-);
+const categoryMeta = {
+  библиотека: { icon: "📚", label: "Учёба" },
+  геймификация: { icon: "🎮", label: "Геймификация" },
+  сообщество: { icon: "👥", label: "Социальное" },
+  память: { icon: "🧠", label: "Навыки" },
+  трек: { icon: "✅", label: "Привычки" },
+};
 
-const MissionCard = ({ mission, progress, onSelect, onPrimary }) => {
-  const category = missionCategories[mission.category] || missionCategories["геймификация"];
-  const badge = badgePalette[progress?.badgeTier || 0] || badgePalette[0];
-  const ratio = mission.targetValue ? Math.min(100, Math.round(((progress?.currentValue || 0) / mission.targetValue) * 100)) : 0;
-  const statusLabel =
-    progress?.status === "completed" ? "Завершено" : progress?.status === "inProgress" ? "В процессе" : "Новое";
+const tabs = [
+  { id: "all", label: "Все" },
+  { id: "today", label: "Сегодня" },
+  { id: "week", label: "На неделю" },
+  { id: "team", label: "Для команды" },
+  { id: "new", label: "Новые" },
+  { id: "done", label: "Завершенные" },
+];
 
-  const progressLabel = mission.targetType === "streak"
-    ? `Серия: ${progress?.streakCount || 0}/${mission.targetValue}`
-    : mission.targetType === "boolean"
-    ? progress?.status === "completed" ? "Выполнено" : "Не выполнено"
-    : `${progress?.currentValue || 0} / ${mission.targetValue}`;
+const statusLabels = {
+  new: "NEW",
+  inProgress: "В процессе",
+  completed: "Завершено",
+};
 
-  return (
-    <div className="mission-card-v2" onClick={onSelect} data-mission-id={mission.id}>
-      <div className="mission-card-top">
-        <Badge label={category.label} color={category.color} />
-        <div className="mission-card-badges">
-          <Badge label={periodLabels[mission.period] || mission.period} color={category.color} outline />
-          <Badge label={mission.difficulty} color="#475569" outline />
-        </div>
-      </div>
-      <div className="mission-card-title-row">
-        <h3>{mission.title}</h3>
-        <span className="status-pill">{statusLabel}</span>
-      </div>
-      <p className="mission-card-desc">{mission.description}</p>
-      <div className="mission-card-progress">
-        <ProgressBar value={progress?.status === "completed" ? 100 : ratio} />
-        <div className="mission-card-meta">
-          <span>{progressLabel}</span>
-          <span className="reward">+{mission.xpRewardBase} XP</span>
-        </div>
-      </div>
-      <div className="mission-card-footer">
-        <div className="badge-tier" style={{ color: badge.color }}>
-          {badge.label} бейдж
+const chipBase =
+  "px-3 py-2 rounded-full border border-slate-200 text-sm font-medium transition hover:border-slate-400 hover:text-slate-800";
+
+const Modal = ({ title, onClose, children }) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4" onClick={onClose}>
+    <div
+      className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-400">Модал</p>
+          <h3 className="text-xl font-bold text-slate-900">{title}</h3>
         </div>
         <button
           type="button"
-          className={`primary ghost ${progress?.status === "completed" ? "disabled" : ""}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onPrimary();
-          }}
+          className="text-slate-500 transition hover:text-slate-700"
+          onClick={onClose}
+          aria-label="Закрыть"
         >
-          {progress?.status === "completed" ? "Завершено" : progress?.status === "inProgress" ? "Продолжить" : "Начать"}
+          ✕
         </button>
       </div>
+      <div className="mt-4 max-h-[70vh] overflow-y-auto">{children}</div>
     </div>
-  );
-};
+  </div>
+);
 
-const MissionDetail = ({ mission, progress, onNavigate, onStart, onComplete }) => {
+const ProgressBar = ({ percent }) => (
+  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+    <div
+      className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 transition-all duration-500"
+      style={{ width: `${Math.min(100, percent)}%` }}
+    />
+  </div>
+);
+
+const MissionCard = ({ mission, progress, onAction, onDetails }) => {
   const category = missionCategories[mission.category] || missionCategories["геймификация"];
-  const badge = badgePalette[progress?.badgeTier || 0] || badgePalette[0];
-
-  const progressLabel = mission.targetType === "streak"
-    ? `Серия: ${progress?.streakCount || 0}/${mission.targetValue}`
-    : mission.targetType === "boolean"
-    ? progress?.status === "completed" ? "Выполнено" : "Не выполнено"
-    : `${progress?.currentValue || 0} / ${mission.targetValue}`;
-
-  const progressValue = mission.targetValue
-    ? Math.min(100, ((progress?.currentValue || 0) / mission.targetValue) * 100)
-    : progress?.status === "completed"
-    ? 100
-    : 0;
-
-  return (
-    <div className="mission-detail-card">
-      <div className="mission-detail-header">
-        <div>
-          <Badge label={category.label} color={category.color} />
-          <h2>{mission.title}</h2>
-          <p className="mission-card-desc">{mission.description}</p>
-          <div className="mission-chip-row">
-            <Badge label={periodLabels[mission.period] || mission.period} color={category.color} outline />
-            <Badge label={mission.difficulty} color="#475569" outline />
-            <Badge label={`+${mission.xpRewardBase} XP`} color="#14b8a6" outline />
-          </div>
-        </div>
-        <div className="mission-detail-actions">
-          <button className="ghost" onClick={onStart}>
-            {progress?.status === "inProgress" ? "Продолжить" : "Начать"}
-          </button>
-          <button className="primary" disabled={progress?.status === "completed"} onClick={onComplete}>
-            {progress?.status === "completed" ? "Завершено" : "Отметить выполнение"}
-          </button>
-        </div>
-      </div>
-      <div className="mission-detail-stats">
-        <div className="stat-block">
-          <div className="stat-label">Прогресс</div>
-          <div className="stat-value">{progressLabel}</div>
-          <ProgressBar value={progress?.status === "completed" ? 100 : progressValue} />
-        </div>
-        <div className="stat-block">
-          <div className="stat-label">Бейдж</div>
-          <div className="stat-value" style={{ color: badge.color }}>
-            {badge.label}
-          </div>
-          <p className="meta">Повышай прогресс, чтобы улучшать уровень бейджа.</p>
-        </div>
-      </div>
-      <div className="mission-detail-footer">
-        <div>
-          <div className="stat-label">Куда идти</div>
-          <p className="meta">{mission.category === "библиотека" ? "Открой материалы или MindGames в библиотеке." : mission.category === "память" ? "Создавай заметки и карточки в разделе Память." : mission.category === "сообщество" ? "Отвечай и помогай ребятам в сообществе." : mission.category === "трек" ? "Проходи шаги своего трека развития." : "Закрывай ежедневные задания и удерживай серию."}</p>
-        </div>
-        <button className="ghost" onClick={onNavigate}>Перейти в раздел</button>
-      </div>
-    </div>
-  );
-};
-
-const MissionOverview = ({ gamification, streakCount, completedWeek }) => {
-  const levelInfo = getLevelFromXP(gamification.totalPoints || 0);
-  const roleLabel = getRoleFromLevel(levelInfo.level);
-
-  return (
-    <div className="mission-overview">
-      <div>
-        <p className="meta subtle">Задания</p>
-        <h1>Задания и квесты</h1>
-        <p className="meta">
-          Задания и квесты, которые прокачивают твой уровень, привычки и статус в комьюнити.
-        </p>
-      </div>
-      <div className="overview-grid">
-        <div className="overview-card">
-          <div className="label">Уровень</div>
-          <div className="value">Уровень {levelInfo.level} — {roleLabel}</div>
-          <ProgressBar value={levelInfo.progress} />
-          <div className="meta subtle">{gamification.totalPoints} XP · {levelInfo.toNext} XP до следующего уровня</div>
-        </div>
-        <div className="overview-card">
-          <div className="label">Серия</div>
-          <div className="value">{streakCount} дней подряд</div>
-          <p className="meta subtle">Поддерживай темп, чтобы не потерять streak.</p>
-        </div>
-        <div className="overview-card">
-          <div className="label">Выполнено за неделю</div>
-          <div className="value">{completedWeek}</div>
-          <p className="meta subtle">Заданий закрыто за последние 7 дней.</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const statusLabel = (progress) =>
-  progress?.status === "completed" ? "Готово" : progress?.status === "inProgress" ? "В процессе" : "Не начато";
-
-const statusAccent = (progress) =>
-  progress?.status === "completed"
-    ? "success"
-    : progress?.status === "inProgress"
-    ? "active"
-    : "muted";
-
-const InlineMissionCard = ({ mission, progress, onPrimary, onNavigate }) => {
-  const category = missionCategories[mission.category] || missionCategories["геймификация"];
+  const meta = categoryMeta[mission.category] || { icon: "🎯", label: category?.label || "Категория" };
+  const diffMeta = difficultyMap[mission.difficulty] || { key: "easy", label: mission.difficulty, dots: 1 };
+  const duration = durationMap[mission.period] || { type: "week", label: mission.period };
   const ratio = mission.targetValue
     ? Math.min(100, Math.round(((progress?.currentValue || 0) / mission.targetValue) * 100))
     : progress?.status === "completed"
     ? 100
     : 0;
-  const progressLabel = mission.targetType === "streak"
-    ? `Серия ${progress?.streakCount || 0}/${mission.targetValue}`
-    : mission.targetType === "boolean"
-    ? progress?.status === "completed" ? "Выполнено" : "Не выполнено"
-    : `${progress?.currentValue || 0} / ${mission.targetValue}`;
+
+  const status = progress?.status === "completed" ? "completed" : progress?.status === "inProgress" ? "inProgress" : "new";
+  const statusColor = status === "completed" ? "bg-emerald-50 text-emerald-600" : status === "inProgress"
+    ? "bg-amber-50 text-amber-600"
+    : "bg-indigo-50 text-indigo-600";
 
   return (
-    <div className="inline-mission-card">
-      <div className="inline-mission-head">
-        <div className="inline-left">
-          <div className="pill-row">
-            <Badge label={category.label} color={category.color} />
-            <Badge label={mission.difficulty} color="#475569" outline />
-            <Badge label={periodLabels[mission.period] || mission.period} color={category.color} outline />
-          </div>
-          <h3>{mission.title}</h3>
-          <p className="meta">{mission.description}</p>
-          <div className="inline-progress">
-            <ProgressBar value={progress?.status === "completed" ? 100 : ratio} />
-            <div className="inline-progress-meta">
-              <span>{progressLabel}</span>
-              <span className="reward">+{mission.xpRewardBase} XP</span>
-            </div>
-          </div>
+    <div className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+            <span className="text-base">{meta.icon}</span>
+            {meta.label}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+            ⏱ {duration.label}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+            {"●".repeat(diffMeta.dots)} {diffMeta.label}
+          </span>
         </div>
-        <div className="inline-actions">
-          <span className={`status-dot ${statusAccent(progress)}`}>{statusLabel(progress)}</span>
-          <div className="action-stack">
-            <button className="ghost" onClick={onNavigate}>Перейти</button>
-            <button
-              className={`primary ${progress?.status === "completed" ? "disabled" : ""}`}
-              onClick={onPrimary}
-            >
-              {progress?.status === "completed" ? "Завершено" : "Выполнено"}
-            </button>
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold ${statusColor}`}>
+          {status === "completed" ? "✓" : status === "inProgress" ? "↻" : "NEW"}
+          <span>{statusLabels[status]}</span>
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-col gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">{mission.title}</h3>
+            <p className="text-sm text-slate-600 line-clamp-2">{mission.description}</p>
           </div>
+          <button
+            type="button"
+            className="text-sm text-indigo-500 underline-offset-4 hover:underline"
+            onClick={onDetails}
+          >
+            Подробнее
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <ProgressBar percent={status === "completed" ? 100 : ratio} />
+          <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">
+            {mission.targetType === "streak"
+              ? `${progress?.streakCount || 0}/${mission.targetValue}`
+              : `${progress?.currentValue || 0}/${mission.targetValue}`}
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-3 text-sm text-slate-700">
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">+{mission.xpRewardBase} XP</span>
+            {mission.badgeLevels?.length ? (
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+                Бейдж: {badgePalette[progress?.badgeTier || 0]?.label || "База"}
+              </span>
+            ) : null}
+          </div>
+          {status === "completed" ? (
+            <div className="flex items-center gap-2 text-emerald-600 font-semibold">
+              ✓ Завершено
+              <button
+                type="button"
+                className="text-xs text-indigo-500 underline-offset-4 hover:underline"
+                onClick={onAction}
+              >
+                Повторить
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+              onClick={onAction}
+            >
+              {status === "inProgress" ? "Продолжить" : "Начать"}
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-const AchievementLegend = () => (
-  <div className="achievement-legend">
+const StoryCard = ({ title, description, gradient, icon }) => (
+  <div className="flex min-w-[220px] flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
+    <div className="h-28 w-full rounded-xl bg-gradient-to-br p-4 text-3xl" style={{ backgroundImage: gradient }}>
+      <div className="flex h-full items-center justify-center text-4xl">{icon}</div>
+    </div>
     <div>
-      <p className="meta subtle">Как это работает</p>
-      <h3>XP, уровни, streak и ачивки</h3>
-      <p className="meta">
-        За каждое задание ты получаешь XP и продвигаешься по уровням. Серии усиливают награды, а бейджи растут от серого до
-        изумруда.
-      </p>
+      <h4 className="text-base font-semibold text-slate-900">{title}</h4>
+      <p className="text-sm text-slate-600">{description}</p>
     </div>
-    <div className="badge-row">
-      {badgePalette.map((badge) => (
-        <div key={badge.key} className="legend-pill" style={{ color: badge.color }}>
-          <span className="legend-dot" style={{ background: `${badge.color}33`, borderColor: `${badge.color}88` }} />
-          {badge.label}
+  </div>
+);
+
+const ChallengeCard = ({ challenge, onJoin, onOpenChat, isJoined }) => {
+  const percent = Math.min(100, Math.round((challenge.progress / challenge.target) * 100));
+  return (
+    <div className="flex h-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-slate-400">Командный вызов</p>
+          <h3 className="text-lg font-semibold text-slate-900">{challenge.title}</h3>
+          <p className="text-sm text-slate-600">{challenge.description}</p>
         </div>
-      ))}
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{challenge.deadline}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <ProgressBar percent={percent} />
+        <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">{challenge.progress}/{challenge.target}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {challenge.participants.map((p) => (
+          <span
+            key={p.name}
+            className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+          >
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white shadow ring-1 ring-slate-200">
+              {p.avatar}
+            </span>
+            {p.name}
+            <span className="text-[11px] font-medium text-slate-500">+{p.xp} XP</span>
+          </span>
+        ))}
+      </div>
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <p className="text-sm text-slate-600">Топ-3 вклада видны команде — поднимись в лидерборде.</p>
+        <div className="flex flex-wrap gap-2">
+          {!isJoined && (
+            <button
+              type="button"
+              className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+              onClick={() => onJoin(challenge.id)}
+            >
+              Присоединиться
+            </button>
+          )}
+          <button
+            type="button"
+            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-200 transition hover:bg-indigo-50"
+            onClick={() => onOpenChat(challenge.id)}
+          >
+            Открыть чат
+          </button>
+        </div>
+      </div>
     </div>
+  );
+};
+
+const EmptyState = ({ onReset }) => (
+  <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+    <div className="text-3xl">🔍</div>
+    <h3 className="text-lg font-semibold text-slate-900">Ничего не найдено</h3>
+    <p className="text-sm text-slate-600">Попробуй другие фильтры или сбрось выбор, чтобы вернуться ко всем заданиям.</p>
+    <button
+      type="button"
+      className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+      onClick={onReset}
+    >
+      Сбросить фильтры
+    </button>
   </div>
 );
 
@@ -293,341 +262,516 @@ const MissionsPage = ({
   missions = missionList,
   getMissionProgress,
   setMissionStatus,
-  updateProgressByKey,
-  completedThisWeek = 0,
-  activityByDate = {},
-  streakInfo,
-  getActivityForMonth,
-  trackData,
-  onStartTrack,
-  onEditTrack,
 }) => {
   const navigate = useNavigate();
-  const [duration, setDuration] = useState("all");
-  const [difficulty, setDifficulty] = useState("all");
-  const [category, setCategory] = useState("all");
-  const [selectedId, setSelectedId] = useState(missions[0]?.id);
+  const [activeTab, setActiveTab] = useState("all");
+  const [filters, setFilters] = useState({ duration: "all", difficulty: "all", status: "all" });
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [detailsMission, setDetailsMission] = useState(null);
+  const [gamificationModal, setGamificationModal] = useState(false);
+  const [chatFor, setChatFor] = useState(null);
+  const [chatMessages, setChatMessages] = useState({});
+  const [joinToast, setJoinToast] = useState("");
 
-  const selectedMission = missions.find((m) => m.id === selectedId) || missions[0];
-  const selectedProgress = selectedMission ? getMissionProgress?.(selectedMission.id) || { status: "new", currentValue: 0 } : null;
+  const messageEndRef = useRef(null);
 
-  const filteredMissions = useMemo(
+  const enriched = useMemo(
     () =>
-      missions.filter((mission) => {
-        const matchesDuration =
-          duration === "all" ||
-          (duration === "today" && (mission.period === "ежедневная" || mission.period === "ежечасная")) ||
-          (duration === "3days" && mission.period === "3-дневная") ||
-          (duration === "week" && mission.period === "недельная") ||
-          (duration === "month" && mission.period === "месячная");
-        const matchesDifficulty = difficulty === "all" || mission.difficulty === difficulty;
-        const matchesCategory = category === "all" || mission.category === category;
-        return matchesDuration && matchesDifficulty && matchesCategory;
+      missions.map((mission) => {
+        const duration = durationMap[mission.period] || { type: "week", label: mission.period };
+        const diff = difficultyMap[mission.difficulty] || { key: "medium", label: mission.difficulty };
+        return {
+          ...mission,
+          durationType: duration.type,
+          durationLabel: duration.label,
+          difficultyKey: diff.key,
+          difficultyLabel: diff.label,
+          isTeam: mission.category === "сообщество" || mission.isTeam,
+        };
       }),
-    [duration, difficulty, category, missions]
+    [missions]
   );
 
-  const dailyMissions = missions.filter((mission) => mission.period === "ежедневная").slice(0, 5);
-  const weeklyMissions = missions.filter((mission) => mission.period === "недельная").slice(0, 6);
-  const longQuests = missions.filter((mission) => mission.period === "месячная");
-
-  const todayCompleted = dailyMissions.filter((mission) => (getMissionProgress?.(mission.id)?.status || "new") === "completed").length;
-  const weekCompleted = weeklyMissions.filter(
-    (mission) => (getMissionProgress?.(mission.id)?.status || "new") === "completed"
-  ).length;
-
-  const handleNavigate = (mission) => {
-    if (mission.link) {
-      navigate(mission.link);
-    }
-  };
-
-  const handleStartTrack = () => {
-    onStartTrack?.();
-    navigate("/track-quiz");
-  };
-
-  const handleEditTrack = () => {
-    onEditTrack?.();
-    navigate("/track-quiz");
-  };
-
-  const handleStart = (missionId) => {
-    if (setMissionStatus) setMissionStatus(missionId, "inProgress");
-  };
-
-  const handleComplete = (missionId) => {
-    if (setMissionStatus) setMissionStatus(missionId, "completed");
-    updateProgressByKey?.("missions_completed_day", 1);
-    updateProgressByKey?.("missions_completed_week", 1);
-  };
-
-  const monthRef = useMemo(() => new Date(), []);
-  const monthActivity = useMemo(
-    () => (getActivityForMonth ? getActivityForMonth(monthRef.getFullYear(), monthRef.getMonth() + 1) : activityByDate),
-    [activityByDate, getActivityForMonth, monthRef]
+  const missionsWithProgress = useMemo(
+    () =>
+      enriched.map((mission) => ({
+        mission,
+        progress: getMissionProgress?.(mission.id) || { status: "new", currentValue: 0, streakCount: 0 },
+      })),
+    [enriched, getMissionProgress]
   );
 
-  const activeDays = useMemo(() => Object.values(monthActivity || {}).filter((day) => hasDayActivity(day)).length, [monthActivity]);
+  useEffect(() => {
+    const storedChats = localStorage.getItem("mission_chats");
+    if (storedChats) setChatMessages(JSON.parse(storedChats));
+  }, []);
 
-  const lastSixtyDaysActive = useMemo(() => {
-    const now = new Date();
-    const msDay = 1000 * 60 * 60 * 24;
-    return Object.entries(activityByDate || {}).filter(([dateKey, day]) => {
-      const diff = (now - new Date(dateKey)) / msDay;
-      return diff >= 0 && diff <= 60 && hasDayActivity(day);
-    }).length;
-  }, [activityByDate]);
+  useEffect(() => {
+    localStorage.setItem("mission_chats", JSON.stringify(chatMessages));
+  }, [chatMessages]);
 
-  const groupChallenges = useMemo(
+  useEffect(() => {
+    if (messageEndRef.current) messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [chatFor, chatMessages]);
+
+  const applyTab = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === "today") setFilters((prev) => ({ ...prev, duration: "today" }));
+    else if (tabId === "week") setFilters((prev) => ({ ...prev, duration: "week" }));
+    else setFilters((prev) => ({ ...prev, duration: prev.duration === "today" || prev.duration === "week" ? "all" : prev.duration }));
+
+    if (tabId === "new") setFilters((prev) => ({ ...prev, status: "new" }));
+    else if (tabId === "done") setFilters((prev) => ({ ...prev, status: "completed" }));
+    else setFilters((prev) => ({ ...prev, status: prev.status === "new" || prev.status === "completed" ? "all" : prev.status }));
+  };
+
+  const filtered = useMemo(() => {
+    return missionsWithProgress.filter(({ mission, progress }) => {
+      const matchesDuration = filters.duration === "all" || mission.durationType === filters.duration;
+      const matchesDifficulty = filters.difficulty === "all" || mission.difficultyKey === filters.difficulty;
+      const matchesCategory = !selectedCategories.length || selectedCategories.includes(mission.category);
+      const matchesStatus =
+        filters.status === "all" ||
+        (filters.status === "new" && progress.status !== "inProgress" && progress.status !== "completed") ||
+        (filters.status === "inProgress" && progress.status === "inProgress") ||
+        (filters.status === "completed" && progress.status === "completed");
+      const matchesTeam = activeTab === "team" ? mission.isTeam : true;
+      return matchesDuration && matchesDifficulty && matchesCategory && matchesStatus && matchesTeam;
+    });
+  }, [activeTab, filters, missionsWithProgress, selectedCategories]);
+
+  const handleAction = (missionId, link) => {
+    setMissionStatus?.(missionId, "inProgress");
+    if (link) navigate(link);
+  };
+
+  const handleJoinChallenge = (id) => {
+    const next = { ...chatMessages, [id]: { ...(chatMessages[id] || {}), joined: true } };
+    setChatMessages(next);
+    localStorage.setItem("mission_chats", JSON.stringify(next));
+    setJoinToast("Ты в команде!");
+    setTimeout(() => setJoinToast(""), 2000);
+  };
+
+  const handleSendMessage = (id, text) => {
+    if (!text.trim()) return;
+    const payload = {
+      text: text.trim(),
+      author: "Ты",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+    setChatMessages((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] || {}), joined: true, messages: [ ...(prev[id]?.messages || defaultMessages(id)), payload ] },
+    }));
+  };
+
+  const defaultMessages = (id) => {
+    const base = {
+      squad1: [
+        { author: "Аня", text: "Давайте закрывать задания сегодня!", time: "09:20" },
+        { author: "Илья", text: "Я беру материал по финансам.", time: "09:45" },
+      ],
+      squad2: [
+        { author: "Маша", text: "Кто-то идёт на стрим?", time: "10:10" },
+        { author: "Тим", text: "Я беру чек-лист привычек", time: "10:22" },
+      ],
+    };
+    return base[id] || [];
+  };
+
+  const challenges = useMemo(
     () => [
       {
-        id: "volgograd",
-        title: "Клуб Волгоград",
-        description: "10 000 XP за неделю на всех участниках",
+        id: "squad1",
+        title: "XP-спринт команды",
+        description: "Соберите 500 XP вместе за 3 дня",
+        progress: 320,
+        target: 500,
         deadline: "до пятницы",
-        progress: 6200,
-        target: 10000,
-        teamName: "Команда региона",
-        accent: "#7c3aed",
+        participants: [
+          { name: "Аня", xp: 120, avatar: "A" },
+          { name: "Илья", xp: 90, avatar: "И" },
+          { name: "Маша", xp: 60, avatar: "M" },
+        ],
       },
       {
-        id: "finance-sprint",
-        title: "Финансовый спринт",
-        description: "5 материалов по финансам за 7 дней",
+        id: "squad2",
+        title: "Челлендж привычек",
+        description: "7 дней без пропусков в трекере",
+        progress: 4,
+        target: 7,
         deadline: "осталось 3 дня",
-        progress: 3,
-        target: 5,
-        teamName: "Сквад Финансы",
-        accent: "#22c55e",
+        participants: [
+          { name: "Тим", xp: 80, avatar: "T" },
+          { name: "Лера", xp: 70, avatar: "L" },
+          { name: "Катя", xp: 55, avatar: "K" },
+        ],
       },
     ],
     []
   );
 
+  const storyCards = [
+    { title: "Выполняй → получай XP", description: "Каждая миссия даёт 💎 XP и двигает к уровню.", icon: "💎", gradient: "linear-gradient(135deg,#c7d2fe,#e0f2fe)" },
+    { title: "Серия растёт", description: "Закрывай задания ежедневно и держи 🔥 streak.", icon: "🔥", gradient: "linear-gradient(135deg,#fef9c3,#fecdd3)" },
+    { title: "Уровни и статусы", description: "Новые уровни открывают роли и бейджи.", icon: "🛡️", gradient: "linear-gradient(135deg,#e0f2f1,#d1fae5)" },
+    { title: "Командные бонусы", description: "Челленджи дают общий буст XP.", icon: "🤝", gradient: "linear-gradient(135deg,#ede9fe,#cffafe)" },
+  ];
+
+  const quickFilters = [
+    { id: "today", label: "Сегодня" },
+    { id: "week", label: "Неделя" },
+    { id: "month", label: "Месяц" },
+  ];
+
+  const difficulties = [
+    { id: "easy", label: "Легкий" },
+    { id: "medium", label: "Средний" },
+    { id: "hard", label: "Сложный" },
+  ];
+
+  const statuses = [
+    { id: "all", label: "Все" },
+    { id: "new", label: "NEW" },
+    { id: "inProgress", label: "В процессе" },
+    { id: "completed", label: "Завершено" },
+  ];
+
+  const handleReset = () => {
+    setFilters({ duration: "all", difficulty: "all", status: "all" });
+    setSelectedCategories([]);
+    setActiveTab("all");
+  };
+
+  const isEmpty = filtered.length === 0;
+
   return (
-    <div className="page missions-page-v3">
-      <div className="missions-hero-v3">
-        <div>
-          <p className="meta subtle">Задания</p>
-          <h1>Задания</h1>
-          <p className="meta">
-            Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
+    <div className="page space-y-8">
+      <div className="flex flex-col gap-4 rounded-3xl bg-gradient-to-r from-indigo-50 via-sky-50 to-emerald-50 p-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide text-indigo-500">Задания</p>
+          <h1 className="text-3xl font-bold text-slate-900">Задания</h1>
+          <p className="max-w-2xl text-sm text-slate-700">
+            Вкладки, фильтры, геймификация и командные челленджи — собери XP, удерживай серию и проходи квесты вместе.
           </p>
+        </div>
+        <div className="flex gap-3">
+          <Link to="/profile" className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow ring-1 ring-slate-200">
+            Мой прогресс
+          </Link>
+          <button
+            type="button"
+            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+            onClick={() => setGamificationModal(true)}
+          >
+            Подробнее о геймификации
+          </button>
         </div>
       </div>
 
-      <TrackRoadmap track={trackData} onStart={handleStartTrack} onEdit={handleEditTrack} />
-
-      <MissionOverview
-        gamification={gamification}
-        streakCount={streakInfo?.current || gamification.streakCount || 0}
-        completedWeek={completedThisWeek}
-      />
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Календарь активности</h2>
-            <p className="meta">Следи за днями с действиями, чтобы удерживать серию и задания месяца.</p>
-          </div>
-          <div className="chip-row">
-            <span className="chip">Активные дни: {activeDays}</span>
-            <span className="chip">Серия: {streakInfo?.current || 0}</span>
-            <span className="chip ghost">Лучший стрик: {streakInfo?.best || 0}</span>
-          </div>
-        </div>
-        <ActivityCalendar activityByDate={monthActivity} streakInfo={streakInfo} compact />
-      </section>
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Задания по дням</h2>
-            <p className="meta">Удерживай активные дни и серии — данные из ActivityLog.</p>
-          </div>
-        </div>
-        <div className="mission-grid quest-grid">
-          <CalendarMissionCard
-            title="15 активных дней в месяц"
-            description="Календарь месяца в духе Apple Fitness"
-            current={activeDays}
-            target={15}
-          />
-          <CalendarMissionCard
-            title="7 активных дней подряд"
-            description="Серия без пропусков"
-            current={streakInfo?.current || 0}
-            target={7}
-          />
-          <CalendarMissionCard
-            title="30 активных дней за 2 месяца"
-            description="Длинный вызов — минимум день через день"
-            current={lastSixtyDaysActive}
-            target={30}
-          />
-        </div>
-      </section>
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Сегодня</h2>
-            <p className="meta">Закрой 3–5 быстрых действий, чтобы удержать серию.</p>
-          </div>
-          <div className="section-progress">
-            <span>Сегодня выполнено {todayCompleted} из {dailyMissions.length}</span>
-            <ProgressBar value={dailyMissions.length ? (todayCompleted / dailyMissions.length) * 100 : 0} />
-          </div>
-        </div>
-        <div className="mission-rail">
-          {dailyMissions.map((mission) => (
-            <InlineMissionCard
-              key={mission.id}
-              mission={mission}
-              progress={getMissionProgress?.(mission.id) || { status: "new", currentValue: 0 }}
-              onNavigate={() => handleNavigate(mission)}
-              onPrimary={() => handleComplete(mission.id)}
-            />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              className={`${chipBase} ${activeTab === tab.id ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "bg-white"}`}
+              onClick={() => applyTab(tab.id)}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
-      </section>
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>На этой неделе</h2>
-            <p className="meta">Средние задания, чтобы закрепить навыки и собрать XP.</p>
-          </div>
-          <div className="section-progress">
-            <span>Закрыто {weekCompleted} из {weeklyMissions.length}</span>
-            <ProgressBar value={weeklyMissions.length ? (weekCompleted / weeklyMissions.length) * 100 : 0} />
-          </div>
-        </div>
-        <div className="mission-rail">
-          {weeklyMissions.map((mission) => (
-            <InlineMissionCard
-              key={mission.id}
-              mission={mission}
-              progress={getMissionProgress?.(mission.id) || { status: "new", currentValue: 0 }}
-              onNavigate={() => handleNavigate(mission)}
-              onPrimary={() => handleComplete(mission.id)}
-            />
+        <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2">
+          {quickFilters.map((item) => (
+            <button
+              key={item.id}
+              className={`${chipBase} ${filters.duration === item.id ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "bg-white"}`}
+              onClick={() => setFilters((prev) => ({ ...prev, duration: prev.duration === item.id ? "all" : item.id }))}
+            >
+              {item.label}
+            </button>
           ))}
-        </div>
-      </section>
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Долгие квесты</h2>
-            <p className="meta">30-дневные цели и большие шаги, которые двигают весь трек.</p>
-          </div>
-        </div>
-        <div className="mission-grid quest-grid">
-          {longQuests.map((mission) => (
-            <MissionCard
-              key={mission.id}
-              mission={mission}
-              progress={getMissionProgress?.(mission.id) || { status: "new", currentValue: 0 }}
-              onSelect={() => setSelectedId(mission.id)}
-              onPrimary={() => {
-                handleStart(mission.id);
-                handleNavigate(mission);
-              }}
-            />
+          {difficulties.map((item) => (
+            <button
+              key={item.id}
+              className={`${chipBase} ${filters.difficulty === item.id ? "border-amber-500 bg-amber-50 text-amber-700" : "bg-white"}`}
+              onClick={() => setFilters((prev) => ({ ...prev, difficulty: prev.difficulty === item.id ? "all" : item.id }))}
+            >
+              {item.label}
+            </button>
           ))}
+          <button
+            type="button"
+            className="ml-auto flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow ring-1 ring-slate-200"
+            onClick={() => setFiltersOpen(true)}
+          >
+            <span>Фильтры</span>
+            <span className="text-lg">⚙️</span>
+          </button>
         </div>
-      </section>
+      </div>
 
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Групповые челленджи</h2>
-            <p className="meta">Общий прогресс по клубам и сквадам — как в Nike Run Club.</p>
-          </div>
-        </div>
-        <div className="mission-grid quest-grid">
-          {groupChallenges.map((challenge) => (
-            <GroupChallengeCard key={challenge.id} {...challenge} />
-          ))}
-        </div>
-      </section>
-
-      <AchievementLegend />
-
-      <section className="mission-catalog">
-        <div className="section-head">
-          <div>
-            <h2>Каталог заданий</h2>
-            <p className="meta">Отфильтруй нужные задания или изучи детали выбранной задачи.</p>
-          </div>
-        </div>
-        <div className="mission-filter-card">
-          <div className="chip-row">
-            {durationFilters.map((item) => (
-              <button
-                key={item.id}
-                className={`chip ${duration === item.id ? "active" : ""}`}
-                onClick={() => setDuration(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <div className="chip-row spaced">
-            <div className="chip-group">
-              {difficultyFilters.map((item) => (
-                <button
-                  key={item.id}
-                  className={`chip ${difficulty === item.id ? "active" : ""}`}
-                  onClick={() => setDifficulty(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <div className="chip-group">
-              {typeFilters.map((item) => (
-                <button
-                  key={item.id}
-                  className={`chip ${category === item.id ? "active" : ""}`}
-                  onClick={() => setCategory(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mission-layout">
-          <div className="mission-grid">
-            {filteredMissions.map((mission) => (
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {isEmpty ? <EmptyState onReset={handleReset} /> : filtered.map(({ mission, progress }) => (
               <MissionCard
                 key={mission.id}
                 mission={mission}
-                progress={getMissionProgress?.(mission.id) || { status: "new", currentValue: 0 }}
-                onSelect={() => setSelectedId(mission.id)}
-                onPrimary={() => {
-                  handleStart(mission.id);
-                  handleNavigate(mission);
-                }}
+                progress={progress}
+                onAction={() => handleAction(mission.id, mission.link)}
+                onDetails={() => setDetailsMission({ mission, progress })}
               />
             ))}
           </div>
-
-          {selectedMission && selectedProgress && (
-            <MissionDetail
-              mission={selectedMission}
-              progress={selectedProgress}
-              onNavigate={() => handleNavigate(selectedMission)}
-              onStart={() => handleStart(selectedMission.id)}
-              onComplete={() => handleComplete(selectedMission.id)}
-            />
-          )}
         </div>
-      </section>
+
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <h3 className="text-lg font-semibold text-slate-900">Быстрый статус</h3>
+            <div className="mt-3 space-y-2 text-sm text-slate-700">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                <span>XP</span>
+                <span className="font-semibold">{gamification?.totalPoints || 0} XP</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                <span>Стрик</span>
+                <span className="font-semibold">{gamification?.streakCount || 0} дней</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                <span>Бейджи</span>
+                <span className="font-semibold">{badgePalette.length}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900">Групповые челленджи</h3>
+              <span className="text-xs text-slate-500">Команда</span>
+            </div>
+            {challenges.map((challenge) => (
+              <ChallengeCard
+                key={challenge.id}
+                challenge={{
+                  ...challenge,
+                  participants: chatMessages[challenge.id]?.joined
+                    ? [...challenge.participants, { name: "Ты", xp: 30, avatar: "✨" }]
+                    : challenge.participants,
+                }}
+                isJoined={Boolean(chatMessages[challenge.id]?.joined)}
+                onJoin={(id) => {
+                  handleJoinChallenge(id);
+                  setChatFor(id);
+                }}
+                onOpenChat={(id) => setChatFor(id)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {joinToast && (
+        <div className="fixed inset-x-0 top-4 mx-auto flex max-w-md items-center justify-center rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-lg">
+          {joinToast}
+        </div>
+      )}
+
+      <div className="space-y-3 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 p-6 text-white">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-indigo-200">Комикс</p>
+            <h2 className="text-2xl font-bold">Как работает геймификация</h2>
+            <p className="text-sm text-slate-200">Истории о том, как XP, streak и уровни двигают тебя вперёд.</p>
+          </div>
+          <button
+            type="button"
+            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow"
+            onClick={() => setGamificationModal(true)}
+          >
+            Подробнее
+          </button>
+        </div>
+        <div className="flex gap-4 overflow-x-auto pb-3">
+          {storyCards.map((story) => (
+            <StoryCard key={story.title} {...story} />
+          ))}
+        </div>
+      </div>
+
+      {filtersOpen && (
+        <Modal title="Фильтры заданий" onClose={() => setFiltersOpen(false)}>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Длительность</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {quickFilters.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`${chipBase} ${filters.duration === item.id ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "bg-white"}`}
+                    onClick={() => setFilters((prev) => ({ ...prev, duration: prev.duration === item.id ? "all" : item.id }))}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Сложность</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {difficulties.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`${chipBase} ${filters.difficulty === item.id ? "border-amber-500 bg-amber-50 text-amber-700" : "bg-white"}`}
+                    onClick={() => setFilters((prev) => ({ ...prev, difficulty: prev.difficulty === item.id ? "all" : item.id }))}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Категории</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {Object.keys(missionCategories).map((key) => (
+                  <button
+                    key={key}
+                    className={`${chipBase} ${selectedCategories.includes(key) ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "bg-white"}`}
+                    onClick={() =>
+                      setSelectedCategories((prev) =>
+                        prev.includes(key) ? prev.filter((i) => i !== key) : [...prev, key]
+                      )
+                    }
+                  >
+                    {missionCategories[key].label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Статус</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {statuses.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`${chipBase} ${filters.status === item.id ? "border-slate-800 bg-slate-900 text-white" : "bg-white"}`}
+                    onClick={() => setFilters((prev) => ({ ...prev, status: item.id }))}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-between gap-3">
+              <button
+                type="button"
+                className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-800"
+                onClick={handleReset}
+              >
+                Сбросить
+              </button>
+              <button
+                type="button"
+                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+                onClick={() => setFiltersOpen(false)}
+              >
+                Применить
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {detailsMission && (
+        <Modal title={detailsMission.mission.title} onClose={() => setDetailsMission(null)}>
+          <div className="space-y-3 text-sm text-slate-700">
+            <p>{detailsMission.mission.description}</p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-slate-100 px-3 py-1">Категория: {missionCategories[detailsMission.mission.category]?.label}</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1">Длительность: {detailsMission.mission.durationLabel}</span>
+              <span className="rounded-full bg-slate-100 px-3 py-1">Сложность: {detailsMission.mission.difficultyLabel || detailsMission.mission.difficulty}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold text-slate-900">Награда: +{detailsMission.mission.xpRewardBase} XP</span>
+              <button
+                type="button"
+                className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white"
+                onClick={() => {
+                  handleAction(detailsMission.mission.id, detailsMission.mission.link);
+                  setDetailsMission(null);
+                }}
+              >
+                {detailsMission.progress?.status === "inProgress" ? "Продолжить" : "Начать"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {gamificationModal && (
+        <Modal title="Геймификация" onClose={() => setGamificationModal(false)}>
+          <div className="space-y-3 text-sm text-slate-700">
+            <p>Задания дают XP. Собирай streak, чтобы умножать награды. Уровни открывают роли и доступ к редким бейджам.</p>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>XP за задания, тесты и челленджи</li>
+              <li>🔥 Серия растёт за ежедневные действия</li>
+              <li>Бейджи улучшаются по мере прогресса</li>
+              <li>Командные миссии дают бонусный XP</li>
+            </ul>
+            <p className="text-slate-600">Двигайся каждый день, чтобы видеть рост статуса.</p>
+          </div>
+        </Modal>
+      )}
+
+      {chatFor && (
+        <Modal title="Чат команды" onClose={() => setChatFor(null)}>
+          <div className="flex flex-col gap-3">
+            <div className="max-h-64 space-y-2 overflow-y-auto rounded-xl bg-slate-50 p-3">
+              {(chatMessages[chatFor]?.messages || defaultMessages(chatFor)).map((msg, idx) => (
+                <div key={idx} className="flex flex-col gap-1 rounded-lg bg-white p-2 shadow-sm">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span className="font-semibold text-slate-800">{msg.author}</span>
+                    <span>{msg.time}</span>
+                  </div>
+                  <p className="text-sm text-slate-700">{msg.text}</p>
+                </div>
+              ))}
+              <div ref={messageEndRef} />
+            </div>
+            <ChatInput
+              onSend={(text) => {
+                handleSendMessage(chatFor, text);
+              }}
+            />
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+};
+
+const ChatInput = ({ onSend }) => {
+  const [value, setValue] = useState("");
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-full rounded-full border border-slate-200 px-4 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none"
+        placeholder="Напиши сообщение"
+      />
+      <button
+        type="button"
+        className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+        onClick={() => {
+          onSend(value);
+          setValue("");
+        }}
+      >
+        Отправить
+      </button>
     </div>
   );
 };
