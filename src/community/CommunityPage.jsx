@@ -7,6 +7,7 @@ import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewar
 import MeaningWall from "./components/MeaningWall";
 import ProgressRing from "./components/ProgressRing";
 import InviteFriendsModal from "./components/InviteFriendsModal";
+import MascotDisplay from "../mascots/MascotDisplay";
 
 const leaderboardTabs = [
   { id: "active", label: "Активные", description: "Активность за 7 дней", metric: "activityScore", metricLabel: "активности" },
@@ -49,7 +50,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
   const [refLink, setRefLink] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
     const seen = localStorage.getItem("communityIntroSeen");
@@ -62,16 +62,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     const claimed = localStorage.getItem("community_weekly_reward_claimed");
     setRewardClaimed(claimed === "true");
   }, []);
-
-  useEffect(() => {
-    if (user?.avatar) {
-      setAvatarUrl(user.avatar);
-      return;
-    }
-    if (typeof localStorage !== "undefined") {
-      setAvatarUrl(localStorage.getItem("noesis_user_avatar") || "");
-    }
-  }, [user?.avatar]);
 
   const community =
     useCommunity(communityUser, {
@@ -239,23 +229,14 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       <div className="community-top-grid">
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm flex items-center gap-4">
           <div className="relative h-16 w-16">
-            <div className="absolute inset-0 rounded-full blur-lg" style={{ background: "radial-gradient(circle, var(--accent) 10%, transparent 60%)" }} />
-            <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[var(--accent)] bg-gradient-to-br from-[var(--bg)] via-[var(--card)] to-[var(--bg)] shadow-lg">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Аватар сообщества" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[var(--fg)]">
-                  {communityUser?.name?.[0] || "Н"}
-                </div>
-              )}
-            </div>
+            <MascotDisplay variant="avatar" />
           </div>
           <div className="flex-1 space-y-1">
             <p className="text-sm text-[var(--muted)]">Профиль в сообществе</p>
             <p className="text-lg font-semibold text-[var(--fg)]">{communityUser?.name || user?.name || "Ты"}</p>
             <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(gamification.totalPoints)} • Уровень {levelInfo.level}</p>
             <Link to="/settings" className="text-xs font-semibold text-[var(--accent)] underline">
-              {avatarUrl ? "Изменить фото" : "Добавить аватар"}
+              Сменить персонажа
             </Link>
           </div>
         </div>
