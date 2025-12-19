@@ -143,7 +143,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
   const completedSet = useMemo(() => new Set(completedMaterialIds || []), [completedMaterialIds]);
   const [search, setSearch] = useState("");
   const [activeType, setActiveType] = useState("all");
-  const [filterModal, setFilterModal] = useState(false);
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [filters, setFilters] = useState({ durations: [], levels: [], topics: [], formats: [] });
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [openProgram, setOpenProgram] = useState(null);
@@ -264,7 +264,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
 
   const onApplyFilters = (next, close) => {
     setFilters(next);
-    if (close) setFilterModal(false);
+    if (close) setFiltersExpanded(false);
   };
 
   return (
@@ -288,22 +288,33 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 query={search}
                 onChange={setSearch}
                 materials={allSearchMaterials}
-                onOpenFilters={() => setFilterModal(true)}
+                onOpenFilters={() => setFiltersExpanded((v) => !v)}
               />
             </div>
             <div className="hidden md:flex justify-end">
-              <button className="ghost" onClick={() => setFilterModal(true)}>
-                Фильтры
+              <button className="ghost" onClick={() => setFiltersExpanded((v) => !v)}>
+                Больше
               </button>
             </div>
           </div>
-        </div>
       </div>
+    </div>
 
-      <SectionShell
-        id="history"
-        title="История"
-        action={
+      <LibraryFiltersModal
+        open={filtersExpanded}
+        filters={filters}
+        onClose={() => setFiltersExpanded(false)}
+        onApply={onApplyFilters}
+        onReset={() => {
+          setFilters({ durations: [], levels: [], topics: [], formats: [] });
+          setFiltersExpanded(false);
+        }}
+      />
+
+    <SectionShell
+      id="history"
+      title="История"
+      action={
           <button className="ghost small" onClick={() => setHistoryExpanded((v) => !v)}>
             {historyExpanded ? "Скрыть" : "Больше"}
           </button>
@@ -538,13 +549,6 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
       </MindGameModal>
 
       <ProgramModal open={!!openProgram} program={openProgram} onClose={() => setOpenProgram(null)} />
-      <LibraryFiltersModal
-        open={filterModal}
-        filters={filters}
-        onClose={() => setFilterModal(false)}
-        onReset={() => setFilters({ durations: [], levels: [], topics: [], formats: [] })}
-        onApply={onApplyFilters}
-      />
       <LibraryVoteModal open={voteOpen} onClose={() => setVoteOpen(false)} />
       <LibrarySuggestContentModal open={suggestOpen} onClose={() => setSuggestOpen(false)} />
     </div>

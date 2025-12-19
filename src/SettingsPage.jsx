@@ -9,13 +9,21 @@ const ACCOUNT_KEY = "noesis_account_settings";
 const AVATAR_KEY = "noesis_user_avatar";
 
 const tabList = [
+  { id: "appearance", label: "Оформление" },
   { id: "data", label: "Данные" },
   { id: "notifications", label: "Уведомления" },
   { id: "about", label: "О сервисе" },
 ];
 
-const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
-  const [activeTab, setActiveTab] = useState("data");
+const accentOptions = [
+  { id: "violet", label: "Фиолетовый", color: "#8b5cf6" },
+  { id: "emerald", label: "Изумрудный", color: "#10b981" },
+  { id: "indigo", label: "Индиго", color: "#6366f1" },
+  { id: "orange", label: "Оранжевый", color: "#f97316" },
+];
+
+const SettingsPage = ({ user, onUserUpdate, onLogout, addToast, theme = "light", setTheme, accent = "violet", setAccent }) => {
+  const [activeTab, setActiveTab] = useState("appearance");
   const [account, setAccount] = useState(() =>
     safeGetJSON(ACCOUNT_KEY, {
       name: user?.name || "",
@@ -25,6 +33,21 @@ const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
   );
   const [avatar, setAvatar] = useState(() => (typeof localStorage !== "undefined" ? localStorage.getItem(AVATAR_KEY) : ""));
   const [message, setMessage] = useState("");
+
+  const themeOptions = [
+    {
+      id: "light",
+      label: "Светлая",
+      description: "Больше света и контраста для дневной работы.",
+      gradient: "linear-gradient(135deg,#eef2ff,#fff)",
+    },
+    {
+      id: "dark",
+      label: "Тёмная",
+      description: "Мягкие контрасты, комфортно вечером и ночью.",
+      gradient: "linear-gradient(135deg,#0b0b0b,#1f2937)",
+    },
+  ];
 
   useEffect(() => {
     safeSetJSON(ACCOUNT_KEY, account);
@@ -50,6 +73,80 @@ const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
     setMessage("Данные сохранены");
     addToast?.("Данные обновлены");
   };
+
+  const appearanceTab = (
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-white">Тема интерфейса</p>
+            <p className="text-sm text-white/60">Выбери светлую или тёмную тему — применяется ко всем страницам.</p>
+          </div>
+          <span className="material-badge outline">Активна: {theme === "dark" ? "Тёмная" : "Светлая"}</span>
+        </div>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          {themeOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setTheme?.(option.id)}
+              className={`flex flex-col gap-3 rounded-xl border px-4 py-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--accent)]/70 hover:shadow-lg ${
+                theme === option.id ? "border-[var(--accent)] shadow-lg" : "border-white/10"
+              }`}
+              style={{ background: `${theme === option.id ? "var(--card)" : "rgba(255,255,255,0.02)"}` }}
+            >
+              <div className="h-28 rounded-lg border border-white/10" style={{ background: option.gradient }} />
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-base font-semibold text-white">{option.label}</p>
+                  <p className="text-sm text-white/60">{option.description}</p>
+                </div>
+                <span
+                  className={`h-5 w-5 rounded-full border ${theme === option.id ? "border-[var(--accent)] bg-[var(--accent)]/40" : "border-white/30"}`}
+                  aria-hidden
+                />
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-lg font-semibold text-white">Акцентный цвет</p>
+            <p className="text-sm text-white/60">Используется для кнопок, активных чипов, прогресс-баров и выделений.</p>
+          </div>
+          <span className="material-badge outline">{accentOptions.find((o) => o.id === accent)?.label || "Фиолетовый"}</span>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {accentOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setAccent?.(option.id)}
+              className={`flex flex-col items-start gap-2 rounded-xl border px-4 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-lg ${
+                accent === option.id ? "border-[var(--accent)] shadow-lg" : "border-white/10"
+              }`}
+            >
+              <span
+                className="h-10 w-10 rounded-full border"
+                style={{
+                  background: `${option.color}26`,
+                  borderColor: option.color,
+                  boxShadow: accent === option.id ? `0 0 0 3px ${option.color}33` : "none",
+                }}
+              />
+              <div>
+                <p className="text-sm font-semibold text-white">{option.label}</p>
+                <p className="text-xs text-white/60">{option.id === accent ? "Используется" : "Выбрать"}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   const dataTab = (
     <div className="space-y-6">
@@ -100,7 +197,14 @@ const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
         {message && <p className="mt-3 text-sm text-emerald-400">{message}</p>}
       </div>
 
-      <AvatarUploader value={avatar} onSave={handleAvatarSave} onDelete={handleAvatarDelete} addToast={addToast} />
+      <AvatarUploader
+        value={avatar}
+        onSave={handleAvatarSave}
+        onDelete={handleAvatarDelete}
+        addToast={addToast}
+        showPreview={false}
+        actionLabel="Загрузить/Изменить аватар"
+      />
       <PasswordSection addToast={addToast} />
       <div className="rounded-2xl border border-white/10 bg-white/5 p-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
@@ -123,6 +227,8 @@ const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
 
   const renderTab = useMemo(() => {
     switch (activeTab) {
+      case "appearance":
+        return appearanceTab;
       case "data":
         return dataTab;
       case "notifications":
@@ -132,7 +238,7 @@ const SettingsPage = ({ user, onUserUpdate, onLogout, addToast }) => {
       default:
         return null;
     }
-  }, [activeTab, aboutTab, dataTab, notificationsTab]);
+  }, [activeTab, aboutTab, appearanceTab, dataTab, notificationsTab]);
 
   return (
     <div className="page settings-page">

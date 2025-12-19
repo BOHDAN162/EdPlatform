@@ -146,7 +146,7 @@ const CropModal = ({ src, onApply, onClose }) => {
   );
 };
 
-const AvatarUploader = ({ value, onSave, onDelete, addToast }) => {
+const AvatarUploader = ({ value, onSave, onDelete, addToast, showPreview = true, actionLabel }) => {
   const [error, setError] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState(value || "");
@@ -214,9 +214,11 @@ const AvatarUploader = ({ value, onSave, onDelete, addToast }) => {
     addToast?.("Аватар удалён");
   };
 
+  const layoutClass = showPreview ? "md:flex-row md:items-center md:justify-between" : "";
+
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className={`flex flex-col gap-4 ${layoutClass}`}>
         <div className="space-y-2">
           <p className="text-lg font-semibold text-white">Аватар</p>
           <p className="text-sm text-white/60">Перетащи фото или выбери файл. Поддерживаются png, jpg, webp до 5 МБ.</p>
@@ -260,7 +262,7 @@ const AvatarUploader = ({ value, onSave, onDelete, addToast }) => {
               className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
               disabled={!pending && !preview}
             >
-              Сохранить
+              {actionLabel || "Сохранить"}
             </button>
             <button
               type="button"
@@ -271,16 +273,18 @@ const AvatarUploader = ({ value, onSave, onDelete, addToast }) => {
             </button>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-28 w-28 overflow-hidden rounded-full border border-white/15 bg-slate-800">
-            {pending || preview ? (
-              <img src={pending || preview} alt="Предпросмотр аватара" className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-3xl text-white/50">🙂</div>
-            )}
+        {showPreview && (
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-28 w-28 overflow-hidden rounded-full border border-white/15 bg-slate-800">
+              {pending || preview ? (
+                <img src={pending || preview} alt="Предпросмотр аватара" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-3xl text-white/50">🙂</div>
+              )}
+            </div>
+            <p className="text-xs text-white/60">Предпросмотр 1:1</p>
           </div>
-          <p className="text-xs text-white/60">Предпросмотр 1:1</p>
-        </div>
+        )}
       </div>
       {cropSrc && <CropModal src={cropSrc} onApply={applyCrop} onClose={() => setCropSrc("")} />}
     </div>

@@ -16,23 +16,23 @@ const LongreadCard = ({ item, theme }) => {
   return (
     <Link
       to={`/library/article/${item.id}`}
-      className="group flex h-full min-h-[190px] flex-col rounded-2xl border border-[#1f1f1f] bg-gradient-to-b from-[#131313] to-[#0b0b0b] p-4 shadow-lg transition hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+      className="group flex h-full min-h-[210px] flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg transition duration-200 ease-out hover:-translate-y-1 hover:border-[var(--accent)]/60 hover:shadow-2xl"
     >
-      <div className="flex items-start justify-between gap-2 text-xs font-semibold text-gray-200">
+      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[var(--muted)]">
         <span
           className="inline-flex items-center gap-2 rounded-full px-3 py-1"
           style={{ background: `${theme.accent}22`, color: theme.accent, boxShadow: `0 0 0 1px ${theme.accent}33` }}
         >
           <span className="inline-block h-2 w-2 rounded-full" style={{ background: theme.accent }} />
-          {theme.title}
+          {item.topicShort || theme.title}
         </span>
-        <span className="pill outline text-xs text-gray-200">{item.estimatedTime || "10–15 мин"}</span>
+        <span className="pill outline text-xs text-[var(--muted)]">{item.estimatedTime || "10–15 мин"}</span>
       </div>
-      <h3 className="mt-3 text-lg font-semibold leading-snug text-white line-clamp-2">{item.title}</h3>
-      <p className="mt-2 text-sm text-gray-400 line-clamp-2">{item.description}</p>
+      <h3 className="mt-3 text-lg font-semibold leading-snug text-[var(--fg)] line-clamp-2">{item.title}</h3>
+      <p className="mt-2 text-sm text-[var(--muted)] line-clamp-2">{item.description}</p>
       <div className="mt-auto pt-4">
         <span
-          className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10"
+          className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-[var(--fg)] ring-1 ring-white/10"
           aria-label={`Уровень: ${level.label}`}
         >
           <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: level.color }} />
