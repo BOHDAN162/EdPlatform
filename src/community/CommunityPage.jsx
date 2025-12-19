@@ -4,11 +4,13 @@ import { getLevelFromPoints, getStatusByPoints } from "../gamification";
 import RankingRow from "./components/RankingRow";
 import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewardsData";
 import MeaningWall from "./components/MeaningWall";
+import ProgressRing from "./components/ProgressRing";
+import InviteFriendsModal from "./components/InviteFriendsModal";
 
 const leaderboardTabs = [
-  { id: "active", label: "Топ активных", description: "XP за ответы и участие" },
-  { id: "students", label: "Топ студентов", description: "Закрытые материалы за неделю" },
-  { id: "contributors", label: "Топ вкладчиков", description: "Полезные ответы" },
+  { id: "active", label: "Активные", description: "Активность за 7 дней", metric: "activityScore", metricLabel: "активности" },
+  { id: "students", label: "Студенты", description: "Материалы и тесты", metric: "learningScore", metricLabel: "учёбы" },
+  { id: "contributors", label: "Вкладчики", description: "Помощь сообществу", metric: "contributionScore", metricLabel: "вклада" },
 ];
 
 const rewardTabs = [
@@ -41,6 +43,14 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   const [leaderboardTab, setLeaderboardTab] = useState("active");
   const [rewardTab, setRewardTab] = useState("avatars");
   const [showIntro, setShowIntro] = useState(false);
+  const [rewardClaimed, setRewardClaimed] = useState(false);
+  const [followingIds, setFollowingIds] = useState(() => {
+    const saved = localStorage.getItem("community_following");
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [refLink, setRefLink] = useState("");
 
   useEffect(() => {
     const seen = localStorage.getItem("communityIntroSeen");
@@ -48,6 +58,15 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       setShowIntro(true);
     }
   }, []);
+
+  useEffect(() => {
+    const claimed = localStorage.getItem("community_weekly_reward_claimed");
+    setRewardClaimed(claimed === "true");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("community_following", JSON.stringify(followingIds));
+  }, [followingIds]);
 
   const community = useCommunity(communityUser, {
     onAction: (action) => onCommunityAction?.(action),
@@ -71,15 +90,36 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   }, [participantsSorted, communityUser]);
 
   const weeklyGoal = useMemo(() => gamification.goals?.find((g) => g.id === "weekly-materials"), [gamification.goals]);
+  const weeklyTarget = weeklyGoal?.target ?? 6;
+  const weeklyProgress = weeklyGoal?.progress ?? gamification.completedMaterialsCount ?? 0;
+  const goalAchieved = weeklyProgress >= weeklyTarget && weeklyTarget > 0;
+
+  const ensureReferral = () => {
+    const stored = localStorage.getItem("community_referral_code");
+    if (stored) return stored;
+    const code = `BDN-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    localStorage.setItem("community_referral_code", code);
+    return code;
+  };
+
+  const referralLink = useMemo(() => {
+    const code = ensureReferral();
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://noesis.local";
+    return `${origin}/#/signup?ref=${code}`;
+  }, []);
+
+  useEffect(() => {
+    setRefLink(referralLink);
+  }, [referralLink]);
 
   const leaderboardData = useMemo(() => {
-    const active = participantsSorted.map((p) => ({ ...p, metricValue: p.points || p.xp, metricLabel: "XP" }));
-    const students = [...participantsSorted]
-      .sort((a, b) => (b.weeklyMaterials || 0) - (a.weeklyMaterials || 0))
-      .map((p) => ({ ...p, metricValue: p.weeklyMaterials || 0, metricLabel: "уроков" }));
-    const contributors = [...participantsSorted]
-      .sort((a, b) => (b.helpfulAnswers || 0) - (a.helpfulAnswers || 0))
-      .map((p) => ({ ...p, metricValue: p.helpfulAnswers || 0, metricLabel: "ответов" }));
+    const sortAndMap = (metric, label, fallback) => {
+      const arr = [...participantsSorted].sort((a, b) => (b[metric] || b[fallback] || 0) - (a[metric] || a[fallback] || 0));
+      return arr.map((p) => ({ ...p, metricValue: p[metric] ?? p[fallback] ?? 0, metricLabel: label }));
+    };
+    const active = sortAndMap("activityScore", "активности", "points");
+    const students = sortAndMap("learningScore", "учёбы", "weeklyMaterials");
+    const contributors = sortAndMap("contributionScore", "вклада", "helpfulAnswers");
     return { active, students, contributors };
   }, [participantsSorted]);
 
@@ -97,6 +137,62 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   };
 
   const renderRewards = rewardTabs.find((tab) => tab.id === rewardTab)?.data || [];
+
+  const handleClaimReward = () => {
+    if (!goalAchieved || rewardClaimed) return;
+    setRewardClaimed(true);
+    localStorage.setItem("community_weekly_reward_claimed", "true");
+    onToast?.("Награда получена!");
+  };
+
+  const handleFollowToggle = (userId) => {
+    setFollowingIds((prev) => {
+      const set = new Set(prev);
+      set.has(userId) ? set.delete(userId) : set.add(userId);
+      return Array.from(set);
+    });
+  };
+
+  const openMessageModal = (userTarget) => {
+    setMessageModal({ open: true, target: userTarget, text: "" });
+  };
+
+  const closeMessageModal = () => setMessageModal({ open: false, target: null, text: "" });
+
+  const handleSendMessage = () => {
+    if (!messageModal.text.trim()) return;
+    const prev = JSON.parse(localStorage.getItem("community_messages") || "[]");
+    const entry = { id: `msg-${crypto.randomUUID()}`, to: messageModal.target.id, body: messageModal.text, createdAt: new Date().toISOString() };
+    localStorage.setItem("community_messages", JSON.stringify([entry, ...prev]));
+    onToast?.(`Сообщение ${messageModal.target.name} отправлено`);
+    closeMessageModal();
+  };
+
+  const handleCopyReferral = async () => {
+    try {
+      await navigator.clipboard.writeText(refLink || referralLink);
+      onToast?.("Ссылка скопирована");
+    } catch (err) {
+      onToast?.("Скопируй ссылку вручную");
+    }
+  };
+
+  const handleShare = (channel) => {
+    const text = "Залетай в NOESIS и прокачивайся со мной";
+    const link = refLink || referralLink;
+    if (navigator.share) {
+      navigator.share({ title: "NOESIS", text, url: link }).catch(() => {});
+      return;
+    }
+    const encodedLink = encodeURIComponent(link);
+    const encodedText = encodeURIComponent(text);
+    const targets = {
+      tg: `https://t.me/share/url?url=${encodedLink}&text=${encodedText}`,
+      wa: `https://wa.me/?text=${encodedText}%20${encodedLink}`,
+      vk: `https://vk.com/share.php?url=${encodedLink}&title=${encodedText}`,
+    };
+    window.open(targets[channel], "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="page community-page">
@@ -137,12 +233,28 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       </div>
 
       <div className="community-top-grid">
-        <div className="card status-card">
+        <div className="card status-card premium">
           <div className="status-head">
             <div className="avatar bubble large">{communityUser?.name?.[0] || "?"}</div>
             <div>
               <div className="card-header">Твой статус в сообществе</div>
-              <p className="meta">Короткие челленджи каждую неделю. Помогай ребятам, чтобы расти быстрее.</p>
+              <p className="meta">Челлендж недели: закрывай материалы и помогай ребятам, чтобы сорвать награду.</p>
+            </div>
+          </div>
+          <div className="weekly-progress-row">
+            <ProgressRing value={weeklyProgress} target={weeklyTarget} />
+            <div className="weekly-copy">
+              <p className="label">Материалов на этой неделе</p>
+              <h3 className="value">
+                {weeklyProgress}/{weeklyTarget}
+              </h3>
+              <p className="caption">Цель недели: {weeklyTarget} материалов</p>
+              <div className={`reward-pill ${goalAchieved ? "success" : ""}`}>
+                {goalAchieved ? "Награда: +50 XP 💎 и бейдж 🏅" : `До награды осталось: ${Math.max(weeklyTarget - weeklyProgress, 0)} материалов`}
+              </div>
+              <button className="primary" disabled={!goalAchieved || rewardClaimed} onClick={handleClaimReward}>
+                {rewardClaimed ? "Получено ✅" : "Забрать награду"}
+              </button>
             </div>
           </div>
           <div className="status-grid">
@@ -154,19 +266,19 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             <div className="stat-pill">
               <p className="label">Всего XP</p>
               <p className="value">{gamification.totalPoints}</p>
-              <p className="caption">Больше очков за лучший ответ</p>
+              <p className="caption">💎 за лучшие ответы</p>
             </div>
             <div className="stat-pill">
-              <p className="label">Материалов на неделе</p>
-              <p className="value">{weeklyGoal?.progress ?? gamification.completedMaterialsCount ?? 0}</p>
-              <p className="caption">цель: {weeklyGoal?.target ?? 3} материалов</p>
+              <p className="label">Серия</p>
+              <p className="value">{gamification.currentStreak || 0} дн</p>
+              <p className="caption">держи ритм</p>
             </div>
           </div>
           <div className="status-actions">
             <button className="primary" onClick={handleScrollToLeague}>
               К лидам
             </button>
-            <button className="ghost" onClick={() => onToast?.("Скоро инвайты для друзей")}>
+            <button className="ghost" onClick={() => setInviteOpen(true)}>
               Пригласить друзей
             </button>
           </div>
@@ -209,7 +321,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             <h2>Лидеры</h2>
             <p className="meta">Обновляется каждую неделю. Нажми на строку, чтобы открыть профиль.</p>
           </div>
-          <div className="chip-row">
+          <div className="chip-row scrollable">
             {leaderboardTabs.map((tab) => (
               <button
                 key={tab.id}
@@ -217,9 +329,12 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
                 onClick={() => setLeaderboardTab(tab.id)}
                 title={tab.description}
               >
-                {tab.label}
+                {tab.label} <span className="info-icon" title={tab.description}>i</span>
               </button>
             ))}
+            <button className="ghost" onClick={() => setInviteOpen(true)}>
+              Пригласить друзей
+            </button>
           </div>
         </div>
         <div className="card ranking-card">
@@ -233,6 +348,9 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
                 isCurrent={communityUser?.id === p.id}
                 metricLabel={p.metricLabel}
                 metricValue={p.metricValue}
+                isFollowing={followingIds.includes(p.id)}
+                onFollowToggle={handleFollowToggle}
+                onMessage={openMessageModal}
               />
             ))}
         </div>
@@ -282,6 +400,46 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       <div className="community-section" ref={contentRef}>
         <MeaningWall onToast={onToast} />
       </div>
+
+      {inviteOpen && (
+        <InviteFriendsModal
+          link={refLink || referralLink}
+          onCopy={handleCopyReferral}
+          onShare={handleShare}
+          onClose={() => setInviteOpen(false)}
+        />
+      )}
+
+      {messageModal.open && (
+        <div className="modal-overlay" onClick={closeMessageModal}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <p className="hero-kicker">Сообщение</p>
+                <h3>Для {messageModal.target?.name}</h3>
+              </div>
+              <button className="ghost" onClick={closeMessageModal} aria-label="Закрыть">
+                ✕
+              </button>
+            </div>
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="Напиши поддержку или вопрос"
+              value={messageModal.text}
+              onChange={(e) => setMessageModal((prev) => ({ ...prev, text: e.target.value }))}
+            />
+            <div className="status-actions">
+              <button className="primary" onClick={handleSendMessage}>
+                Отправить
+              </button>
+              <button className="ghost" onClick={closeMessageModal}>
+                Закрыть
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
