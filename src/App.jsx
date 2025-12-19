@@ -442,7 +442,7 @@ const TestPage = ({ onComplete, completedMaterialIds }) => {
 };
 
 function App() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, accent, setAccent } = useTheme();
   const { toasts, addToast, addToasts } = useToasts();
   const initialUser = loadCurrentUser();
   const xpConfig = useMemo(() => getXPConfig(), []);
@@ -841,7 +841,7 @@ function App() {
     <BrowserRouter>
       <HabitProvider>
         <CommandCenter />
-        <AppLayout theme={theme} user={user} onLogout={handleLogout} toasts={toasts}>
+        <AppLayout theme={theme} accent={accent} user={user} onLogout={handleLogout} toasts={toasts}>
           <Routes>
             <Route path="/landing" element={<Landing />} />
             <Route path="/" element={<HomeRoute />} />
@@ -948,7 +948,9 @@ function App() {
               element={
                 <SettingsPage
                   theme={theme}
+                  accent={accent}
                   setTheme={setTheme}
+                  setAccent={setAccent}
                   user={user}
                   onUserUpdate={setUser}
                   onLogout={handleLogout}
@@ -961,7 +963,9 @@ function App() {
               element={
                 <SettingsPage
                   theme={theme}
+                  accent={accent}
                   setTheme={setTheme}
+                  setAccent={setAccent}
                   user={user}
                   onUserUpdate={setUser}
                   onLogout={handleLogout}

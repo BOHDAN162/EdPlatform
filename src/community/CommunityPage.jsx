@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import useCommunity from "../useCommunity";
-import { getLevelFromPoints, getStatusByPoints } from "../gamification";
+import { getLevelFromPoints, getStatusByPoints, progressToNextStatus } from "../gamification";
 import RankingRow from "./components/RankingRow";
 import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewardsData";
 import MeaningWall from "./components/MeaningWall";
@@ -51,6 +51,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
   const [refLink, setRefLink] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
     const seen = localStorage.getItem("communityIntroSeen");
@@ -63,6 +64,16 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     const claimed = localStorage.getItem("community_weekly_reward_claimed");
     setRewardClaimed(claimed === "true");
   }, []);
+
+  useEffect(() => {
+    if (user?.avatar) {
+      setAvatarUrl(user.avatar);
+      return;
+    }
+    if (typeof localStorage !== "undefined") {
+      setAvatarUrl(localStorage.getItem("noesis_user_avatar") || "");
+    }
+  }, [user?.avatar]);
 
   useEffect(() => {
     localStorage.setItem("community_following", JSON.stringify(followingIds));
@@ -78,21 +89,12 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     [community.participants]
   );
 
-  const miniLeague = useMemo(() => {
-    const top = participantsSorted.slice(0, 5);
-    const exists = communityUser ? top.some((p) => p.id === communityUser.id) : true;
-    if (!exists && communityUser) {
-      const myIndex = participantsSorted.findIndex((p) => p.id === communityUser.id);
-      const entry = { ...communityUser, position: myIndex + 1 };
-      return [...top, entry].map((p, idx) => ({ ...p, position: p.position || idx + 1 }));
-    }
-    return top.map((p, idx) => ({ ...p, position: idx + 1 }));
-  }, [participantsSorted, communityUser]);
-
   const weeklyGoal = useMemo(() => gamification.goals?.find((g) => g.id === "weekly-materials"), [gamification.goals]);
   const weeklyTarget = weeklyGoal?.target ?? 6;
   const weeklyProgress = weeklyGoal?.progress ?? gamification.completedMaterialsCount ?? 0;
   const goalAchieved = weeklyProgress >= weeklyTarget && weeklyTarget > 0;
+  const rankPosition = communityUser ? participantsSorted.findIndex((p) => p.id === communityUser.id) + 1 : null;
+  const statusProgress = progressToNextStatus(gamification.totalPoints);
 
   const ensureReferral = () => {
     const stored = localStorage.getItem("community_referral_code");
@@ -125,10 +127,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
 
   const handleScrollToLeague = () => {
     if (leagueRef.current) leagueRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const handleScrollToContent = () => {
-    if (contentRef.current) contentRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleIntroClose = () => {
@@ -233,12 +231,34 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       </div>
 
       <div className="community-top-grid">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm flex items-center gap-4">
+          <div className="relative h-16 w-16">
+            <div className="absolute inset-0 rounded-full blur-lg" style={{ background: "radial-gradient(circle, var(--accent) 10%, transparent 60%)" }} />
+            <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-[var(--accent)] bg-gradient-to-br from-[var(--bg)] via-[var(--card)] to-[var(--bg)] shadow-lg">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Аватар сообщества" className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-xl font-bold text-[var(--fg)]">
+                  {communityUser?.name?.[0] || "Н"}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-sm text-[var(--muted)]">Профиль в сообществе</p>
+            <p className="text-lg font-semibold text-[var(--fg)]">{communityUser?.name || user?.name || "Ты"}</p>
+            <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(gamification.totalPoints)} • Уровень {levelInfo.level}</p>
+            <Link to="/settings" className="text-xs font-semibold text-[var(--accent)] underline">
+              {avatarUrl ? "Изменить фото" : "Добавить аватар"}
+            </Link>
+          </div>
+        </div>
+
         <div className="card status-card premium">
           <div className="status-head">
-            <div className="avatar bubble large">{communityUser?.name?.[0] || "?"}</div>
             <div>
-              <div className="card-header">Твой статус в сообществе</div>
-              <p className="meta">Челлендж недели: закрывай материалы и помогай ребятам, чтобы сорвать награду.</p>
+              <div className="card-header">Статус в сообществе</div>
+              <p className="meta">XP, роль и прогресс до следующего уровня.</p>
             </div>
           </div>
           <div className="weekly-progress-row">
@@ -266,12 +286,21 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             <div className="stat-pill">
               <p className="label">Всего XP</p>
               <p className="value">{gamification.totalPoints}</p>
-              <p className="caption">💎 за лучшие ответы</p>
+              <p className="caption">Позиция: {rankPosition || "—"}</p>
             </div>
             <div className="stat-pill">
               <p className="label">Серия</p>
               <p className="value">{gamification.currentStreak || 0} дн</p>
               <p className="caption">держи ритм</p>
+            </div>
+          </div>
+          <div className="status-grid">
+            <div className="stat-pill">
+              <p className="label">До следующей роли</p>
+              <div className="progress-shell subtle">
+                <div className="progress-fill" style={{ width: `${statusProgress.progress}%` }} />
+              </div>
+              <p className="caption">Следующая: {statusProgress.next}</p>
             </div>
           </div>
           <div className="status-actions">
@@ -280,36 +309,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             </button>
             <button className="ghost" onClick={() => setInviteOpen(true)}>
               Пригласить друзей
-            </button>
-          </div>
-        </div>
-
-        <div className="card mini-league-card">
-          <div className="card-header">Мини-лига недели</div>
-          <p className="meta">Топ активных участников недели.</p>
-          <div className="mini-league-list">
-            {miniLeague.map((p, idx) => (
-              <div key={p.id || idx} className={`mini-league-row ${communityUser?.id === p.id ? "current" : ""}`}>
-                <div className="mini-left">
-                  <span className="pill subtle">#{p.position || idx + 1}</span>
-                  <div className="avatar small">{p.name?.[0] || "?"}</div>
-                  <div>
-                    <div className="ranking-name">{p.name || "Ты"}</div>
-                    <div className="meta">{communityUser?.id === p.id ? "Ты" : p.role}</div>
-                  </div>
-                </div>
-                <div className="mini-right">
-                  <span className="pill outline">{p.points || p.xp} XP</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mini-actions">
-            <button className="ghost" onClick={handleScrollToLeague}>
-              Смотреть рейтинги
-            </button>
-            <button className="ghost" onClick={handleScrollToContent}>
-              К активности
             </button>
           </div>
         </div>

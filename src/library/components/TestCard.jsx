@@ -15,8 +15,11 @@ const TestCard = ({ test, stats }) => {
   const accuracy = lastScore ? Math.round((lastScore.correct / (lastScore.total || test.questions.length)) * 100) : null;
 
   return (
-    <div className="rounded-2xl border border-[#1f1f1f] bg-gradient-to-b from-[#141018] to-[#0b0b0b] p-4 flex flex-col shadow-lg">
-      <div className="flex items-center justify-between text-xs text-gray-300">
+    <Link
+      to={`/library/test/${test.id}`}
+      className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 flex h-full flex-col shadow-lg transition duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl hover:border-[var(--accent)]/60"
+    >
+      <div className="flex items-center justify-between text-xs text-[var(--muted)]">
         <div className="flex items-center gap-2">
           <span className="pill outline">Тест</span>
           <span className="flex items-center gap-1 text-gray-200">
@@ -26,35 +29,35 @@ const TestCard = ({ test, stats }) => {
         </div>
         <span className="pill subtle">+{rewardXp} XP</span>
       </div>
-      <h3 className="text-lg font-semibold leading-snug mt-2 line-clamp-2">{test.title}</h3>
-      <p className="text-sm text-gray-400 line-clamp-2 mt-1">{test.description}</p>
-      <div className="grid grid-cols-3 gap-2 text-xs text-gray-300 mt-3">
+      <h3 className="text-lg font-semibold leading-snug mt-2 line-clamp-2 text-[var(--fg)]">{test.title}</h3>
+      <p className="text-sm text-[var(--muted)] line-clamp-2 mt-1">{test.description}</p>
+      <div className="grid grid-cols-3 gap-2 text-xs text-[var(--muted)] mt-3">
         <div className="rounded-xl bg-white/5 px-3 py-2">
-          <p className="text-gray-400">Вопросов</p>
-          <p className="font-semibold text-white">{test.questions.length}</p>
+          <p className="text-[var(--muted)]">Вопросов</p>
+          <p className="font-semibold text-[var(--fg)]">{test.questions.length}</p>
         </div>
         <div className="rounded-xl bg-white/5 px-3 py-2">
-          <p className="text-gray-400">Попыток</p>
-          <p className="font-semibold text-white">{attempts}</p>
+          <p className="text-[var(--muted)]">Попыток</p>
+          <p className="font-semibold text-[var(--fg)]">{attempts}</p>
         </div>
         <div className="rounded-xl bg-white/5 px-3 py-2">
-          <p className="text-gray-400">Точность</p>
-          <p className="font-semibold text-white">{accuracy !== null ? `${accuracy}%` : "—"}</p>
+          <p className="text-[var(--muted)]">Точность</p>
+          <p className="font-semibold text-[var(--fg)]">{accuracy !== null ? `${accuracy}%` : "—"}</p>
         </div>
       </div>
-      <div className="mt-auto pt-3 flex items-center justify-between text-sm text-gray-300">
+      <div className="mt-auto pt-3 flex items-center justify-between text-sm text-[var(--muted)]">
         <div>
           {lastScore ? (
-            <p>Последний результат: {lastScore.correct}/{lastScore.total}</p>
+            <p className="text-[var(--fg)]">Последний результат: {lastScore.correct}/{lastScore.total}</p>
           ) : (
             <p>Ещё не проходил</p>
           )}
         </div>
-        <Link className="primary small" to={`/library/test/${test.id}`}>
-          Открыть
-        </Link>
+        <span className="primary small inline-flex items-center gap-1">
+          Открыть →
+        </span>
       </div>
-    </div>
+    </Link>
   );
 };
 

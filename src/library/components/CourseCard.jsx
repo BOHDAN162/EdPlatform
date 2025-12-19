@@ -18,7 +18,7 @@ const CourseCard = ({ course, statusLabel }) => {
   return (
     <Link
       to={`/library/course/${course.id}`}
-      className="rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg flex flex-col gap-3 relative overflow-hidden transition hover:-translate-y-1 hover:shadow-xl hover:border-[#8A3FFC]/60"
+      className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg flex flex-col gap-3 relative overflow-hidden transition duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl hover:border-[var(--accent)]/60"
     >
       <div className="absolute inset-x-0 top-0 h-1" style={{ background: accent }} aria-hidden />
       <div className="flex items-start justify-between text-xs text-gray-300 gap-3">

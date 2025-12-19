@@ -44,30 +44,29 @@ const statusLabels = {
   completed: "Завершено",
 };
 
-const chipBase =
-  "px-3 py-2 rounded-full border border-slate-200 text-sm font-medium transition hover:border-slate-400 hover:text-slate-800";
+  const chipBase = "px-3 py-2 rounded-full border text-sm font-medium transition";
 
 const Modal = ({ title, onClose, children }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 px-4" onClick={onClose}>
     <div
-      className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl"
+      className="w-full max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">Модал</p>
-          <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+          <p className="text-xs uppercase tracking-wide text-[var(--muted)]">Модал</p>
+          <h3 className="text-xl font-bold text-[var(--fg)]">{title}</h3>
         </div>
         <button
           type="button"
-          className="text-slate-500 transition hover:text-slate-700"
+          className="text-[var(--muted)] transition hover:text-[var(--fg)]"
           onClick={onClose}
           aria-label="Закрыть"
         >
           ✕
         </button>
       </div>
-      <div className="mt-4 max-h-[70vh] overflow-y-auto">{children}</div>
+      <div className="mt-4 max-h-[70vh] overflow-y-auto text-[var(--muted)]">{children}</div>
     </div>
   </div>
 );
@@ -176,13 +175,13 @@ const MissionCard = ({ mission, progress, onAction, onDetails }) => {
 };
 
 const StoryCard = ({ title, description, gradient, icon }) => (
-  <div className="flex min-w-[220px] flex-col gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-100">
-    <div className="h-28 w-full rounded-xl bg-gradient-to-br p-4 text-3xl" style={{ backgroundImage: gradient }}>
+  <div className="flex min-w-[220px] flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg">
+    <div className="h-28 w-full rounded-xl p-4 text-3xl" style={{ backgroundImage: gradient }}>
       <div className="flex h-full items-center justify-center text-4xl">{icon}</div>
     </div>
     <div>
-      <h4 className="text-base font-semibold text-slate-900">{title}</h4>
-      <p className="text-sm text-slate-600">{description}</p>
+      <h4 className="text-base font-semibold text-[var(--fg)]">{title}</h4>
+      <p className="text-sm text-[var(--muted)]">{description}</p>
     </div>
   </div>
 );
@@ -190,40 +189,40 @@ const StoryCard = ({ title, description, gradient, icon }) => (
 const ChallengeCard = ({ challenge, onJoin, onOpenChat, isJoined }) => {
   const percent = Math.min(100, Math.round((challenge.progress / challenge.target) * 100));
   return (
-    <div className="flex h-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="flex h-full flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-slate-400">Командный вызов</p>
-          <h3 className="text-lg font-semibold text-slate-900">{challenge.title}</h3>
-          <p className="text-sm text-slate-600">{challenge.description}</p>
+          <p className="text-xs uppercase tracking-wide text-[var(--muted)]">Командный вызов</p>
+          <h3 className="text-lg font-semibold text-[var(--fg)]">{challenge.title}</h3>
+          <p className="text-sm text-[var(--muted)]">{challenge.description}</p>
         </div>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{challenge.deadline}</span>
+        <span className="rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-[var(--fg)]">{challenge.deadline}</span>
       </div>
       <div className="flex items-center gap-3">
         <ProgressBar percent={percent} />
-        <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">{challenge.progress}/{challenge.target}</span>
+        <span className="text-xs font-semibold text-[var(--muted)] whitespace-nowrap">{challenge.progress}/{challenge.target}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {challenge.participants.map((p) => (
           <span
             key={p.name}
-            className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+            className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg)] px-3 py-1 text-xs font-semibold text-[var(--fg)]"
           >
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-white shadow ring-1 ring-slate-200">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-white/5 shadow ring-1 ring-[var(--border)]">
               {p.avatar}
             </span>
             {p.name}
-            <span className="text-[11px] font-medium text-slate-500">+{p.xp} XP</span>
+            <span className="text-[11px] font-medium text-[var(--muted)]">+{p.xp} XP</span>
           </span>
         ))}
       </div>
       <div className="mt-auto flex items-center justify-between gap-3">
-        <p className="text-sm text-slate-600">Топ-3 вклада видны команде — поднимись в лидерборде.</p>
+        <p className="text-sm text-[var(--muted)]">Топ-3 вклада видны команде — поднимись в лидерборде.</p>
         <div className="flex flex-wrap gap-2">
           {!isJoined && (
             <button
               type="button"
-              className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
+              className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-lg"
               onClick={() => onJoin(challenge.id)}
             >
               Присоединиться
@@ -231,7 +230,7 @@ const ChallengeCard = ({ challenge, onJoin, onOpenChat, isJoined }) => {
           )}
           <button
             type="button"
-            className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-indigo-600 ring-1 ring-indigo-200 transition hover:bg-indigo-50"
+            className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-4 py-2 text-sm font-semibold text-[var(--fg)] transition hover:border-[var(--accent)]/60"
             onClick={() => onOpenChat(challenge.id)}
           >
             Открыть чат
@@ -243,13 +242,13 @@ const ChallengeCard = ({ challenge, onJoin, onOpenChat, isJoined }) => {
 };
 
 const EmptyState = ({ onReset }) => (
-  <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+  <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--card)] p-6 text-center">
     <div className="text-3xl">🔍</div>
-    <h3 className="text-lg font-semibold text-slate-900">Ничего не найдено</h3>
-    <p className="text-sm text-slate-600">Попробуй другие фильтры или сбрось выбор, чтобы вернуться ко всем заданиям.</p>
+    <h3 className="text-lg font-semibold text-[var(--fg)]">Ничего не найдено</h3>
+    <p className="text-sm text-[var(--muted)]">Попробуй другие фильтры или сбрось выбор, чтобы вернуться ко всем заданиям.</p>
     <button
       type="button"
-      className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+      className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg"
       onClick={onReset}
     >
       Сбросить фильтры
@@ -449,21 +448,24 @@ const MissionsPage = ({
 
   return (
     <div className="page space-y-8">
-      <div className="flex flex-col gap-4 rounded-3xl bg-gradient-to-r from-indigo-50 via-sky-50 to-emerald-50 p-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-lg md:flex-row md:items-center md:justify-between">
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-wide text-indigo-500">Задания</p>
-          <h1 className="text-3xl font-bold text-slate-900">Задания</h1>
-          <p className="max-w-2xl text-sm text-slate-700">
+          <p className="text-xs uppercase tracking-wide text-[var(--muted)]">Задания</p>
+          <h1 className="text-3xl font-bold text-[var(--fg)]">Задания</h1>
+          <p className="max-w-2xl text-sm text-[var(--muted)]">
             Вкладки, фильтры, геймификация и командные челленджи — собери XP, удерживай серию и проходи квесты вместе.
           </p>
         </div>
         <div className="flex gap-3">
-          <Link to="/profile" className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow ring-1 ring-slate-200">
+          <Link
+            to="/profile"
+            className="rounded-full border border-[var(--border)] bg-[var(--bg)] px-4 py-2 text-sm font-semibold text-[var(--fg)] shadow"
+          >
             Мой прогресс
           </Link>
           <button
             type="button"
-            className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-700"
+            className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow hover:shadow-lg"
             onClick={() => setGamificationModal(true)}
           >
             Подробнее о геймификации
@@ -476,7 +478,11 @@ const MissionsPage = ({
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`${chipBase} ${activeTab === tab.id ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "bg-white"}`}
+              className={`${chipBase} ${
+                activeTab === tab.id
+                  ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--fg)]"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)]"
+              }`}
               onClick={() => applyTab(tab.id)}
             >
               {tab.label}
@@ -487,7 +493,11 @@ const MissionsPage = ({
           {quickFilters.map((item) => (
             <button
               key={item.id}
-              className={`${chipBase} ${filters.duration === item.id ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "bg-white"}`}
+              className={`${chipBase} ${
+                filters.duration === item.id
+                  ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--fg)]"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)]"
+              }`}
               onClick={() => setFilters((prev) => ({ ...prev, duration: prev.duration === item.id ? "all" : item.id }))}
             >
               {item.label}
@@ -496,7 +506,11 @@ const MissionsPage = ({
           {difficulties.map((item) => (
             <button
               key={item.id}
-              className={`${chipBase} ${filters.difficulty === item.id ? "border-amber-500 bg-amber-50 text-amber-700" : "bg-white"}`}
+              className={`${chipBase} ${
+                filters.difficulty === item.id
+                  ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--fg)]"
+                  : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)]"
+              }`}
               onClick={() => setFilters((prev) => ({ ...prev, difficulty: prev.difficulty === item.id ? "all" : item.id }))}
             >
               {item.label}
@@ -504,7 +518,7 @@ const MissionsPage = ({
           ))}
           <button
             type="button"
-            className="ml-auto flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow ring-1 ring-slate-200"
+            className="ml-auto flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--fg)] shadow"
             onClick={() => setFiltersOpen(true)}
           >
             <span>Фильтры</span>
@@ -529,28 +543,28 @@ const MissionsPage = ({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900">Быстрый статус</h3>
-            <div className="mt-3 space-y-2 text-sm text-slate-700">
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+            <h3 className="text-lg font-semibold text-[var(--fg)]">Быстрый статус</h3>
+            <div className="mt-3 space-y-2 text-sm text-[var(--muted)]">
+              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2">
                 <span>XP</span>
-                <span className="font-semibold">{gamification?.totalPoints || 0} XP</span>
+                <span className="font-semibold text-[var(--fg)]">{gamification?.totalPoints || 0} XP</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2">
                 <span>Стрик</span>
-                <span className="font-semibold">{gamification?.streakCount || 0} дней</span>
+                <span className="font-semibold text-[var(--fg)]">{gamification?.streakCount || 0} дней</span>
               </div>
-              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+              <div className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg)] px-3 py-2">
                 <span>Бейджи</span>
-                <span className="font-semibold">{badgePalette.length}</span>
+                <span className="font-semibold text-[var(--fg)]">{badgePalette.length}</span>
               </div>
             </div>
           </div>
 
-          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="space-y-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">Групповые челленджи</h3>
-              <span className="text-xs text-slate-500">Команда</span>
+              <h3 className="text-lg font-semibold text-[var(--fg)]">Групповые челленджи</h3>
+              <span className="text-xs text-[var(--muted)]">Команда</span>
             </div>
             {challenges.map((challenge) => (
               <ChallengeCard

@@ -11,7 +11,10 @@ const MindGameCard = ({ game, leaderboard = [], stats = {}, onPlay }) => {
       : "linear-gradient(135deg, rgba(16,185,129,0.32), rgba(56,189,248,0.25))";
 
   return (
-    <div className="rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] overflow-hidden shadow-lg flex flex-col">
+    <Link
+      to={`/library/game/${game.id}`}
+      className="group rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-lg flex flex-col transition duration-200 ease-out hover:-translate-y-1 hover:shadow-2xl hover:border-[var(--accent)]/60"
+    >
       <div className="relative h-32 w-full" style={{ background: gradient }}>
         <div className="absolute -left-6 top-4 h-20 w-20 rounded-full bg-white/10 blur-3xl" aria-hidden />
         <div className="absolute right-6 -top-6 h-24 w-24 rounded-full bg-violet-500/20 blur-2xl animate-pulse" aria-hidden />
@@ -27,18 +30,17 @@ const MindGameCard = ({ game, leaderboard = [], stats = {}, onPlay }) => {
         </div>
       </div>
       <div className="p-4 flex flex-col gap-3">
-        <p className="text-sm text-gray-300 line-clamp-2">{game.description}</p>
-        <div className="rounded-xl border border-[#1f1f1f] p-3 bg-[#0e0e0e]">
-          <div className="flex items-center justify-between text-xs text-gray-400 mb-2">
+        <p className="text-sm text-[var(--muted)] line-clamp-2">{game.description}</p>
+        <div className="rounded-xl border border-[var(--border)] p-3 bg-white/5">
+          <div className="flex items-center justify-between text-xs text-[var(--muted)] mb-2">
             <span>Топ-3 друзей</span>
             <span>Лучший: {best}</span>
           </div>
           <div className="grid gap-2">
             {leaderboard.map((user, idx) => (
-              <Link
+              <div
                 key={user.id}
-                to={user.profileLink || "/community"}
-                className="flex items-center justify-between rounded-lg px-2 py-2 hover:bg-white/5 text-sm text-gray-200"
+                className="flex items-center justify-between rounded-lg px-2 py-2 text-sm text-[var(--fg)] bg-white/5"
               >
                 <div className="flex items-center gap-2">
                   <span className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center text-sm font-semibold">
@@ -50,26 +52,42 @@ const MindGameCard = ({ game, leaderboard = [], stats = {}, onPlay }) => {
                   </div>
                 </div>
                 <span className="text-sm text-emerald-300">{user.score}</span>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
-        <div className="flex items-center justify-between gap-2 text-sm text-gray-300">
+        <div className="flex items-center justify-between gap-2 text-sm text-[var(--muted)]">
           <div className="space-y-1">
-            <p>Вопросов: {game.questions.length}</p>
+            <p className="text-[var(--fg)]">Вопросов: {game.questions.length}</p>
             <p>Награда: {game.xpRewardBase || 80} XP</p>
           </div>
           <div className="flex gap-2">
-            <Link className="secondary small" to={`/library/game/${game.id}`} onClick={(e) => e.preventDefault() || onPlay(game.id)}>
+            <button
+              type="button"
+              className="secondary small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPlay?.(game.id);
+              }}
+            >
               Улучшить результат
-            </Link>
-            <Link className="primary small" to={`/library/game/${game.id}`} onClick={(e) => e.preventDefault() || onPlay(game.id)}>
+            </button>
+            <button
+              type="button"
+              className="primary small"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onPlay?.(game.id);
+              }}
+            >
               Играть
-            </Link>
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

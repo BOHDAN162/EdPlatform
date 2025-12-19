@@ -1,18 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "../../routerShim";
+import { Link } from "../../routerShim";
 import Mascot from "./Mascot";
 
 const tipsList = [
-  "Определи цель дня и начни с самой важной задачи.",
-  "Сделай шаг к проекту: запиши проблему, которую хочешь решить.",
-  "Поговори с человеком из другой сферы — свежий взгляд даёт идеи.",
-  "25 минут без отвлечений: включи таймер и проверь результат.",
-  "Составь план карманного бюджета на неделю.",
-  "Подумай, какой навык нужен мечте — найди материал в библиотеке.",
-  "Запиши 3 улучшения продукта и обсуди их с другом.",
-  "Сыграй MindGame на внимательность — разомни мозг перед учёбой.",
-  "Сделай чек-лист целей на неделю и отмечай выполненное.",
-  "Почитай саммари по лидерству и примени один совет сегодня.",
+  "Сделай 1 микро-шаг в проекте: напиши проблему, которую решаешь, в 1 предложении.",
+  "Проведи мини-CustDev: задай одному человеку вопрос “что бесит в … ?” и запиши ответ в Память.",
+  "Выбери 1 навык недели (переговоры/финансы/продажи) и сделай 10 минут практики сегодня.",
+  "Отключи отвлечения на 25 минут и сделай самое неприятное дело первым.",
+  "Сделай “финансовую минуту”: посчитай доход/расход за день и придумай, как +100₽ завтра.",
+  "Открой лонгрид и выпиши 3 тезиса — затем преврати 1 тезис в действие на сегодня.",
+  "Потренируй мышление: пройди 1 MindGame, затем запиши, что мешало (внимание/скорость/логика).",
+  "Питч за 30 секунд: проговори идею проекта вслух и сократи до 2 фраз.",
+  "Собери мини-план: 3 задачи на день → выбери одну “must-do” и поставь на неё 20 минут.",
+  "Сделай пост-рефлексию: что сегодня было сильным? что улучшить завтра? 2 строки в Память.",
 ];
 
 const icons = {
@@ -93,70 +93,56 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
   const quoteText = quote?.text || "Движение важнее идеальной траектории. Сделай шаг — поймешь дорогу.";
   const quoteAuthor = quote?.author || "NOESIS";
 
-  const tips = useMemo(
-    () =>
-      tipsList.map((text, index) => ({
-        id: `tip-${index + 1}`,
-        text,
-        to: "/missions",
-      })),
-    []
-  );
+  const tips = useMemo(() => tipsList.map((text, index) => ({ id: `tip-${index + 1}`, text, to: "/missions" })), []);
 
-  const navigate = useNavigate();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [tipIndex, setTipIndex] = useState(0);
   const [feedback, setFeedback] = useState({});
-  const [liked, setLiked] = useState({});
   const [openTip, setOpenTip] = useState(null);
   const [startX, setStartX] = useState(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("noesis_tip_feedback");
     if (stored) {
-      const parsed = JSON.parse(stored);
-      setFeedback(parsed);
-      setLiked(
-        Object.entries(parsed).reduce((acc, [key, value]) => {
-          if (value === "up") acc[key] = true;
-          return acc;
-        }, {})
-      );
+      try {
+        setFeedback(JSON.parse(stored));
+      } catch (error) {
+        setFeedback({});
+      }
     }
   }, []);
 
-  const visibleAdvice = tips[currentIndex] || insight;
+  useEffect(() => {
+    setIsAnimating(true);
+    const timeout = setTimeout(() => setIsAnimating(false), 40);
+    return () => clearTimeout(timeout);
+  }, [tipIndex]);
+
+  const visibleAdvice = tips[tipIndex] || insight;
 
   const persistFeedback = (next) => {
     setFeedback(next);
     localStorage.setItem("noesis_tip_feedback", JSON.stringify(next));
   };
 
-  const findNextIndex = (direction = 1) => {
-    const total = tips.length;
-    for (let step = 1; step <= total; step += 1) {
-      const candidate = (currentIndex + direction * step + total) % total;
-      if (feedback[tips[candidate].id] !== "down") return candidate;
-    }
-    return (currentIndex + direction + total) % total;
+  const handleFeedback = (type) => {
+    const current = tips[tipIndex];
+    if (!current) return;
+    const nextState = { ...feedback, [tipIndex]: type === "like" ? "up" : "down" };
+    persistFeedback(nextState);
+    setTipIndex((i) => (i + 1) % tips.length);
   };
 
-  const handleFeedback = (type) => {
-    const current = tips[currentIndex];
-    if (!current) return;
-    const nextState = { ...feedback, [current.id]: type === "like" ? "up" : "down" };
-    persistFeedback(nextState);
-    if (type === "like") {
-      setLiked((prev) => ({ ...prev, [current.id]: true }));
-    }
-    setCurrentIndex(findNextIndex(1));
-  };
+  const handlePrev = () => setTipIndex((i) => (i - 1 + tips.length) % tips.length);
+  const handleNext = () => setTipIndex((i) => (i + 1) % tips.length);
 
   const handleSwipeStart = (clientX) => setStartX(clientX);
   const handleSwipeEnd = (clientX) => {
     if (startX === null) return;
     const delta = clientX - startX;
     if (Math.abs(delta) > 32) {
-      setCurrentIndex(findNextIndex(delta > 0 ? -1 : 1));
+      if (delta > 0) handlePrev();
+      else handleNext();
     }
     setStartX(null);
   };
@@ -214,16 +200,16 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                   <button
                     type="button"
                     className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
-                    onClick={() => setCurrentIndex(findNextIndex(-1))}
+                    onClick={handlePrev}
                     aria-label="Предыдущий совет"
                   >
                     ←
                   </button>
-                  <span className="text-xs font-semibold text-[var(--muted)]">{`${currentIndex + 1}/${tips.length}`}</span>
+                  <span className="text-xs font-semibold text-[var(--muted)]">{`${tipIndex + 1}/${tips.length}`}</span>
                   <button
                     type="button"
                     className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
-                    onClick={() => setCurrentIndex(findNextIndex(1))}
+                    onClick={handleNext}
                     aria-label="Следующий совет"
                   >
                     →
@@ -231,10 +217,20 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 </div>
               </div>
               <div className="mt-2 space-y-1 overflow-hidden">
-                <p className="text-base font-semibold text-[var(--fg)] transition duration-300 ease-out" key={visibleAdvice?.id}>
+                <p
+                  className={`text-base font-semibold text-[var(--fg)] transition-all duration-300 ease-out ${
+                    isAnimating ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
+                  }`}
+                  key={visibleAdvice?.id}
+                >
                   {visibleAdvice?.text || insight?.title || "Продолжи главный шаг на сегодня"}
                 </p>
-                <p className="text-sm text-[var(--muted)] transition duration-300 ease-out" key={`${visibleAdvice?.id}-desc`}>
+                <p
+                  className={`text-sm text-[var(--muted)] transition-all duration-300 ease-out ${
+                    isAnimating ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
+                  }`}
+                  key={`${visibleAdvice?.id}-desc`}
+                >
                   {insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
                 </p>
               </div>
@@ -242,7 +238,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 <button
                   type="button"
                   className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
-                    feedback[visibleAdvice?.id] === "up" ? "border-[#8A3FFC]/70 text-white" : "border-white/10 text-[var(--muted)]"
+                    feedback[tipIndex] === "up" ? "border-[#8A3FFC]/70 text-white" : "border-white/10 text-[var(--muted)]"
                   }`}
                   onClick={() => handleFeedback("like")}
                   aria-label="Совет полезен"
@@ -252,7 +248,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 <button
                   type="button"
                   className={`rounded-full border px-3 py-1 text-sm transition hover:border-[#8A3FFC]/70 hover:text-white ${
-                    feedback[visibleAdvice?.id] === "down"
+                    feedback[tipIndex] === "down"
                       ? "border-[#8A3FFC]/70 text-white"
                       : "border-white/10 text-[var(--muted)]"
                   }`}
@@ -262,15 +258,13 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                   👎 Неинтересно
                 </button>
               </div>
-              <button
-                type="button"
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#8A3FFC] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(138,63,252,0.28)] transition hover:-translate-y-0.5"
-                onClick={() => navigate(`${visibleAdvice?.to || "/missions"}?tip=${visibleAdvice?.id || currentIndex}`)}
+              <Link
+                to="/missions"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(138,63,252,0.28)] transition hover:-translate-y-0.5"
               >
                 Вперёд
                 <span className="text-xs">→</span>
-              </button>
-              {liked[visibleAdvice?.id] && <p className="mt-2 text-xs text-[#c084fc]">Будем показывать больше таких советов</p>}
+              </Link>
             </div>
           </div>
         </div>

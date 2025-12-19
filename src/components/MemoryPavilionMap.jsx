@@ -76,8 +76,6 @@ const MemoryPavilionMap = ({ entries, selectedId, highlighted = new Set(), onSel
                 data-landmark-id={landmark.id}
                 className={`pavilion-tile ${selectedId === landmark.id ? "selected" : ""} ${highlightedCls}`}
                 style={{
-                  gridRow: landmark.position.row,
-                  gridColumn: landmark.position.col,
                   background: `${meta.color}12`,
                   borderColor: `${meta.color}50`,
                   color: meta.color,
@@ -98,9 +96,11 @@ const MemoryPavilionMap = ({ entries, selectedId, highlighted = new Set(), onSel
                     {landmark.icon || meta.icon}
                   </span>
                   <div className="pavilion-name">{landmark.shortName || landmark.name}</div>
-                  <span className="pavilion-chip">{meta.label}</span>
                 </div>
-                <div className="pavilion-desc">{landmark.description}</div>
+                <div className="pavilion-meta-row">
+                  <span className="pavilion-chip">{meta.label}</span>
+                  <span className="pavilion-chip subtle">записей: {count} / {goalPerPavilion}</span>
+                </div>
                 <div className="pavilion-progress">
                   <svg viewBox="0 0 36 36" className="progress-ring" aria-hidden>
                     <path

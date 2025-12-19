@@ -50,6 +50,16 @@ const baseEstimatedTime = (type) => {
   return "7–10 минут";
 };
 
+const topicShortMap = {
+  mindset: "Майндсет",
+  finance: "Финансы",
+  entrepreneur_skills: "Навыки",
+  communication: "Команда",
+  productivity: "Продуктивность",
+};
+
+const mapTopicShort = (theme) => topicShortMap[theme] || "Навык";
+
 const contentEnhancements = {
   "article-productivity": {
     contentBlocks: [
@@ -118,6 +128,7 @@ export const materials = [
     theme: themeMap[article.theme] || "mindset",
     estimatedTime: baseEstimatedTime("article"),
     level: "начальный",
+    topicShort: mapTopicShort(themeMap[article.theme] || "mindset"),
   })),
   ...tests.map((test) => ({
     ...test,
