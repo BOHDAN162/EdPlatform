@@ -945,11 +945,29 @@ function App() {
             />
             <Route
               path="/profile"
-              element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} onLogout={handleLogout} />}
+              element={
+                <SettingsPage
+                  theme={theme}
+                  setTheme={setTheme}
+                  user={user}
+                  onUserUpdate={setUser}
+                  onLogout={handleLogout}
+                  addToast={addToast}
+                />
+              }
             />
             <Route
               path="/settings"
-              element={<SettingsPage theme={theme} setTheme={setTheme} user={user} onUserUpdate={setUser} onLogout={handleLogout} />}
+              element={
+                <SettingsPage
+                  theme={theme}
+                  setTheme={setTheme}
+                  user={user}
+                  onUserUpdate={setUser}
+                  onLogout={handleLogout}
+                  addToast={addToast}
+                />
+              }
             />
             <Route path="/auth" element={<AuthPage onAuth={handleAuth} />} />
             <Route
