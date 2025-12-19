@@ -6,10 +6,29 @@ const defaultMascotId = "violet";
 
 const MascotContext = createContext({ mascotId: defaultMascotId, setMascotId: () => {} });
 
+const normalizeMascotId = (id) => {
+  const mascot = getMascotById(id);
+  if (mascot) return mascot.id;
+  return null;
+};
+
+const persistMascot = (id) => {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY, id);
+  } catch (error) {
+    console.warn("Не удалось сохранить маскота", error);
+  }
+};
+
 const readStoredMascot = () => {
   if (typeof localStorage === "undefined") return defaultMascotId;
   try {
-    return localStorage.getItem(STORAGE_KEY) || defaultMascotId;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const validId = normalizeMascotId(stored);
+    if (validId) return validId;
+    persistMascot(defaultMascotId);
+    return defaultMascotId;
   } catch (error) {
     console.warn("Не удалось прочитать маскота", error);
     return defaultMascotId;
@@ -20,15 +39,9 @@ export const MascotProvider = ({ children }) => {
   const [mascotId, setMascotId] = useState(() => readStoredMascot());
 
   const setMascot = useCallback((id) => {
-    const mascot = getMascotById(id);
-    setMascotId(mascot.id);
-    if (typeof localStorage !== "undefined") {
-      try {
-        localStorage.setItem(STORAGE_KEY, mascot.id);
-      } catch (error) {
-        console.warn("Не удалось сохранить маскота", error);
-      }
-    }
+    const validId = normalizeMascotId(id) || defaultMascotId;
+    setMascotId(validId);
+    persistMascot(validId);
   }, []);
 
   const value = useMemo(() => ({ mascotId, setMascotId: setMascot }), [mascotId, setMascot]);

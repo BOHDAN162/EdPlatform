@@ -1,4 +1,5 @@
 import React, { useId } from "react";
+import CubeMascot from "./CubeMascot";
 
 const BaseMascot = ({ palette, accent, core, rings, size = 220 }) => {
   const bodyId = useId();
@@ -91,39 +92,9 @@ const VioletCore = (props) => (
   />
 );
 
-const CyanMind = (props) => (
-  <BaseMascot
-    {...props}
-    palette={{ primary: "#0ea5e9", secondary: "#22d3ee", glow: "#67e8f9", highlight: "#e0f2fe" }}
-    accent={{ from: "#22d3ee", to: "#0ea5e9" }}
-    core="#0f172a"
-  />
-);
-
-const LimeEnergy = (props) => (
-  <BaseMascot
-    {...props}
-    palette={{ primary: "#4ade80", secondary: "#84cc16", glow: "#bef264", highlight: "#f7fee7" }}
-    accent={{ from: "#a3e635", to: "#22c55e" }}
-    core="#14532d"
-    rings
-  />
-);
-
-const SunsetOrange = (props) => (
-  <BaseMascot
-    {...props}
-    palette={{ primary: "#fb7185", secondary: "#f97316", glow: "#f9a8d4", highlight: "#fff7ed" }}
-    accent={{ from: "#fb7185", to: "#f97316" }}
-    core="#7c2d12"
-  />
-);
-
 export const MASCOTS = [
   { id: "violet", name: "Кристалл", palette: { primary: "#8A3FFC", glow: "#A855F7" }, Component: VioletCore },
-  { id: "cyan", name: "Орбита", palette: { primary: "#22d3ee", glow: "#67e8f9" }, Component: CyanMind },
-  { id: "lime", name: "Искра", palette: { primary: "#84cc16", glow: "#bef264" }, Component: LimeEnergy },
-  { id: "sunset", name: "Капсула", palette: { primary: "#f97316", glow: "#f9a8d4" }, Component: SunsetOrange },
+  { id: "cube", name: "Куб", palette: { primary: "#7DD3FC", glow: "#A5F3FC" }, Component: CubeMascot },
 ];
 
-export const getMascotById = (id) => MASCOTS.find((item) => item.id === id) || MASCOTS[0];
+export const getMascotById = (id) => MASCOTS.find((item) => item.id === id) || null;
