@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
+import InlineCta from "./InlineCta";
 
 const themeAccents = {
   бизнес: "#f59e0b",
@@ -41,7 +42,7 @@ const CourseCard = ({ course, statusLabel }) => {
           <span className="pill subtle">{course.age || "13+"}</span>
           <span className="pill subtle">{course.difficulty || "средний"}</span>
         </div>
-        <span className="text-xs text-gray-400">{course.students ? `${course.students} ученика` : ""}</span>
+        <InlineCta />
       </div>
     </Link>
   );

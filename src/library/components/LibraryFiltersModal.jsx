@@ -16,14 +16,14 @@ const formatOptions = ["текст", "тест", "игра", "курс"];
 
 const ChipGroup = ({ label, options, selected, onToggle }) => (
   <div>
-    <p className="text-sm text-gray-300 mb-2">{label}</p>
-    <div className="flex flex-wrap gap-2">
+    <p className="mb-1.5 text-sm text-gray-300">{label}</p>
+    <div className="flex flex-wrap gap-2.5">
       {options.map((option) => {
         const isActive = selected.includes(option);
         return (
           <button
             key={option}
-            className={`chip ${isActive ? "active" : ""}`}
+            className={`chip px-3 py-1.5 text-sm ${isActive ? "active" : ""}`}
             onClick={() => onToggle(option)}
           >
             {option}
@@ -46,9 +46,9 @@ const LibraryFiltersModal = ({ open, filters, onClose, onApply, onReset }) => {
 
   return (
     <div
-      className={`overflow-hidden transition-all duration-300 ${open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"}`}
+      className={`overflow-hidden transition-all duration-300 ${open ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"}`}
     >
-      <div className="mt-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg">
+      <div className="mt-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg md:max-w-5xl md:mx-auto">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm text-[var(--muted)]">Расширенный поиск</p>
@@ -58,7 +58,7 @@ const LibraryFiltersModal = ({ open, filters, onClose, onApply, onReset }) => {
             ✕
           </button>
         </div>
-        <div className="grid gap-4 mt-3">
+        <div className="grid gap-3 mt-3 md:grid-cols-2 md:gap-4">
           <ChipGroup
             label="Длительность"
             options={durationOptions}
@@ -84,15 +84,15 @@ const LibraryFiltersModal = ({ open, filters, onClose, onApply, onReset }) => {
             onToggle={(v) => toggle("formats", v)}
           />
         </div>
-        <div className="flex items-center justify-between gap-3 mt-5">
-          <button className="ghost" onClick={onReset}>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 md:mt-3">
+          <button className="ghost text-sm" onClick={onReset}>
             Сбросить
           </button>
-          <div className="flex gap-2">
-            <button className="secondary" onClick={onClose}>
+          <div className="flex flex-wrap gap-2">
+            <button className="secondary px-4 py-2 text-sm" onClick={onClose}>
               Свернуть
             </button>
-            <button className="primary" onClick={handleApply}>
+            <button className="primary px-4 py-2 text-sm" onClick={handleApply}>
               Применить
             </button>
           </div>
