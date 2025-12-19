@@ -43,9 +43,9 @@ const MemoryPavilionModal = ({
   if (!open || !pavilion) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-card pavilion-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
+    <div className="modal-backdrop memory-modal" onClick={onClose}>
+      <div className="modal-card pavilion-modal memory-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="memory-modal-header">
           <div>
             <div className="chip-row">
               <span className="material-badge outline">Павильон</span>
@@ -58,42 +58,53 @@ const MemoryPavilionModal = ({
               {entries.length} заметок • {pavilion.category}
             </p>
           </div>
-          <button className="ghost" onClick={onClose}>Закрыть</button>
+          <button className="ghost icon" onClick={onClose} aria-label="Закрыть модал">
+            ✕
+          </button>
         </div>
 
-        <div className="pavilion-toolbar">
-          <div className="search-field">
-            <span>🔍</span>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Поиск внутри павильона"
-            />
-            {query && (
-              <button className="ghost small" onClick={() => setQuery("")}>
-                Очистить
+        <div className="memory-modal-body">
+          <div className="pavilion-toolbar">
+            <div className="search-field">
+              <span>🔍</span>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Поиск внутри павильона"
+              />
+              {query && (
+                <button className="ghost small" onClick={() => setQuery("")}>
+                  Очистить
+                </button>
+              )}
+            </div>
+            <div className="toolbar-actions">
+              {quickActions.map((action) => (
+                <button
+                  key={action.type}
+                  className="ghost"
+                  onClick={() => onQuickAction(action.type, action.template)}
+                  title={action.hint}
+                >
+                  {action.icon} {action.label}
+                </button>
+              ))}
+              <button className="primary" onClick={() => onCreate("text")}>
+                Добавить запись
               </button>
-            )}
+            </div>
           </div>
-          <div className="toolbar-actions">
-            {quickActions.map((action) => (
-              <button key={action.type} className="ghost" onClick={() => onQuickAction(action.type, action.template)} title={action.hint}>
-                {action.icon} {action.label}
-              </button>
-            ))}
-            <button className="primary" onClick={() => onCreate("text")}>Добавить запись</button>
-          </div>
-        </div>
 
-        {filtered.length === 0 ? (
-          <MemoryEmptyState onTemplate={onQuickAction} compact />
-        ) : (
-          <div className="pavilion-entries" role="list">
-            {filtered.map((entry) => (
-              <MemoryEntryCard key={entry.id} entry={entry} onClick={() => onSelectEntry(entry)} />
-            ))}
-          </div>
-        )}
+          {filtered.length === 0 ? (
+            <MemoryEmptyState onTemplate={onQuickAction} compact />
+          ) : (
+            <div className="pavilion-entries" role="list">
+              {filtered.map((entry) => (
+                <MemoryEntryCard key={entry.id} entry={entry} onClick={() => onSelectEntry(entry)} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

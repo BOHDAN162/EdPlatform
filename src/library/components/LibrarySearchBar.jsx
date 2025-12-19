@@ -18,7 +18,7 @@ const defaultRecent = [
   { id: "article-productivity", title: "Фокус за 20 минут", to: "/library/article/article-productivity" },
 ];
 
-const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion, onOpenFilters }) => {
+const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [recent, setRecent] = useState(defaultRecent);
   const dropdownRef = useRef(null);
@@ -104,21 +104,6 @@ const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion, onOpe
             ✕
           </button>
         )}
-        <button
-          className="p-2 rounded-xl bg-[#161616] border border-[#2a2a2a] hover:border-[#8A3FFC] transition"
-          onClick={onOpenFilters}
-          aria-label="Фильтры"
-        >
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden>
-            <path
-              d="M4 6h16M7 12h10M10 18h4"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
       </div>
       {isFocused && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] shadow-xl z-20 max-h-72 overflow-y-auto">

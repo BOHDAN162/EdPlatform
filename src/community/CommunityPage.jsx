@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "../routerShim";
 import useCommunity from "../useCommunity";
 import { getLevelFromPoints, getStatusByPoints, progressToNextStatus } from "../gamification";
 import RankingRow from "./components/RankingRow";
@@ -23,7 +24,8 @@ const rewardTabs = [
 const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   const leagueRef = useRef(null);
   const contentRef = useRef(null);
-  const levelInfo = getLevelFromPoints(gamification.totalPoints);
+  const totalPoints = gamification?.totalPoints || 0;
+  const levelInfo = getLevelFromPoints(totalPoints);
   const communityUser = useMemo(
     () =>
       user
@@ -31,14 +33,14 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             id: user.id,
             name: user.name,
             avatarKey: user.name?.slice(0, 2),
-            xp: gamification.totalPoints,
-            points: gamification.totalPoints,
+            xp: totalPoints,
+            points: totalPoints,
             level: levelInfo.level,
-            role: getStatusByPoints(gamification.totalPoints),
+            role: getStatusByPoints(totalPoints),
             clubIds: [],
           }
         : null,
-    [user, gamification.totalPoints, levelInfo.level]
+    [user, totalPoints, levelInfo.level]
   );
   const [leaderboardTab, setLeaderboardTab] = useState("active");
   const [rewardTab, setRewardTab] = useState("avatars");
@@ -79,22 +81,23 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     localStorage.setItem("community_following", JSON.stringify(followingIds));
   }, [followingIds]);
 
-  const community = useCommunity(communityUser, {
-    onAction: (action) => onCommunityAction?.(action),
-    onToast,
-  });
+  const community =
+    useCommunity(communityUser, {
+      onAction: (action) => onCommunityAction?.(action),
+      onToast,
+    }) || { participants: [], posts: [], questions: [], answers: [], messages: {}, channels: [] };
 
   const participantsSorted = useMemo(
     () => [...community.participants].sort((a, b) => (b.points || 0) - (a.points || 0)),
     [community.participants]
   );
 
-  const weeklyGoal = useMemo(() => gamification.goals?.find((g) => g.id === "weekly-materials"), [gamification.goals]);
+  const weeklyGoal = useMemo(() => gamification?.goals?.find((g) => g.id === "weekly-materials"), [gamification?.goals]);
   const weeklyTarget = weeklyGoal?.target ?? 6;
-  const weeklyProgress = weeklyGoal?.progress ?? gamification.completedMaterialsCount ?? 0;
+  const weeklyProgress = weeklyGoal?.progress ?? gamification?.completedMaterialsCount ?? 0;
   const goalAchieved = weeklyProgress >= weeklyTarget && weeklyTarget > 0;
   const rankPosition = communityUser ? participantsSorted.findIndex((p) => p.id === communityUser.id) + 1 : null;
-  const statusProgress = progressToNextStatus(gamification.totalPoints);
+  const statusProgress = progressToNextStatus(totalPoints);
 
   const ensureReferral = () => {
     const stored = localStorage.getItem("community_referral_code");
@@ -191,6 +194,25 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     };
     window.open(targets[channel], "_blank", "noopener,noreferrer");
   };
+
+  if (!community || !Array.isArray(community.participants) || community.participants.length === 0) {
+    return (
+      <div className="page community-page">
+        <div className="page-header">
+          <h1>Сообщество</h1>
+        </div>
+        <div className="card">
+          <h2>Данные загружаются/пока недоступны</h2>
+          <p className="meta">Попробуй позже или вернись на главную.</p>
+          <div className="flex gap-3 mt-3">
+            <Link to="/" className="primary">
+              Вернуться на Главную
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page community-page">

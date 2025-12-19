@@ -48,20 +48,6 @@ const MemoryPavilionMap = ({ entries, selectedId, highlighted = new Set(), onSel
             </linearGradient>
           </defs>
           <rect x="0" y="0" width="100" height="60" fill="url(#gridGradient)" rx="6" />
-          <path
-            d="M5 20 C 20 12, 40 12, 60 20 S 90 28, 95 20"
-            fill="none"
-            stroke="#9ca3af40"
-            strokeWidth="1.2"
-            strokeDasharray="4 6"
-          />
-          <path
-            d="M10 40 C 30 32, 50 32, 70 40 S 92 48, 95 40"
-            fill="none"
-            stroke="#9ca3af33"
-            strokeWidth="1.2"
-            strokeDasharray="3 5"
-          />
         </svg>
 
         <div className="pavilion-grid-overlay">
