@@ -3,33 +3,31 @@ import PostCard from "./components/PostCard";
 
 const filters = [
   { id: "all", label: "Все" },
-  { id: "my", label: "Мои клубы" },
   { id: "achievement", label: "Достижения" },
   { id: "mission_share", label: "Задания" },
   { id: "question", label: "Вопросы" },
   { id: "announcement", label: "Анонсы" },
 ];
 
-const FeedTab = ({ posts, clubs, membershipSet, onLike, onCreatePost }) => {
+const FeedTab = ({ posts, onLike, onCreatePost }) => {
   const [filter, setFilter] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", body: "", type: "story", clubId: "" });
+  const [form, setForm] = useState({ title: "", body: "", type: "story" });
 
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
-      if (filter === "my") return post.clubId && membershipSet.has(post.clubId);
       if (filter === "achievement") return post.type === "achievement";
       if (filter === "mission_share") return post.type === "mission_share";
       if (filter === "question") return post.type === "question";
       if (filter === "announcement") return post.type === "announcement";
       return true;
     });
-  }, [posts, filter, membershipSet]);
+  }, [posts, filter]);
 
   const handleSubmit = () => {
     if (!form.title || !form.body) return;
     onCreatePost(form);
-    setForm({ title: "", body: "", type: "story", clubId: "" });
+    setForm({ title: "", body: "", type: "story" });
     setFormOpen(false);
   };
 
@@ -38,7 +36,7 @@ const FeedTab = ({ posts, clubs, membershipSet, onLike, onCreatePost }) => {
       <div className="tab-header">
         <div>
           <h2>Лента сообщества</h2>
-          <p className="meta">Истории, победы и анонсы из клубов.</p>
+          <p className="meta">Истории, победы и быстрые ответы.</p>
         </div>
         <button className="primary" onClick={() => setFormOpen((v) => !v)}>
           {formOpen ? "Закрыть" : "Создать пост"}
@@ -65,17 +63,6 @@ const FeedTab = ({ posts, clubs, membershipSet, onLike, onCreatePost }) => {
                   <option value="progress">Прогресс</option>
                 </select>
               </label>
-              <label>
-                Клуб (необязательно)
-                <select value={form.clubId} onChange={(e) => setForm((p) => ({ ...p, clubId: e.target.value }))}>
-                  <option value="">Без клуба</option>
-                  {clubs.map((club) => (
-                    <option key={club.id} value={club.id}>
-                      {club.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
             </div>
             <button className="primary" onClick={handleSubmit}>Опубликовать</button>
           </div>
@@ -90,7 +77,7 @@ const FeedTab = ({ posts, clubs, membershipSet, onLike, onCreatePost }) => {
       </div>
       <div className="grid cards columns-2">
         {filteredPosts.map((post) => (
-          <PostCard key={post.id} post={post} clubName={clubs.find((c) => c.id === post.clubId)?.name} onLike={onLike} />
+          <PostCard key={post.id} post={post} onLike={onLike} />
         ))}
       </div>
     </div>

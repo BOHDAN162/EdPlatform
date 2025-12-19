@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   baseCommunityState,
   buildParticipants,
-  decorateClubs,
-  decorateTeams,
   ensureMessages,
   saveCommunityState,
   loadCommunityState,
@@ -25,11 +23,6 @@ export default function useCommunity(currentUser, { onAction, onToast } = {}) {
   }, [state, currentUser]);
 
   const participants = useMemo(() => buildParticipants(currentUser), [currentUser]);
-
-  const membershipSet = useMemo(() => new Set([...(currentUser?.clubIds || []), ...(state.memberClubIds || [])]), [
-    currentUser?.clubIds,
-    state.memberClubIds,
-  ]);
 
   const posts = useMemo(() => {
     const ordered = [...state.posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -61,10 +54,6 @@ export default function useCommunity(currentUser, { onAction, onToast } = {}) {
     [state.answers, participants]
   );
 
-  const decoratedClubs = useMemo(() => decorateClubs(currentUser, membershipSet), [membershipSet, currentUser]);
-
-  const decoratedTeams = useMemo(() => decorateTeams(participants, currentUser), [participants, currentUser]);
-
   const channels = useMemo(() => initialChannels.map((ch) => ({ ...ch, unread: 0 })), []);
 
   const messages = useMemo(() => ensureMessages(state.messages), [state.messages]);
@@ -93,7 +82,6 @@ export default function useCommunity(currentUser, { onAction, onToast } = {}) {
     const post = {
       id: `post-${crypto.randomUUID()}`,
       authorId: currentUser?.id || "u-roman",
-      clubId: payload.clubId || null,
       createdAt: new Date().toISOString(),
       type: payload.type || "story",
       title: payload.title,
@@ -104,17 +92,6 @@ export default function useCommunity(currentUser, { onAction, onToast } = {}) {
     setState((prev) => ({ ...prev, posts: [post, ...prev.posts] }));
     onAction?.({ type: "post-create" });
     onToast?.("Пост добавлен в ленту");
-  };
-
-  const joinClub = (clubId) => {
-    setState((prev) => ({ ...prev, memberClubIds: Array.from(new Set([...(prev.memberClubIds || []), clubId])) }));
-    onToast?.("Ты в клубе! Настраиваем ленту под тебя");
-    onAction?.({ type: "club-join" });
-  };
-
-  const leaveClub = (clubId) => {
-    setState((prev) => ({ ...prev, memberClubIds: (prev.memberClubIds || []).filter((id) => id !== clubId) }));
-    onToast?.("Клуб скрыт из твоей ленты");
   };
 
   const addQuestion = (payload) => {
@@ -197,15 +174,10 @@ export default function useCommunity(currentUser, { onAction, onToast } = {}) {
     posts,
     questions,
     answers,
-    clubs: decoratedClubs,
-    teams: decoratedTeams,
     channels,
     messages,
-    membershipSet,
     likePost,
     addPost,
-    joinClub,
-    leaveClub,
     addQuestion,
     addAnswer,
     upvoteQuestion,

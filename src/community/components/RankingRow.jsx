@@ -1,8 +1,10 @@
 import React from "react";
+import { Link } from "../../routerShim";
 
-const RankingRow = ({ participant, position, isCurrent }) => {
+const RankingRow = ({ participant, position, isCurrent, metricLabel = "XP", metricValue }) => {
+  const value = metricValue ?? participant.points;
   return (
-    <div className={`ranking-row ${isCurrent ? "current" : ""}`}>
+    <Link to={`/user/${participant.id}`} className={`ranking-row ${isCurrent ? "current" : ""}`}>
       <div className="ranking-left">
         <span className="pill subtle">#{position}</span>
         <div className="avatar small">{participant.name[0]}</div>
@@ -13,9 +15,9 @@ const RankingRow = ({ participant, position, isCurrent }) => {
       </div>
       <div className="ranking-right">
         <div className="meta">уровень {participant.level || "?"}</div>
-        <div className="pill outline">{participant.points} XP</div>
+        <div className="pill outline">{value} {metricLabel}</div>
       </div>
-    </div>
+    </Link>
   );
 };
 

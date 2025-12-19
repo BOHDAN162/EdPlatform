@@ -1,19 +1,16 @@
 import {
   answers as initialAnswers,
   channels as initialChannels,
-  clubs as initialClubs,
   communityParticipants,
   initialMessages,
   posts as initialPosts,
   questions as initialQuestions,
-  teams as initialTeams,
 } from "./communityData";
 
 export const baseCommunityState = {
   likedPostIds: [],
   upvotedQuestions: [],
   upvotedAnswers: [],
-  memberClubIds: [],
   posts: initialPosts.map((item) => ({ ...item })),
   questions: initialQuestions.map((item) => ({ ...item })),
   answers: initialAnswers.map((item) => ({ ...item })),
@@ -21,7 +18,6 @@ export const baseCommunityState = {
     acc[msg.channelId] = acc[msg.channelId] ? [...acc[msg.channelId], msg] : [msg];
     return acc;
   }, {}),
-  userTeamId: null,
 };
 
 const buildStorageKey = (user) => `ep_community_state_${user?.id || "guest"}`;
@@ -99,7 +95,6 @@ export const buildParticipants = (currentUser) => {
   const mergedUser = {
     ...currentUser,
     points: currentUser.xp ?? currentUser.points ?? 0,
-    clubIds: currentUser.clubIds || [],
     role: currentUser.role || "Участник",
   };
   if (existingIndex >= 0) {
@@ -107,35 +102,6 @@ export const buildParticipants = (currentUser) => {
     return base;
   }
   return [mergedUser, ...base];
-};
-
-export const decorateClubs = (currentUser, membershipSet) =>
-  initialClubs.map((club) => {
-    const members = new Set(club.memberIds);
-    if (currentUser && membershipSet.has(club.id)) members.add(currentUser.id);
-    return { ...club, memberCount: members.size, isMember: membershipSet.has(club.id) };
-  });
-
-export const decorateTeams = (participants, currentUser) => {
-  const baseTeams = initialTeams.map((team) => ({
-    ...team,
-    memberIds: [...team.memberIds],
-  }));
-  if (currentUser) {
-    const already = baseTeams.some((t) => t.memberIds.includes(currentUser.id));
-    if (!already) {
-      baseTeams.push({
-        id: "team-starter",
-        name: "Стартовая команда",
-        memberIds: [currentUser.id, "u-alia", "u-sofia"],
-        questId: "quest-starter",
-      });
-    }
-  }
-  return baseTeams.map((team) => ({
-    ...team,
-    members: team.memberIds.map((id) => participants.find((p) => p.id === id)).filter(Boolean),
-  }));
 };
 
 export const relativeTime = (iso) => {
