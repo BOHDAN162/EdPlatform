@@ -4514,6 +4514,69 @@ body {
   gap: 12px;
 }
 
+.status-card.premium {
+  background: linear-gradient(135deg, rgba(138, 63, 252, 0.08), rgba(14, 165, 233, 0.05));
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(138, 63, 252, 0.18);
+}
+
+.weekly-progress-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.progress-ring {
+  position: relative;
+  display: inline-block;
+  filter: drop-shadow(0 10px 24px rgba(138, 63, 252, 0.16));
+}
+
+.progress-ring-value {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.progress-ring-center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  font-weight: 800;
+}
+
+.progress-numbers {
+  font-size: 18px;
+}
+
+.progress-caption {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.weekly-copy .value {
+  font-size: 26px;
+}
+
+.reward-pill {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(138, 63, 252, 0.4);
+  margin: 8px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reward-pill.success {
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.5);
+}
+
 .status-head {
   display: flex;
   gap: 12px;
@@ -4596,6 +4659,12 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.chip-row.scrollable {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  gap: 6px;
 }
 
 .modal-overlay {
@@ -4788,9 +4857,8 @@ body {
 .ranking-card { display: grid; gap: 10px; }
 
 .ranking-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -4798,7 +4866,8 @@ body {
   text-decoration: none;
   color: inherit;
   transition: border 0.2s, transform 0.15s;
-}
+  position: relative;
+  }
 
 .ranking-row:hover {
   border-color: #7c3aed;
@@ -4811,7 +4880,101 @@ body {
 }
 
 .ranking-left { display: flex; gap: 10px; align-items: center; }
-.ranking-right { display: flex; gap: 8px; align-items: center; }
+.ranking-copy { display: grid; gap: 2px; }
+.ranking-right { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.ranking-row-top {
+  border-color: rgba(138, 63, 252, 0.6);
+  background: linear-gradient(135deg, rgba(138, 63, 252, 0.06), rgba(16, 185, 129, 0.05));
+}
+
+.pill-medal {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+}
+
+.emoji-avatar {
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  width: 32px;
+  height: 32px;
+}
+
+.ranking-row .ghost.icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.hover-card-wrapper {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  z-index: 12;
+}
+
+.hover-card {
+  min-width: 260px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+}
+
+.hover-card-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hover-card-title { flex: 1; }
+
+.hover-card-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.hover-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+}
+
+.hover-sheet {
+  width: 100%;
+  background: var(--card);
+  border-radius: 14px 14px 0 0;
+  padding: 12px;
+}
+
+.hover-card-sheet {
+  box-shadow: none;
+}
+
+.invite-link-block {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+}
+
+.invite-link-input {
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  word-break: break-all;
+}
 
 .league-note {
   display: grid;
@@ -4896,6 +5059,38 @@ body {
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 900px) {
+  .weekly-progress-row {
+    grid-template-columns: 1fr;
+  }
+  .ranking-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .ranking-right {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .ranking-left {
+    align-items: flex-start;
+  }
+  .ranking-row .ghost.icon {
+    margin-left: auto;
+  }
+  .weekly-copy {
+    text-align: left;
+  }
+  .progress-ring {
+    margin: 0 auto;
+  }
+  .chip-row.scrollable {
+    width: 100%;
+  }
 }
 
 .stat-row:last-child {
