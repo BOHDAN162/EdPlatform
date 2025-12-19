@@ -73,7 +73,7 @@ const Modal = ({ title, onClose, children }) => (
 );
 
 const ProgressBar = ({ percent }) => (
-  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+  <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border)]">
     <div
       className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 transition-all duration-500"
       style={{ width: `${Math.min(100, percent)}%` }}
@@ -93,22 +93,22 @@ const MissionCard = ({ mission, progress, onAction, onDetails }) => {
     : 0;
 
   const status = progress?.status === "completed" ? "completed" : progress?.status === "inProgress" ? "inProgress" : "new";
-  const statusColor = status === "completed" ? "bg-emerald-50 text-emerald-600" : status === "inProgress"
-    ? "bg-amber-50 text-amber-600"
-    : "bg-indigo-50 text-indigo-600";
+  const statusColor = status === "completed" ? "bg-emerald-500/10 text-emerald-200" : status === "inProgress"
+    ? "bg-amber-500/10 text-amber-200"
+    : "bg-indigo-500/10 text-indigo-200";
 
   return (
-    <div className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
+    <div className="group flex h-full flex-col rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-xl">
+      <div className="flex items-center justify-between gap-3 text-sm text-[var(--muted)]">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs font-semibold text-[var(--fg)]">
             <span className="text-base">{meta.icon}</span>
             {meta.label}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-[var(--muted)] ring-1 ring-white/10">
             ⏱ {duration.label}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-[var(--muted)] ring-1 ring-white/10">
             {"●".repeat(diffMeta.dots)} {diffMeta.label}
           </span>
         </div>
@@ -121,12 +121,12 @@ const MissionCard = ({ mission, progress, onAction, onDetails }) => {
       <div className="mt-3 flex flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">{mission.title}</h3>
-            <p className="text-sm text-slate-600 line-clamp-2">{mission.description}</p>
+            <h3 className="text-lg font-semibold text-[var(--fg)]">{mission.title}</h3>
+            <p className="text-sm text-[var(--muted)] line-clamp-2">{mission.description}</p>
           </div>
           <button
             type="button"
-            className="text-sm text-indigo-500 underline-offset-4 hover:underline"
+            className="text-sm text-indigo-400 underline-offset-4 hover:underline"
             onClick={onDetails}
           >
             Подробнее
@@ -134,27 +134,27 @@ const MissionCard = ({ mission, progress, onAction, onDetails }) => {
         </div>
         <div className="flex items-center gap-3">
           <ProgressBar percent={status === "completed" ? 100 : ratio} />
-          <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">
+          <span className="text-xs font-semibold text-[var(--muted)] whitespace-nowrap">
             {mission.targetType === "streak"
               ? `${progress?.streakCount || 0}/${mission.targetValue}`
               : `${progress?.currentValue || 0}/${mission.targetValue}`}
           </span>
         </div>
-        <div className="flex items-center justify-between gap-3 text-sm text-slate-700">
+        <div className="flex items-center justify-between gap-3 text-sm text-[var(--fg)]">
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">+{mission.xpRewardBase} XP</span>
+            <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">+{mission.xpRewardBase} XP</span>
             {mission.badgeLevels?.length ? (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+              <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-[var(--muted)]">
                 Бейдж: {badgePalette[progress?.badgeTier || 0]?.label || "База"}
               </span>
             ) : null}
           </div>
           {status === "completed" ? (
-            <div className="flex items-center gap-2 text-emerald-600 font-semibold">
+            <div className="flex items-center gap-2 text-emerald-300 font-semibold">
               ✓ Завершено
               <button
                 type="button"
-                className="text-xs text-indigo-500 underline-offset-4 hover:underline"
+                className="text-xs text-indigo-300 underline-offset-4 hover:underline"
                 onClick={onAction}
               >
                 Повторить
