@@ -5,14 +5,13 @@ import { getLevelFromPoints, getStatusByPoints, progressToNextStatus } from "../
 import RankingRow from "./components/RankingRow";
 import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewardsData";
 import MeaningWall from "./components/MeaningWall";
-import ProgressRing from "./components/ProgressRing";
 import InviteFriendsModal from "./components/InviteFriendsModal";
 import MascotRenderer from "../mascots/MascotRenderer";
 
 const leaderboardTabs = [
   { id: "active", label: "Активные", description: "Активность за 7 дней", metric: "activityScore", metricLabel: "активности" },
-  { id: "students", label: "Студенты", description: "Материалы и тесты", metric: "learningScore", metricLabel: "учёбы" },
-  { id: "contributors", label: "Вкладчики", description: "Помощь сообществу", metric: "contributionScore", metricLabel: "вклада" },
+  { id: "top", label: "Топы", description: "Самые результативные", metric: "points", metricLabel: "XP" },
+  { id: "mentors", label: "Менторы", description: "Опытные наставники", metric: "contributionScore", metricLabel: "поддержки" },
 ];
 
 const rewardTabs = [
@@ -43,10 +42,9 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
         : null,
     [user, totalPoints, levelInfo.level]
   );
-  const [leaderboardTab, setLeaderboardTab] = useState("active");
+  const [leaderboardTab, setLeaderboardTab] = useState("top");
   const [rewardTab, setRewardTab] = useState("avatars");
   const [showIntro, setShowIntro] = useState(false);
-  const [rewardClaimed, setRewardClaimed] = useState(false);
   const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
   const [refLink, setRefLink] = useState("");
@@ -56,11 +54,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     if (!seen) {
       setShowIntro(true);
     }
-  }, []);
-
-  useEffect(() => {
-    const claimed = localStorage.getItem("community_weekly_reward_claimed");
-    setRewardClaimed(claimed === "true");
   }, []);
 
   const community =
@@ -74,10 +67,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     [community.participants]
   );
 
-  const weeklyGoal = useMemo(() => gamification?.goals?.find((g) => g.id === "weekly-materials"), [gamification?.goals]);
-  const weeklyTarget = weeklyGoal?.target ?? 6;
-  const weeklyProgress = weeklyGoal?.progress ?? gamification?.completedMaterialsCount ?? 0;
-  const goalAchieved = weeklyProgress >= weeklyTarget && weeklyTarget > 0;
   const rankPosition = communityUser ? participantsSorted.findIndex((p) => p.id === communityUser.id) + 1 : null;
   const statusProgress = progressToNextStatus(totalPoints);
 
@@ -100,14 +89,18 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   }, [referralLink]);
 
   const leaderboardData = useMemo(() => {
-    const sortAndMap = (metric, label, fallback) => {
-      const arr = [...participantsSorted].sort((a, b) => (b[metric] || b[fallback] || 0) - (a[metric] || a[fallback] || 0));
+    const sortAndMap = (metric, label, fallback, source = participantsSorted) => {
+      const arr = [...source].sort((a, b) => (b[metric] || b[fallback] || 0) - (a[metric] || a[fallback] || 0));
       return arr.map((p) => ({ ...p, metricValue: p[metric] ?? p[fallback] ?? 0, metricLabel: label }));
     };
+
     const active = sortAndMap("activityScore", "активности", "points");
-    const students = sortAndMap("learningScore", "учёбы", "weeklyMaterials");
-    const contributors = sortAndMap("contributionScore", "вклада", "helpfulAnswers");
-    return { active, students, contributors };
+    const top = sortAndMap("points", "XP", "xp");
+    const mentorsPool = participantsSorted.filter((p) => (p.role || "").toLowerCase().includes("мент"));
+    const mentorsFallback = mentorsPool.length ? mentorsPool : participantsSorted.filter((p) => (p.level || 0) >= 7);
+    const mentors = sortAndMap("contributionScore", "поддержки", "helpfulAnswers", mentorsFallback);
+
+    return { active, top, mentors };
   }, [participantsSorted]);
 
   const handleScrollToLeague = () => {
@@ -120,13 +113,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
   };
 
   const renderRewards = rewardTabs.find((tab) => tab.id === rewardTab)?.data || [];
-
-  const handleClaimReward = () => {
-    if (!goalAchieved || rewardClaimed) return;
-    setRewardClaimed(true);
-    localStorage.setItem("community_weekly_reward_claimed", "true");
-    onToast?.("Награда получена!");
-  };
 
   const openMessageModal = (userTarget) => {
     setMessageModal({ open: true, target: userTarget, text: "" });
@@ -213,16 +199,11 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
           </div>
         </div>
       )}
-      <div className="page-header community-hero">
+      <div className="page-header pb-3">
         <div>
-          <p className="hero-kicker">Сообщество NOESIS</p>
+          <p className="hero-kicker">Сообщество</p>
           <h1>Сообщество NOESIS</h1>
-          <p className="meta large">Отвечай на вопросы, помогай другим, поднимайся в рейтинге.</p>
-          <div className="chip-row">
-            <span className="pill outline">XP: {gamification.totalPoints}</span>
-            <span className="pill outline">Уровень {levelInfo.level}</span>
-            <span className="pill subtle">Статус: {getStatusByPoints(gamification.totalPoints)}</span>
-          </div>
+          <p className="meta">Помогай другим, собирай XP и смотри свой прогресс.</p>
         </div>
       </div>
 
@@ -231,7 +212,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
           <div className="space-y-1 text-left">
             <p className="text-sm text-[var(--muted)]">Профиль в сообществе</p>
             <p className="text-lg font-semibold text-[var(--fg)]">{communityUser?.name || user?.name || "Ты"}</p>
-            <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(gamification.totalPoints)} · Уровень {levelInfo.level}</p>
+            <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(totalPoints)} · Уровень {levelInfo.level}</p>
             <Link to="/settings" className="text-xs font-semibold text-[var(--accent)] underline">
               Сменить персонажа
             </Link>
@@ -248,40 +229,22 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
               <p className="meta">XP, роль и прогресс до следующего уровня.</p>
             </div>
           </div>
-          <div className="weekly-progress-row">
-            <ProgressRing value={weeklyProgress} target={weeklyTarget} />
-            <div className="weekly-copy">
-              <p className="label">Материалов на этой неделе</p>
-              <h3 className="value">
-                {weeklyProgress}/{weeklyTarget}
-              </h3>
-              <p className="caption">Цель недели: {weeklyTarget} материалов</p>
-              <div className={`reward-pill ${goalAchieved ? "success" : ""}`}>
-                {goalAchieved ? "Награда: +50 XP 💎 и бейдж 🏅" : `До награды осталось: ${Math.max(weeklyTarget - weeklyProgress, 0)} материалов`}
-              </div>
-              <button className="primary" disabled={!goalAchieved || rewardClaimed} onClick={handleClaimReward}>
-                {rewardClaimed ? "Получено ✅" : "Забрать награду"}
-              </button>
-            </div>
-          </div>
           <div className="status-grid">
             <div className="stat-pill">
               <p className="label">Текущий уровень</p>
               <p className="value">{levelInfo.level}</p>
-              <p className="caption">{getStatusByPoints(gamification.totalPoints)}</p>
+              <p className="caption">{getStatusByPoints(totalPoints)}</p>
             </div>
             <div className="stat-pill">
               <p className="label">Всего XP</p>
-              <p className="value">{gamification.totalPoints}</p>
+              <p className="value">{totalPoints}</p>
               <p className="caption">Позиция: {rankPosition || "—"}</p>
             </div>
             <div className="stat-pill">
               <p className="label">Серия</p>
-              <p className="value">{gamification.currentStreak || 0} дн</p>
+              <p className="value">{gamification?.currentStreak || 0} дн</p>
               <p className="caption">держи ритм</p>
             </div>
-          </div>
-          <div className="status-grid">
             <div className="stat-pill">
               <p className="label">До следующей роли</p>
               <div className="progress-shell subtle">
@@ -311,11 +274,12 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
             {leaderboardTabs.map((tab) => (
               <button
                 key={tab.id}
-                className={`pill ${leaderboardTab === tab.id ? "active" : "outline"}`}
+                className={`pill ${leaderboardTab === tab.id ? "active" : "outline"} ${leaderboardTab === tab.id ? "font-semibold" : ""}`}
                 onClick={() => setLeaderboardTab(tab.id)}
                 title={tab.description}
+                aria-pressed={leaderboardTab === tab.id}
               >
-                {tab.label} <span className="info-icon" title={tab.description}>i</span>
+                {tab.label}
               </button>
             ))}
             <button className="ghost" onClick={() => setInviteOpen(true)}>
@@ -324,7 +288,7 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
           </div>
         </div>
         <div className="card ranking-card">
-          {(leaderboardData[leaderboardTab] || leaderboardData.active)
+          {(leaderboardData[leaderboardTab] || leaderboardData.top || leaderboardData.active || [])
             .slice(0, 10)
             .map((p, idx) => (
               <RankingRow

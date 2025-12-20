@@ -5654,10 +5654,10 @@ body {
 }
 
 .track-grid-row {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
-  align-items: center;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .track-arrow {
@@ -5680,6 +5680,25 @@ body {
 .track-step-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 26px rgba(0, 0, 0, 0.16);
+}
+
+.step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 8px 10px;
+  opacity: 0.75;
+}
+
+.step-arrow-icon {
+  font-size: 18px;
+  line-height: 1;
 }
 
 .track-step-card.active { border-color: var(--accent); box-shadow: 0 12px 24px rgba(124, 58, 237, 0.24); }
@@ -5762,6 +5781,17 @@ body {
   .inline-mission-head { grid-template-columns: 1fr; }
   .inline-actions { justify-items: start; }
   .section-head { align-items: flex-start; }
+}
+
+@media (max-width: 768px) {
+  .track-grid-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .step-arrow {
+    display: none;
+  }
 }
 /* Development track */
 .congrats-card {

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
-import InlineCta from "./InlineCta";
+import CardActionLink from "./CardActionLink";
 
 const themeAccents = {
   бизнес: "#f59e0b",
@@ -42,7 +42,7 @@ const CourseCard = ({ course, statusLabel }) => {
           <span className="pill subtle">{course.age || "13+"}</span>
           <span className="pill subtle">{course.difficulty || "средний"}</span>
         </div>
-        <InlineCta />
+        <CardActionLink />
       </div>
     </Link>
   );

@@ -15,15 +15,15 @@ const topicOptions = [
 const formatOptions = ["текст", "тест", "игра", "курс"];
 
 const ChipGroup = ({ label, options, selected, onToggle }) => (
-  <div>
-    <p className="mb-1.5 text-sm text-gray-300">{label}</p>
-    <div className="flex flex-wrap gap-2.5">
+  <div className="space-y-1">
+    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-gray-300">{label}</p>
+    <div className="flex flex-wrap gap-2">
       {options.map((option) => {
         const isActive = selected.includes(option);
         return (
           <button
             key={option}
-            className={`chip px-3 py-1.5 text-sm ${isActive ? "active" : ""}`}
+            className={`chip px-2.5 py-1.5 text-xs ${isActive ? "active" : ""}`}
             onClick={() => onToggle(option)}
           >
             {option}
@@ -46,19 +46,19 @@ const LibraryFiltersModal = ({ open, filters, onClose, onApply, onReset }) => {
 
   return (
     <div
-      className={`overflow-hidden transition-all duration-300 ${open ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"}`}
+      className={`overflow-hidden transition-all duration-300 ${open ? "max-h-[360px] opacity-100" : "max-h-0 opacity-0"}`}
     >
-      <div className="mt-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg md:max-w-5xl md:mx-auto">
+      <div className="mt-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3 shadow-lg md:max-w-5xl md:mx-auto">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm text-[var(--muted)]">Расширенный поиск</p>
+            <p className="text-xs uppercase tracking-[0.08em] text-[var(--muted)]">Расширенный поиск</p>
             <h3 className="text-lg font-semibold text-[var(--fg)]">Подбери материалы под себя</h3>
           </div>
           <button className="ghost" aria-label="Закрыть" onClick={onClose}>
             ✕
           </button>
         </div>
-        <div className="grid gap-3 mt-3 md:grid-cols-2 md:gap-4">
+        <div className="grid gap-2.5 mt-3 md:grid-cols-2 md:gap-3">
           <ChipGroup
             label="Длительность"
             options={durationOptions}
@@ -84,15 +84,15 @@ const LibraryFiltersModal = ({ open, filters, onClose, onApply, onReset }) => {
             onToggle={(v) => toggle("formats", v)}
           />
         </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 md:mt-3">
-          <button className="ghost text-sm" onClick={onReset}>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <button className="ghost text-xs" onClick={onReset}>
             Сбросить
           </button>
           <div className="flex flex-wrap gap-2">
-            <button className="secondary px-4 py-2 text-sm" onClick={onClose}>
+            <button className="secondary px-3 py-2 text-xs" onClick={onClose}>
               Свернуть
             </button>
-            <button className="primary px-4 py-2 text-sm" onClick={handleApply}>
+            <button className="primary px-3 py-2 text-xs" onClick={handleApply}>
               Применить
             </button>
           </div>

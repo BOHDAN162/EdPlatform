@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
-import InlineCta from "./InlineCta";
+import CardActionLink from "./CardActionLink";
 
 const difficultyColors = {
   легкий: "#22c55e",
@@ -54,7 +54,7 @@ const TestCard = ({ test, stats }) => {
             <p>Ещё не проходил</p>
           )}
         </div>
-        <InlineCta />
+        <CardActionLink />
       </div>
     </Link>
   );
