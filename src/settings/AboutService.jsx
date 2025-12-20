@@ -45,12 +45,13 @@ const SupportModal = ({ onClose, addToast }) => {
       title="Написать в поддержку"
       onClose={onClose}
       actions={[
-        <button key="cancel" className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20" onClick={onClose}>
+        <button key="cancel" className="rounded-xl px-4 py-2 text-sm badge-soft hover:shadow-sm" onClick={onClose}>
           Отмена
         </button>,
         <button
           key="send"
-          className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
+          className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+          style={{ background: "var(--accent)" }}
           onClick={submit}
         >
           Отправить
@@ -58,12 +59,12 @@ const SupportModal = ({ onClose, addToast }) => {
       ]}
     >
       <div className="space-y-3">
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Тема
           <select
             value={form.topic}
             onChange={(e) => setForm((prev) => ({ ...prev, topic: e.target.value }))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
           >
             <option value="profile">Профиль и аватар</option>
             <option value="notifications">Уведомления</option>
@@ -71,26 +72,26 @@ const SupportModal = ({ onClose, addToast }) => {
             <option value="other">Другое</option>
           </select>
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Сообщение
           <textarea
             value={form.message}
             onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
             rows={4}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
             placeholder="Опиши вопрос или проблему"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Контакт
           <input
             value={form.contact}
             onChange={(e) => setForm((prev) => ({ ...prev, contact: e.target.value }))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
             placeholder="Email или Telegram"
           />
         </label>
-        {error && <p className="text-sm text-rose-400">{error}</p>}
+        {error && <p className="text-sm" style={{ color: "var(--danger)" }}>{error}</p>}
       </div>
     </Modal>
   );
@@ -102,42 +103,42 @@ const AboutService = ({ addToast }) => {
   const version = useMemo(() => import.meta?.env?.VITE_APP_VERSION || "v0.1.0", []);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+    <div className="rounded-2xl border p-6 surface-card">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 text-lg font-semibold text-white">N</div>
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--accent)] text-lg font-semibold text-white">N</div>
           <div>
-            <p className="text-lg font-semibold text-white">NOESIS</p>
-            <p className="text-sm text-white/60">Ежедневный центр роста: учёба, привычки, мышление и сообщество.</p>
+            <p className="text-lg font-semibold">NOESIS</p>
+            <p className="text-sm muted-text">Ежедневный центр роста: учёба, привычки, мышление и сообщество.</p>
           </div>
         </div>
-        <div className="rounded-full bg-white/10 px-4 py-2 text-sm text-white/80">Версия {version}</div>
+        <div className="rounded-full px-4 py-2 text-sm badge-soft">Версия {version}</div>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-white">Политика и соглашение</p>
-          <p className="text-xs text-white/60">Документы скоро будут доступны.</p>
+        <div className="rounded-xl border p-4 surface-card">
+          <p className="text-sm font-semibold">Политика и соглашение</p>
+          <p className="text-xs muted-text">Документы скоро будут доступны.</p>
           <div className="mt-3 flex flex-wrap gap-3 text-sm">
             <button
               type="button"
-              className="rounded-xl bg-white/10 px-3 py-2 text-white hover:bg-white/20"
+              className="rounded-xl px-3 py-2 badge-soft hover:shadow-sm"
               onClick={() => setShowInstruction(true)}
             >
               Политика конфиденциальности
             </button>
             <button
               type="button"
-              className="rounded-xl bg-white/10 px-3 py-2 text-white hover:bg-white/20"
+              className="rounded-xl px-3 py-2 badge-soft hover:shadow-sm"
               onClick={() => setShowInstruction(true)}
             >
               Пользовательское соглашение
             </button>
           </div>
         </div>
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-white">Что нового</p>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-white/80">
+        <div className="rounded-xl border p-4 surface-card">
+          <p className="text-sm font-semibold">Что нового</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm muted-text">
             <li>Улучшена библиотека и быстрый поиск.</li>
             <li>Добавлены новые задания и челленджи команды.</li>
             <li>Обновлён дизайн сообщества и прогресс-баров.</li>
@@ -148,21 +149,22 @@ const AboutService = ({ addToast }) => {
 
       <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-white">Нужна помощь?</p>
-          <p className="text-xs text-white/60">Смотри шаги настройки или напиши нам напрямую.</p>
+          <p className="text-sm font-semibold">Нужна помощь?</p>
+          <p className="text-xs muted-text">Смотри шаги настройки или напиши нам напрямую.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => setShowInstruction(true)}
-            className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/20"
+            className="rounded-xl px-4 py-2 text-sm badge-soft hover:shadow-sm"
           >
             Как настроить профиль?
           </button>
           <button
             type="button"
             onClick={() => setShowSupport(true)}
-            className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
+            className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: "var(--accent)" }}
           >
             Написать в поддержку
           </button>

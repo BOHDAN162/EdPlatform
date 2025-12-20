@@ -56,17 +56,17 @@ const ChecklistCard = ({ checklist }) => {
       </div>
       <div className="text-xs text-[var(--muted)]">{progressText}</div>
       {open && (
-        <div className="rounded-xl border border-[#1f1f1f] bg-[#0e0e0e] p-3 max-h-56 overflow-y-auto grid gap-2">
+        <div className="rounded-xl border p-3 max-h-56 overflow-y-auto grid gap-2 surface-popover">
           {checklist.steps.map((step) => {
             const active = completedSteps.includes(step.id);
             return (
               <label
                 key={step.id}
-                className="flex items-start gap-3 rounded-lg px-2 py-2 hover:bg-white/5 cursor-pointer text-sm text-gray-200"
+                className="flex items-start gap-3 rounded-lg px-2 py-2 hover:bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] cursor-pointer text-sm"
               >
                 <input
                   type="checkbox"
-                  className="mt-1 accent-[#8A3FFC]"
+                  className="mt-1 accent-[var(--accent)]"
                   checked={active}
                   onChange={(e) => {
                     e.preventDefault();
@@ -76,7 +76,7 @@ const ChecklistCard = ({ checklist }) => {
                 />
                 <div>
                   <p className="font-semibold">{step.title}</p>
-                  <p className="text-xs text-gray-400">{step.hint}</p>
+                  <p className="text-xs muted-text">{step.hint}</p>
                 </div>
               </label>
             );
