@@ -3,6 +3,16 @@ import { useNavigate } from "../routerShim";
 import { getMaterialById } from "../libraryData";
 import PersonaScene from "./PersonaScene";
 
+const themeMeta = {
+  mindset: { icon: "🧠", label: "Mindset", color: "#22c55e" },
+  productivity: { icon: "⚡", label: "Productivity", color: "#0ea5e9" },
+  communication: { icon: "💬", label: "Communication", color: "#2563eb" },
+  entrepreneurship: { icon: "🚀", label: "Entrepreneurship", color: "#8b5cf6" },
+  growth: { icon: "📈", label: "Growth", color: "#f97316" },
+};
+
+const rewardMeta = { xp: "⭐", badge: "🏅", reward: "🎯" };
+
 const statusLabel = (step, completedSet, activeId) => {
   if (completedSet.has(step.id)) return "Готово";
   if (activeId === step.id) return "В процессе";
@@ -11,6 +21,8 @@ const statusLabel = (step, completedSet, activeId) => {
 
 const TrackStepCard = ({ step, index, completedSet, activeId, onClick }) => {
   const status = statusLabel(step, completedSet, activeId);
+  const theme = themeMeta[step.theme] || themeMeta[step.tag] || themeMeta.growth;
+  const rewardIcon = rewardMeta[step.rewardType] || rewardMeta.xp;
   return (
     <div
       className={`track-step-card ${status === "Готово" ? "done" : status === "В процессе" ? "active" : "idle"}`}
@@ -22,13 +34,31 @@ const TrackStepCard = ({ step, index, completedSet, activeId, onClick }) => {
           {status}
         </span>
       </div>
-      <h4>{step.shortTitle || step.title}</h4>
-      <p className="meta subtle">{step.theme || "Рост"}</p>
+      <div className="track-step-body">
+        <div className="track-step-icon" style={{ color: theme.color }}>
+          <span aria-hidden>{theme.icon}</span>
+          <div>
+            <p className="mini-label">{theme.label}</p>
+            <h4 title={step.shortTitle || step.title}>{step.shortTitle || step.title}</h4>
+          </div>
+        </div>
+        <p className="meta subtle" title={step.description}>
+          {step.themeLabel || step.theme || "Рост"}
+        </p>
+      </div>
       <div className="mini-progress">
         <div
           className="mini-progress-fill"
-          style={{ width: completedSet.has(step.id) ? "100%" : status === "В процессе" ? "45%" : "8%" }}
+          style={{ width: completedSet.has(step.id) ? "100%" : status === "В процессе" ? "45%" : "10%" }}
         />
+      </div>
+      <div className="track-step-footer">
+        <span className="reward-chip" aria-label="Награда">
+          {rewardIcon} {step.xpReward ? `+${step.xpReward} XP` : "Микронаграда"}
+        </span>
+        <span className="track-step-direction" style={{ color: theme.color }}>
+          →
+        </span>
       </div>
     </div>
   );
@@ -61,9 +91,11 @@ const TrackStepDetail = ({ step, onClose, onNavigate, material }) => (
   </div>
 );
 
-const StepArrow = () => (
-  <div className="step-arrow" aria-hidden>
-    <span className="step-arrow-icon">→</span>
+const StepConnector = () => (
+  <div className="step-connector" aria-hidden>
+    <span className="connector-line" />
+    <span className="connector-node" />
+    <span className="connector-line" />
   </div>
 );
 
@@ -147,7 +179,7 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
                   activeId={activeStepId}
                   onClick={() => openStep(step)}
                 />,
-                idx < topRow.length - 1 ? <StepArrow key={`arrow-top-${step.id}`} /> : null,
+                idx < topRow.length - 1 ? <StepConnector key={`conn-top-${step.id}`} /> : null,
               ].filter(Boolean)
             ))}
           </div>
@@ -162,7 +194,7 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
                   activeId={activeStepId}
                   onClick={() => openStep(step)}
                 />,
-                idx < bottomRow.length - 1 ? <StepArrow key={`arrow-bottom-${step.id}`} /> : null,
+                idx < bottomRow.length - 1 ? <StepConnector key={`conn-bottom-${step.id}`} /> : null,
               ].filter(Boolean)
             ))}
           </div>

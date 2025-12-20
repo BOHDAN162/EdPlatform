@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "./routerShim";
 import TrackRoadmap from "./components/TrackRoadmap";
 import {
@@ -57,9 +57,25 @@ const Badge = ({ label, color, outline = false }) => (
   </span>
 );
 
+const durationMeta = (mission) => {
+  if (mission.period === "ежедневная" || mission.period === "ежечасная" || mission.period === "3-дневная") {
+    return { id: "short", label: "Короткое", icon: "⚡", color: "#22c55e" };
+  }
+  if (mission.period === "недельная") {
+    return { id: "medium", label: "Среднее", icon: "⏱", color: "#2563eb" };
+  }
+  return { id: "long", label: "Длинное", icon: "🚀", color: "#8b5cf6" };
+};
+
+const CategoryDot = ({ mission }) => {
+  const category = missionCategories[mission.category] || missionCategories["геймификация"];
+  return <span className="category-dot" style={{ background: `${category.color}33`, borderColor: `${category.color}66` }} />;
+};
+
 const MissionCard = ({ mission, progress, onSelect, onPrimary }) => {
   const category = missionCategories[mission.category] || missionCategories["геймификация"];
   const badge = badgePalette[progress?.badgeTier || 0] || badgePalette[0];
+  const duration = durationMeta(mission);
   const ratio = mission.targetValue ? Math.min(100, Math.round(((progress?.currentValue || 0) / mission.targetValue) * 100)) : 0;
   const statusLabel =
     progress?.status === "completed" ? "Завершено" : progress?.status === "inProgress" ? "В процессе" : "Новое";
@@ -77,10 +93,19 @@ const MissionCard = ({ mission, progress, onSelect, onPrimary }) => {
         <div className="mission-card-badges">
           <Badge label={periodLabels[mission.period] || mission.period} color={category.color} outline />
           <Badge label={mission.difficulty} color="#475569" outline />
+          <span className="duration-chip" style={{ color: duration.color }}>
+            <span className="duration-icon" aria-hidden>
+              {duration.icon}
+            </span>
+            {duration.label}
+          </span>
         </div>
       </div>
       <div className="mission-card-title-row">
-        <h3>{mission.title}</h3>
+        <div className="title-with-dot">
+          <CategoryDot mission={mission} />
+          <h3 title={mission.title}>{mission.title}</h3>
+        </div>
         <span className="status-pill">{statusLabel}</span>
       </div>
       <p className="mission-card-desc">{mission.description}</p>
@@ -220,6 +245,7 @@ const statusAccent = (progress) =>
 
 const InlineMissionCard = ({ mission, progress, onPrimary, onNavigate }) => {
   const category = missionCategories[mission.category] || missionCategories["геймификация"];
+  const duration = durationMeta(mission);
   const ratio = mission.targetValue
     ? Math.min(100, Math.round(((progress?.currentValue || 0) / mission.targetValue) * 100))
     : progress?.status === "completed"
@@ -239,8 +265,17 @@ const InlineMissionCard = ({ mission, progress, onPrimary, onNavigate }) => {
             <Badge label={category.label} color={category.color} />
             <Badge label={mission.difficulty} color="#475569" outline />
             <Badge label={periodLabels[mission.period] || mission.period} color={category.color} outline />
+            <span className="duration-chip" style={{ color: duration.color }}>
+              <span className="duration-icon" aria-hidden>
+                {duration.icon}
+              </span>
+              {duration.label}
+            </span>
           </div>
-          <h3>{mission.title}</h3>
+          <div className="title-with-dot">
+            <CategoryDot mission={mission} />
+            <h3 title={mission.title}>{mission.title}</h3>
+          </div>
           <p className="meta">{mission.description}</p>
           <div className="inline-progress">
             <ProgressBar value={progress?.status === "completed" ? 100 : ratio} />
@@ -315,6 +350,20 @@ const MissionsPage = ({
   const [category, setCategory] = useState("all");
   const [rewardTab, setRewardTab] = useState("avatars");
   const [selectedId, setSelectedId] = useState(missions[0]?.id);
+  const [activeView, setActiveView] = useState("today");
+  const [showFilters, setShowFilters] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [showXpHint, setShowXpHint] = useState(false);
+  const todayRef = useRef(null);
+  const weekRef = useRef(null);
+  const catalogRef = useRef(null);
+
+  useEffect(() => {
+    const seenTutorial = typeof window !== "undefined" ? localStorage.getItem("missionsTutorialSeen") : "1";
+    if (!seenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   const selectedMission = missions.find((m) => m.id === selectedId) || missions[0];
   const selectedProgress = selectedMission ? getMissionProgress?.(selectedMission.id) || { status: "new", currentValue: 0 } : null;
@@ -370,6 +419,21 @@ const MissionsPage = ({
     updateProgressByKey?.("missions_completed_week", 1);
   };
 
+  const dismissTutorial = () => {
+    localStorage.setItem("missionsTutorialSeen", "1");
+    setShowTutorial(false);
+  };
+
+  const handleSwitchView = (view) => {
+    setActiveView(view);
+    const target = view === "today" ? todayRef : view === "week" ? weekRef : catalogRef;
+    target?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setShowFilters(view === "catalog" || showFilters);
+  };
+
+  const toggleXpHint = () => setShowXpHint((prev) => !prev);
+  const hideXpHint = () => setShowXpHint(false);
+
   const monthRef = useMemo(() => new Date(), []);
   const monthActivity = useMemo(
     () => (getActivityForMonth ? getActivityForMonth(monthRef.getFullYear(), monthRef.getMonth() + 1) : activityByDate),
@@ -421,10 +485,102 @@ const MissionsPage = ({
         <div>
           <p className="meta subtle">Задания</p>
           <h1>Задания</h1>
-          <p className="meta">
-            Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
-          </p>
+          <div className="hero-description-row">
+            <p className="meta">
+              Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
+            </p>
+            <div className="hint-wrapper" onMouseLeave={hideXpHint}>
+              <button className="icon-button" onClick={toggleXpHint} aria-label="Подсказка про XP и streak">
+                ?
+              </button>
+              {showXpHint && (
+                <div className="hint-popover">
+                  <p className="hint-title">XP и streak</p>
+                  <p className="meta subtle">
+                    XP даёт уровни и награды. Streak — серия дней подряд: не пропускай, чтобы множитель XP рос.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
+      </div>
+
+      {showTutorial && (
+        <div className="missions-onboarding">
+          <div className="onboarding-popover">
+            <p className="pill subtle">Новый раздел</p>
+            <h3>Трек развития</h3>
+            <p className="meta">
+              Смотри шаги трека, копи XP за задания и отслеживай награды справа в карточках.
+            </p>
+            <button className="primary" onClick={dismissTutorial}>
+              Понятно
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="missions-toolbar">
+        <div className="toolbar-main">
+          <div className="filter-tabs">
+            {[
+              { id: "today", label: "Сегодня" },
+              { id: "week", label: "На неделю" },
+              { id: "catalog", label: "Каталог" },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                className={`chip ${activeView === tab.id ? "active" : ""}`}
+                onClick={() => handleSwitchView(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <button className="pill outline" onClick={() => setShowFilters((prev) => !prev)}>
+            Фильтры
+          </button>
+        </div>
+        {showFilters && (
+          <div className="toolbar-filters">
+            <div className="chip-row">
+              {durationFilters.map((item) => (
+                <button
+                  key={item.id}
+                  className={`chip ${duration === item.id ? "active" : ""}`}
+                  onClick={() => setDuration(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div className="chip-row spaced">
+              <div className="chip-group">
+                {difficultyFilters.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`chip ${difficulty === item.id ? "active" : ""}`}
+                    onClick={() => setDifficulty(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <div className="chip-group">
+                {typeFilters.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`chip ${category === item.id ? "active" : ""}`}
+                    onClick={() => setCategory(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <TrackRoadmap track={trackData} onStart={handleStartTrack} onEdit={handleEditTrack} />
@@ -464,7 +620,7 @@ const MissionsPage = ({
         </div>
       </section>
 
-      <section className="mission-section">
+      <section className="mission-section" ref={todayRef}>
         <div className="section-head">
           <div>
             <h2>Сегодня</h2>
@@ -488,7 +644,7 @@ const MissionsPage = ({
         </div>
       </section>
 
-      <section className="mission-section">
+      <section className="mission-section" ref={weekRef}>
         <div className="section-head">
           <div>
             <h2>На этой неделе</h2>
@@ -585,51 +741,13 @@ const MissionsPage = ({
 
       <AchievementLegend />
 
-      <section className="mission-catalog">
+      <section className="mission-catalog" ref={catalogRef}>
         <div className="section-head">
           <div>
             <h2>Каталог заданий</h2>
             <p className="meta">Отфильтруй нужные задания или изучи детали выбранной задачи.</p>
           </div>
         </div>
-        <div className="mission-filter-card">
-          <div className="chip-row">
-            {durationFilters.map((item) => (
-              <button
-                key={item.id}
-                className={`chip ${duration === item.id ? "active" : ""}`}
-                onClick={() => setDuration(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <div className="chip-row spaced">
-            <div className="chip-group">
-              {difficultyFilters.map((item) => (
-                <button
-                  key={item.id}
-                  className={`chip ${difficulty === item.id ? "active" : ""}`}
-                  onClick={() => setDifficulty(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <div className="chip-group">
-              {typeFilters.map((item) => (
-                <button
-                  key={item.id}
-                  className={`chip ${category === item.id ? "active" : ""}`}
-                  onClick={() => setCategory(item.id)}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <div className="mission-layout">
           <div className="mission-grid">
             {filteredMissions.map((mission) => (
