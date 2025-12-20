@@ -82,11 +82,11 @@ const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion }) => 
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <div className="flex items-center gap-2 rounded-2xl border border-[#262626] bg-[#0b0b0b] px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-[#8A3FFC]">
+      <div className="flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm input-surface">
         <span aria-hidden className="text-lg opacity-80">🔍</span>
         <input
           type="search"
-          className="w-full bg-transparent outline-none placeholder:text-gray-400/80 text-sm md:text-base"
+          className="theme-input w-full bg-transparent outline-none text-sm md:text-base"
           placeholder="Поиск по материалам и авторам"
           value={query}
           onFocus={() => setIsFocused(true)}
@@ -94,7 +94,7 @@ const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion }) => 
         />
         {query && (
           <button
-            className="text-gray-400 hover:text-white transition"
+            className="transition text-[color:var(--text-muted)] hover:text-[color:var(--text)]"
             onClick={() => {
               onChange("");
               setIsFocused(false);
@@ -106,22 +106,23 @@ const LibrarySearchBar = ({ query, onChange, materials, onApplySuggestion }) => 
         )}
       </div>
       {isFocused && suggestions.length > 0 && (
-        <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] shadow-xl z-20 max-h-72 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-2 rounded-2xl border surface-popover shadow-xl z-20 max-h-72 overflow-y-auto">
           {suggestions.map((group) => (
-            <div key={group.label} className="py-2 px-3 border-b border-[#151515] last:border-0">
-              <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">{group.label}</p>
+            <div key={group.label} className="py-2 px-3 border-b border-[var(--border)] last:border-0">
+              <p className="text-xs uppercase tracking-wide muted-text mb-1">{group.label}</p>
               <div className="space-y-1">
                 {group.items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between gap-2 rounded-xl px-2 py-2 hover:bg-white/5 cursor-pointer"
+                    className="flex items-center justify-between gap-2 rounded-xl px-2 py-2 hover:bg-[color-mix(in_srgb,var(--surface-2)_80%,transparent)] cursor-pointer"
                     onClick={() => handleSelect(item)}
                   >
-                    <span className="text-sm text-gray-100">{item.title}</span>
+                    <span className="text-sm" style={{ color: "var(--text)" }}>{item.title}</span>
                     {item.to && item.to.startsWith("/") ? (
                       <Link
                         to={item.to}
-                        className="text-xs text-violet-300 hover:text-white"
+                        className="text-xs font-semibold"
+                        style={{ color: "var(--accent)" }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         Открыть
