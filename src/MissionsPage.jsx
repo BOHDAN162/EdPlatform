@@ -3,9 +3,12 @@ import { useNavigate } from "./routerShim";
 import TrackRoadmap from "./components/TrackRoadmap";
 import {
   badgePalette,
+  difficultyFilters,
+  durationFilters,
   missionCategories,
   missions as missionList,
   periodLabels,
+  typeFilters,
 } from "./data/missions";
 import { getLevelFromXP, getRoleFromLevel } from "./gamification";
 import GroupChallengeCard from "./components/activity/GroupChallengeCard";
@@ -147,7 +150,7 @@ const MissionCard = ({ mission, progress, onPrimary }) => {
   );
 };
 
-const MissionOverview = ({ gamification, streakCount, completedWeek }) => {
+const MissionOverview = ({ gamification, streakCount, completedWeek, showXpHint, toggleXpHint, hideXpHint }) => {
   const levelInfo = getLevelFromXP(gamification.totalPoints || 0);
   const roleLabel = getRoleFromLevel(levelInfo.level);
 
@@ -156,9 +159,24 @@ const MissionOverview = ({ gamification, streakCount, completedWeek }) => {
       <div>
         <p className="meta subtle">Задания</p>
         <h1>Задания и квесты</h1>
-        <p className="meta">
-          Задания и квесты, которые прокачивают твой уровень, привычки и статус в комьюнити.
-        </p>
+        <div className="meta-with-hint">
+          <p className="meta">
+            Задания и квесты, которые прокачивают твой уровень, привычки и статус в комьюнити.
+          </p>
+          <div className="hint-wrapper" onMouseLeave={hideXpHint}>
+            <button className="icon-button" onClick={toggleXpHint} aria-label="Подсказка про XP и streak">
+              ?
+            </button>
+            {showXpHint && (
+              <div className="hint-popover">
+                <p className="hint-title">XP и streak</p>
+                <p className="meta subtle">
+                  XP даёт уровни и награды. Streak — серия дней подряд: не пропускай, чтобы множитель XP рос.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <div className="overview-grid">
         <div className="overview-card">
@@ -297,6 +315,9 @@ const MissionsPage = ({
   const [rewardTab, setRewardTab] = useState("avatars");
   const [showTutorial, setShowTutorial] = useState(false);
   const [showXpHint, setShowXpHint] = useState(false);
+  const [durationFilter, setDurationFilter] = useState("all");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   useEffect(() => {
     const seenTutorial = typeof window !== "undefined" ? localStorage.getItem("missionsTutorialSeen") : "1";
@@ -313,6 +334,24 @@ const MissionsPage = ({
   const weekCompleted = weeklyMissions.filter(
     (mission) => (getMissionProgress?.(mission.id)?.status || "new") === "completed"
   ).length;
+
+  const matchesDuration = (mission) => {
+    if (durationFilter === "all") return true;
+    const matcher = durationFilters.find((f) => f.id === durationFilter)?.match;
+    return matcher ? matcher(mission) : true;
+  };
+
+  const matchesDifficulty = (mission) => difficultyFilter === "all" || mission.difficulty === difficultyFilter;
+  const filteredMissions = useMemo(
+    () =>
+      missions.filter(
+        (mission) =>
+          matchesDuration(mission) &&
+          (difficultyFilter === "all" || mission.difficulty === difficultyFilter) &&
+          (typeFilter === "all" || mission.category === typeFilter)
+      ),
+    [difficultyFilter, durationFilter, missions, typeFilter]
+  );
 
   const handleNavigate = (mission) => {
     if (mission.link) {
@@ -399,24 +438,6 @@ const MissionsPage = ({
         <div>
           <p className="meta subtle">Задания</p>
           <h1>Задания</h1>
-          <div className="hero-description-row">
-            <p className="meta">
-              Ежедневные, недельные и большие квесты, которые прокачивают твой уровень, XP и streak
-            </p>
-            <div className="hint-wrapper" onMouseLeave={hideXpHint}>
-              <button className="icon-button" onClick={toggleXpHint} aria-label="Подсказка про XP и streak">
-                ?
-              </button>
-              {showXpHint && (
-                <div className="hint-popover">
-                  <p className="hint-title">XP и streak</p>
-                  <p className="meta subtle">
-                    XP даёт уровни и награды. Streak — серия дней подряд: не пропускай, чтобы множитель XP рос.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -439,6 +460,9 @@ const MissionsPage = ({
         gamification={gamification}
         streakCount={streakInfo?.current || gamification.streakCount || 0}
         completedWeek={completedThisWeek}
+        showXpHint={showXpHint}
+        toggleXpHint={toggleXpHint}
+        hideXpHint={hideXpHint}
       />
 
       <section className="mission-section">
@@ -467,6 +491,75 @@ const MissionsPage = ({
             current={lastSixtyDaysActive}
             target={30}
           />
+        </div>
+      </section>
+
+      <TrackRoadmap track={trackData} onStart={handleStartTrack} onEdit={handleEditTrack} />
+
+      <section className="mission-section">
+        <div className="section-head">
+          <div>
+            <h2>Фильтры</h2>
+            <p className="meta">Подбери задания по длительности, сложности и типу.</p>
+          </div>
+        </div>
+        <div className="missions-toolbar">
+          <div className="toolbar-main">
+            <div className="filter-tabs">
+              {durationFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  className={`pill ${durationFilter === filter.id ? "active" : "outline"}`}
+                  onClick={() => setDurationFilter(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="toolbar-filters">
+            <div className="chip-group">
+              <span className="meta subtle">Сложность</span>
+              <div className="chip-row">
+                {difficultyFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={`chip ${difficultyFilter === filter.id ? "active" : ""}`}
+                    onClick={() => setDifficultyFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="chip-group">
+              <span className="meta subtle">Тип</span>
+              <div className="chip-row">
+                {typeFilters.map((filter) => (
+                  <button
+                    key={filter.id}
+                    className={`chip ${typeFilter === filter.id ? "active" : ""}`}
+                    onClick={() => setTypeFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mission-grid quest-grid">
+          {filteredMissions.map((mission) => (
+            <MissionCard
+              key={mission.id}
+              mission={mission}
+              progress={getMissionProgress?.(mission.id) || { status: "new", currentValue: 0 }}
+              onPrimary={() => {
+                handleStart(mission.id);
+                handleNavigate(mission);
+              }}
+            />
+          ))}
         </div>
       </section>
 
@@ -517,8 +610,6 @@ const MissionsPage = ({
           ))}
         </div>
       </section>
-
-      <TrackRoadmap track={trackData} onStart={handleStartTrack} onEdit={handleEditTrack} />
 
       <section className="mission-section">
         <div className="section-head">

@@ -5700,6 +5700,7 @@ body {
 .missions-page-v3 { display: flex; flex-direction: column; gap: 24px; overflow-x: hidden; }
 .missions-hero-v3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; align-items: start; }
 .hero-description-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.meta-with-hint { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .icon-button { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--fg); cursor: pointer; display: grid; place-items: center; font-weight: 800; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .icon-button:hover { transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,0.16); }
 .hint-wrapper { position: relative; }
@@ -5979,9 +5980,9 @@ body {
 .development-track-row {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .development-track-arrow {
