@@ -8,6 +8,8 @@ const moods = [
   { id: "fire", label: "🔥", hint: "Макс. фокус" },
 ];
 
+const cardBase = "flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg";
+
 const MoodReflection = ({ onChangeMood }) => {
   const [selected, setSelected] = useState(() => localStorage.getItem("noesis_mood") || "light");
 
@@ -21,7 +23,7 @@ const MoodReflection = ({ onChangeMood }) => {
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
+    <div className={cardBase}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.08em] text-white/60">Настроение</p>

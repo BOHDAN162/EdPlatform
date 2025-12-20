@@ -123,7 +123,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
 
   return (
     <section className="relative isolate flex min-h-[72vh] flex-col overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl shadow-black/10 lg:p-10">
-      <div className="absolute inset-0 opacity-60">
+      <div className="pointer-events-none absolute inset-0 opacity-60">
         <div className="absolute left-6 top-10 h-32 w-32 rounded-full bg-[#8A3FFC]/20 blur-3xl" />
         <div className="absolute right-4 top-0 h-24 w-24 rounded-full bg-[#22d3ee]/25 blur-3xl" />
         <div className="absolute bottom-6 left-1/3 h-24 w-36 rounded-full bg-black/5 blur-3xl" />
