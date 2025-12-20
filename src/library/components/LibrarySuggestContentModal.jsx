@@ -55,12 +55,12 @@ const LibrarySuggestContentModal = ({ open, onClose }) => {
   return (
     <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
-        className="modal-card max-w-2xl w-full bg-[#0e0e0e] text-white border border-[#1f1f1f]"
+        className="modal-card max-w-2xl w-full surface-elevated"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-400">Предложить контент</p>
+            <p className="text-sm muted-text">Предложить контент</p>
             <h3 className="text-xl font-semibold">Что добавить в библиотеку?</h3>
           </div>
           <button className="ghost" aria-label="Закрыть" onClick={onClose}>
@@ -70,7 +70,7 @@ const LibrarySuggestContentModal = ({ open, onClose }) => {
 
         <form className="grid gap-3 mt-4" onSubmit={handleSubmit}>
           <div className="grid gap-2">
-            <label className="text-sm text-gray-300">Тип</label>
+            <label className="text-sm muted-text">Тип</label>
             <div className="flex flex-wrap gap-2">
               {typeOptions.map((item) => (
                 <button
@@ -85,36 +85,36 @@ const LibrarySuggestContentModal = ({ open, onClose }) => {
             </div>
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-gray-300">Название *</label>
+            <label className="text-sm muted-text">Название *</label>
             <input
               required
               value={payload.title}
               onChange={(e) => update("title", e.target.value)}
-              className="rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              className="rounded-xl border px-3 py-2 input-surface theme-input"
               placeholder="Название книги, кейса или формата"
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-gray-300">Почему это важно?</label>
+            <label className="text-sm muted-text">Почему это важно?</label>
             <textarea
               value={payload.reason}
               onChange={(e) => update("reason", e.target.value)}
-              className="rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              className="rounded-xl border px-3 py-2 input-surface theme-input"
               rows={2}
               placeholder="1–2 предложения"
             />
           </div>
           <div className="grid gap-1">
-            <label className="text-sm text-gray-300">Ссылка (опционально)</label>
+            <label className="text-sm muted-text">Ссылка (опционально)</label>
             <input
               value={payload.link}
               onChange={(e) => update("link", e.target.value)}
-              className="rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              className="rounded-xl border px-3 py-2 input-surface theme-input"
               placeholder="https://"
             />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-gray-300">Уровень (опционально)</label>
+            <label className="text-sm muted-text">Уровень (опционально)</label>
             <div className="flex flex-wrap gap-2">
               {levelOptions.map((item) => (
                 <button
@@ -129,7 +129,7 @@ const LibrarySuggestContentModal = ({ open, onClose }) => {
             </div>
           </div>
           <div className="grid gap-2">
-            <label className="text-sm text-gray-300">Тематика</label>
+            <label className="text-sm muted-text">Тематика</label>
             <div className="flex flex-wrap gap-2">
               {topicOptions.map((topic) => {
                 const active = payload.topics.includes(topic);
@@ -147,7 +147,7 @@ const LibrarySuggestContentModal = ({ open, onClose }) => {
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 mt-2">
-            {submitted ? <p className="text-sm text-emerald-400">Отправлено, спасибо!</p> : <span />}
+            {submitted ? <p className="text-sm" style={{ color: "var(--success)" }}>Отправлено, спасибо!</p> : <span />}
             <div className="flex gap-2">
               <button type="button" className="ghost" onClick={onClose}>
                 Отмена

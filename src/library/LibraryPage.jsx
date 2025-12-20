@@ -36,7 +36,7 @@ const filterTypeChips = [
 const statusLabels = { new: "Новое", inProgress: "В процессе", completed: "Завершено" };
 
 const SectionShell = ({ id, title, action, children }) => (
-  <section id={id} className="card bg-[#0f0f0f] border border-[#1f1f1f]">
+  <section id={id} className="card surface-card">
     <div className="flex items-center justify-between gap-3 mb-3">
       <h2 className="text-xl font-semibold">{title}</h2>
       {action}
@@ -74,7 +74,7 @@ const ProgramModal = ({ open, program, onClose }) => {
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" onClick={onClose}>
       <div
-        className="modal-card max-w-xl w-full bg-[#111] text-white border border-[#1f1f1f]"
+        className="modal-card max-w-xl w-full surface-elevated"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
@@ -93,7 +93,7 @@ const ProgramModal = ({ open, program, onClose }) => {
             <input
               value={contact.name}
               onChange={(e) => setContact((prev) => ({ ...prev, name: e.target.value }))}
-              className="w-full rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              className="w-full rounded-xl border px-3 py-2 input-surface theme-input"
               placeholder="Как к тебе обращаться"
             />
           </div>
@@ -103,7 +103,7 @@ const ProgramModal = ({ open, program, onClose }) => {
               required
               value={contact.handle}
               onChange={(e) => setContact((prev) => ({ ...prev, handle: e.target.value }))}
-              className="w-full rounded-xl border border-[#1f1f1f] bg-[#0b0b0b] px-3 py-2"
+              className="w-full rounded-xl border px-3 py-2 input-surface theme-input"
               placeholder="@username"
             />
           </div>
@@ -276,7 +276,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
         </div>
       </div>
 
-      <div className="card bg-[#0f0f0f] border border-[#1f1f1f]" id="catalog-top">
+      <div className="card surface-card" id="catalog-top">
         <div className="flex flex-col gap-3">
           <LibraryTypeChips chips={filterTypeChips} activeType={activeType} onSelect={handleChipClick} />
           <div className="grid gap-3 md:grid-cols-[1.2fr_auto] items-end">
@@ -323,7 +323,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 <Link
                   key={path.id}
                   to={`/library/paths/${path.slug}`}
-                  className="min-w-[220px] max-w-[260px] flex-1 rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4 shadow-md hover:border-[#8A3FFC] transition"
+                  className="min-w-[220px] max-w-[260px] flex-1 rounded-2xl border p-4 shadow-md hover:border-[color:var(--accent)] transition surface-card"
                 >
                   <div className="flex items-center justify-between text-xs text-gray-300">
                     <span className="font-semibold" style={{ color: theme.accent }}>
@@ -345,7 +345,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
                 <Link
                   key={path.slug}
                   to={`/library/paths/${path.slug}`}
-                  className="h-full rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4 shadow-md hover:border-[#8A3FFC] transition flex flex-col"
+                  className="h-full rounded-2xl border p-4 shadow-md hover:border-[color:var(--accent)] transition flex flex-col surface-card"
                 >
                   <div className="flex items-center justify-between text-xs text-gray-300">
                     <span className="font-semibold" style={{ color: theme.accent }}>
@@ -384,7 +384,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
               <Link
                 key={item.id}
                 to={item.to}
-                className="group flex h-full flex-col gap-2 rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg transition hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+                className="group flex h-full flex-col gap-2 rounded-2xl border p-4 shadow-lg transition hover:-translate-y-1 hover:border-[color:var(--accent)]/60 hover:shadow-xl surface-card"
               >
                 <div className="flex items-center justify-between text-xs text-gray-300">
                   <span className="pill outline">Саммари</span>
@@ -411,7 +411,7 @@ const LibraryPage = ({ completedMaterialIds, user, onMindGameComplete }) => {
               <Link
                 key={item.id}
                 to={item.to}
-                className="group flex h-full flex-col gap-2 rounded-2xl border border-[#1f1f1f] bg-[#0c0c0c] p-4 shadow-lg transition hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+                className="group flex h-full flex-col gap-2 rounded-2xl border p-4 shadow-lg transition hover:-translate-y-1 hover:border-[color:var(--accent)]/60 hover:shadow-xl surface-card"
               >
                 <div className="flex items-center justify-between text-xs text-gray-300">
                   <span className="pill outline">Кейс</span>

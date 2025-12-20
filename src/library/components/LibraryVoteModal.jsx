@@ -62,14 +62,14 @@ const LibraryVoteModal = ({ open, onClose }) => {
   return (
     <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true">
       <div
-        className="modal-card max-w-3xl w-full bg-[#0e0e0e] text-white border border-[#1f1f1f]"
+        className="modal-card max-w-3xl w-full surface-elevated"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-400">Голосование</p>
+            <p className="text-sm muted-text">Голосование</p>
             <h3 className="text-xl font-semibold">Что добавить первым?</h3>
-            <p className="text-sm text-gray-400 mt-1">Выбирай до 3 вариантов в каждой категории</p>
+            <p className="text-sm muted-text mt-1">Выбирай до 3 вариантов в каждой категории</p>
           </div>
           <button className="ghost" aria-label="Закрыть" onClick={onClose}>
             ✕
@@ -77,10 +77,10 @@ const LibraryVoteModal = ({ open, onClose }) => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-4 mt-4">
-          <div className="rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4">
+          <div className="rounded-2xl border p-4 surface-card">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold">Книги</h4>
-              <span className="text-xs text-gray-400">Выбрано: {selectedBooks.length}/3</span>
+              <span className="text-xs muted-text">Выбрано: {selectedBooks.length}/3</span>
             </div>
             <div className="grid gap-2">
               {bookOptions.map((item) => {
@@ -89,26 +89,28 @@ const LibraryVoteModal = ({ open, onClose }) => {
                   <label
                     key={item}
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2 cursor-pointer transition ${
-                      active ? "border-[#8A3FFC] bg-[#141018]" : "border-[#1f1f1f]"
+                      active
+                        ? "border-[color:var(--accent)] bg-[color-mix(in_srgb,var(--accent-weak)_65%,transparent)]"
+                        : "border-[color:var(--border)]"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      className="accent-[#8A3FFC]"
+                      className="accent-[var(--accent)]"
                       checked={active}
                       onChange={() => toggleItem("book", item)}
                     />
-                    <span className="text-sm text-gray-200">{item}</span>
+                    <span className="text-sm" style={{ color: "var(--text)" }}>{item}</span>
                   </label>
                 );
               })}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[#1f1f1f] bg-[#0b0b0b] p-4">
+          <div className="rounded-2xl border p-4 surface-card">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold">Кейсы</h4>
-              <span className="text-xs text-gray-400">Выбрано: {selectedCases.length}/3</span>
+              <span className="text-xs muted-text">Выбрано: {selectedCases.length}/3</span>
             </div>
             <div className="grid gap-2">
               {caseOptions.map((item) => {
@@ -117,16 +119,18 @@ const LibraryVoteModal = ({ open, onClose }) => {
                   <label
                     key={item}
                     className={`flex items-center gap-3 rounded-xl border px-3 py-2 cursor-pointer transition ${
-                      active ? "border-[#8A3FFC] bg-[#141018]" : "border-[#1f1f1f]"
+                      active
+                        ? "border-[color:var(--accent)] bg-[color-mix(in_srgb,var(--accent-weak)_65%,transparent)]"
+                        : "border-[color:var(--border)]"
                     }`}
                   >
                     <input
                       type="checkbox"
-                      className="accent-[#8A3FFC]"
+                      className="accent-[var(--accent)]"
                       checked={active}
                       onChange={() => toggleItem("case", item)}
                     />
-                    <span className="text-sm text-gray-200">{item}</span>
+                    <span className="text-sm" style={{ color: "var(--text)" }}>{item}</span>
                   </label>
                 );
               })}
@@ -136,9 +140,11 @@ const LibraryVoteModal = ({ open, onClose }) => {
 
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
           {submitted ? (
-            <p className="text-sm text-emerald-400">Спасибо! Мы учтём твой выбор.</p>
+            <p className="text-sm" style={{ color: "var(--success)" }}>
+              Спасибо! Мы учтём твой выбор.
+            </p>
           ) : (
-            <p className="text-sm text-gray-400">Можно изменить выбор до отправки.</p>
+            <p className="text-sm muted-text">Можно изменить выбор до отправки.</p>
           )}
           <div className="flex gap-2">
             <button className="ghost" onClick={() => { setSelectedBooks([]); setSelectedCases([]); }}>

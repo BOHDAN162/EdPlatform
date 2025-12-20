@@ -46,60 +46,61 @@ const PasswordSection = ({ addToast }) => {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+    <div className="rounded-2xl border p-6 surface-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-lg font-semibold text-white">Смена пароля</p>
-          <p className="text-sm text-white/60">Минимум 8 символов. Используй буквы, цифры и символы.</p>
+          <p className="text-lg font-semibold">Смена пароля</p>
+          <p className="text-sm muted-text">Минимум 8 символов. Используй буквы, цифры и символы.</p>
         </div>
       </div>
       <form className="mt-4 grid gap-4 md:grid-cols-3" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Текущий пароль
           <input
             type="password"
             value={form.current}
             onChange={(e) => setForm((prev) => ({ ...prev, current: e.target.value }))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
             placeholder="●●●●●●"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Новый пароль
           <input
             type="password"
             value={form.next}
             onChange={(e) => setForm((prev) => ({ ...prev, next: e.target.value }))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
             placeholder="Минимум 8 символов"
           />
           <div className="space-y-2">
-            <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div className="h-2 overflow-hidden rounded-full" style={{ background: "var(--surface-3)" }}>
               <div className={`h-full rounded-full ${meta.color} ${meta.width}`} />
             </div>
-            <p className="text-xs text-white/60">{meta.label}. Используй буквы, цифры и символы.</p>
+            <p className="text-xs muted-text">{meta.label}. Используй буквы, цифры и символы.</p>
           </div>
         </label>
-        <label className="flex flex-col gap-2 text-sm text-white/80">
+        <label className="flex flex-col gap-2 text-sm">
           Подтверждение
           <input
             type="password"
             value={form.confirm}
             onChange={(e) => setForm((prev) => ({ ...prev, confirm: e.target.value }))}
-            className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-white outline-none focus:border-indigo-400"
+            className="rounded-xl border px-3 py-2 input-surface theme-input"
             placeholder="Повтори новый пароль"
           />
         </label>
-        {error && <div className="md:col-span-3 text-sm text-rose-400">{error}</div>}
-        {success && <div className="md:col-span-3 text-sm text-emerald-400">{success}</div>}
+        {error && <div className="md:col-span-3 text-sm" style={{ color: "var(--danger)" }}>{error}</div>}
+        {success && <div className="md:col-span-3 text-sm" style={{ color: "var(--success)" }}>{success}</div>}
         <div className="md:col-span-3 flex flex-wrap gap-3">
           <button
             type="submit"
-            className="rounded-xl bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-600"
+            className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: "var(--accent)" }}
           >
             Сменить пароль
           </button>
-          <p className="text-sm text-white/60">Мы не сохраняем пароль, но подскажем критерии безопасности.</p>
+          <p className="text-sm muted-text">Мы не сохраняем пароль, но подскажем критерии безопасности.</p>
         </div>
       </form>
     </div>
