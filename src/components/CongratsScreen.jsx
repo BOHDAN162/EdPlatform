@@ -1,6 +1,4 @@
 import React from "react";
-import { Link } from "../routerShim";
-import PersonaScene from "./PersonaScene";
 
 const moodEmoji = {
   spark: "🚀",
@@ -9,17 +7,10 @@ const moodEmoji = {
   build: "🛠️",
 };
 
-const archetypeToVariant = {
-  founder: "start",
-  strategist: "library",
-  leader: "community",
-  creator: "gamification",
-};
-
 const CongratsScreen = ({ profileResult, onBuild, onRestart }) => {
   if (!profileResult) return null;
   const avatar = moodEmoji[profileResult.avatarMood] || "✨";
-  const personaVariant = archetypeToVariant[profileResult.profileKey] || "start";
+  const tagline = profileResult.strengths?.[0] || profileResult.summary;
 
   return (
     <div className="congrats-card">
@@ -29,15 +20,14 @@ const CongratsScreen = ({ profileResult, onBuild, onRestart }) => {
       <p className="meta">Ты — {profileResult.profileType}. Маршрут уже ждёт тебя.</p>
 
       <div className="congrats-body">
-        <div className="congrats-avatar rich">
-          <PersonaScene variant={personaVariant} />
-          <div className="avatar-emoji">{avatar}</div>
+        <div className="congrats-avatar">
+          <span role="img" aria-label="avatar mood">{avatar}</span>
         </div>
         <div className="congrats-info">
-          <p className="meta subtle">Ты —</p>
-          <h2>{profileResult.profileType}</h2>
-          <p className="meta description">{profileResult.summary}</p>
-          <p className="meta">Ты похож на ребят, которые уже в игре и идут своим путём — теперь маршрут подстроен под тебя.</p>
+          <p className="meta subtle">Твой тип</p>
+          <h2>Твой тип: {profileResult.profileType}</h2>
+          <p className="meta description">{tagline}</p>
+          <p className="meta">{profileResult.summary}</p>
           <div className="congrats-columns">
             <div>
               <p className="card-header">Сильные стороны</p>
@@ -73,9 +63,6 @@ const CongratsScreen = ({ profileResult, onBuild, onRestart }) => {
           <button className="ghost" onClick={onRestart}>
             Пройти опрос заново
           </button>
-          <Link className="ghost" to="/missions">
-            Перейти к заданиям
-          </Link>
         </div>
       </div>
     </div>

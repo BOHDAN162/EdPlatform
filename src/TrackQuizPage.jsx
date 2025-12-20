@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "./routerShim";
 import { trackQuestions, QUESTION_COUNT } from "./trackQuestions";
 import { buildDevelopmentTrack, buildProfileResult } from "./trackTemplates";
@@ -26,17 +26,17 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
   const [answers, setAnswers] = useState(Array(QUESTION_COUNT).fill(null));
   const [result, setResult] = useState(null);
   const [mode, setMode] = useState("quiz");
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const advanceLockRef = useRef(false);
   const navigate = useNavigate();
 
   const currentQuestion = trackQuestions[currentIndex];
   const answeredCount = answers.filter((a) => a !== null).length;
 
-  const canGoNext = answers[currentIndex] !== null;
-
-  const computedResult = useMemo(() => {
+  const calculateResult = (answerList) => {
     const totals = { founder: 0, strategist: 0, leader: 0, creator: 0 };
     trackQuestions.forEach((q, idx) => {
-      const optionIndex = answers[idx];
+      const optionIndex = answerList[idx];
       if (optionIndex === null || optionIndex === undefined) return;
       const option = q.options[optionIndex];
       Object.entries(option.scores || {}).forEach(([key, points]) => {
@@ -45,14 +45,24 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
     });
     const winner = Object.keys(totals).reduce((best, key) => (totals[key] > totals[best] ? key : best), "founder");
     return { archetype: winner, totals };
-  }, [answers]);
+  };
 
-  const goNext = () => {
-    if (!canGoNext) return;
+  const computedResult = useMemo(() => calculateResult(answers), [answers]);
+
+  const handleSelectOption = (optionIndex) => {
+    if (advanceLockRef.current) return;
+    advanceLockRef.current = true;
+    setIsAdvancing(true);
+
+    const nextAnswers = [...answers];
+    nextAnswers[currentIndex] = optionIndex;
+    setAnswers(nextAnswers);
+
     if (currentIndex < QUESTION_COUNT - 1) {
-      setCurrentIndex((idx) => idx + 1);
+      setCurrentIndex((idx) => Math.min(idx + 1, QUESTION_COUNT - 1));
     } else {
-      setResult(buildProfileResult(computedResult.archetype));
+      const finalResult = calculateResult(nextAnswers);
+      setResult(buildProfileResult(finalResult.archetype));
       setMode("result");
     }
   };
@@ -63,6 +73,8 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
   };
 
   const handleRestart = () => {
+    advanceLockRef.current = false;
+    setIsAdvancing(false);
     setAnswers(Array(QUESTION_COUNT).fill(null));
     setCurrentIndex(0);
     setResult(null);
@@ -77,6 +89,13 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
   };
 
   const showQuiz = mode === "quiz";
+
+  useEffect(() => {
+    if (isAdvancing) {
+      advanceLockRef.current = false;
+      setIsAdvancing(false);
+    }
+  }, [currentIndex, mode, isAdvancing]);
 
   return (
     <div className="page quiz-page">
@@ -104,26 +123,17 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
               {currentQuestion.options.map((option, idx) => (
                 <label
                   key={option.text}
-                  className={`quiz-option ${answers[currentIndex] === idx ? "selected" : ""}`}
-                  onClick={() =>
-                    setAnswers((prev) => {
-                      const next = [...prev];
-                      next[currentIndex] = idx;
-                      return next;
-                    })
-                  }
+                  className={`quiz-option ${answers[currentIndex] === idx ? "selected" : ""} ${
+                    isAdvancing ? "disabled" : ""
+                  }`}
+                  aria-disabled={isAdvancing}
                 >
                   <input
                     type="radio"
                     name={currentQuestion.id}
                     checked={answers[currentIndex] === idx}
-                    onChange={() =>
-                      setAnswers((prev) => {
-                        const next = [...prev];
-                        next[currentIndex] = idx;
-                        return next;
-                      })
-                    }
+                    onChange={() => handleSelectOption(idx)}
+                    disabled={isAdvancing}
                   />
                   <span>{option.text}</span>
                 </label>
@@ -133,10 +143,6 @@ const TrackQuizPage = ({ savedTrack, onTrackSave, materials }) => {
           <div className="quiz-actions">
             <button className="ghost" onClick={goPrev} disabled={currentIndex === 0}>
               Назад
-            </button>
-            <div className="spacer" />
-            <button className="primary" onClick={goNext} disabled={!canGoNext}>
-              {currentIndex === QUESTION_COUNT - 1 ? "Завершить и получить результат" : "Далее"}
             </button>
           </div>
         </div>
