@@ -179,89 +179,93 @@ const MemoryEntryForm = ({ entry, landmark, onCancel, onSave, onDelete, defaultT
           ))}
         </div>
 
-        <label className="stacked">
-          Заголовок
-          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Например: Выводы из урока по переговорам" />
-        </label>
+        <div className="memory-form-grid">
+          <div className="memory-form-column">
+            <label className="stacked">
+              Заголовок
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Например: Выводы из урока по переговорам" />
+            </label>
 
-        <label className="stacked">
-          Текст
-          <div className="textarea-with-actions">
-            <textarea
-              rows={6}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Опиши, что запомнил, какие выводы сделал и что попробуешь в следующий раз"
-            />
-            <div className="textarea-actions">
-              <button
-                type="button"
-                className={`ghost small ${isRecording ? "danger" : ""}`}
-                onClick={isRecording ? stopVoice : startVoice}
-                disabled={!voiceSupported}
-                title={voiceSupported ? "Голосовой ввод" : "Голосовой ввод не поддерживается"}
-              >
-                {isRecording ? "Стоп" : "🎙 Голос"}
-              </button>
-            </div>
+            <label className="stacked">
+              Текст
+              <div className="textarea-with-actions">
+                <textarea
+                  rows={6}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Опиши, что запомнил, какие выводы сделал и что попробуешь в следующий раз"
+                />
+                <div className="textarea-actions">
+                  <button
+                    type="button"
+                    className={`ghost small ${isRecording ? "danger" : ""}`}
+                    onClick={isRecording ? stopVoice : startVoice}
+                    disabled={!voiceSupported}
+                    title={voiceSupported ? "Голосовой ввод" : "Голосовой ввод не поддерживается"}
+                  >
+                    {isRecording ? "Стоп" : "🎙 Голос"}
+                  </button>
+                </div>
+              </div>
+            </label>
+
+            {type === "link" && (
+              <label className="stacked">
+                Ссылка
+                <input
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                  placeholder="https://статья или видео"
+                  inputMode="url"
+                />
+              </label>
+            )}
+
+            {type === "photo" && (
+              <label className="stacked">
+                Фото или файл
+                <input type="file" onChange={handleFileChange} />
+                {attachmentName && <p className="meta">Прикреплено: {attachmentName}</p>}
+              </label>
+            )}
+
+            {type === "sketch" && (
+              <label className="stacked">
+                Подпиши рисунок или идею
+                <textarea
+                  rows={3}
+                  value={sketchNote}
+                  onChange={(e) => setSketchNote(e.target.value)}
+                  placeholder="Коротко: что изображено, какая мысль?"
+                />
+              </label>
+            )}
           </div>
-        </label>
 
-        {type === "link" && (
-          <label className="stacked">
-            Ссылка
-            <input
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="https://статья или видео"
-              inputMode="url"
-            />
-          </label>
-        )}
-
-        {type === "photo" && (
-          <label className="stacked">
-            Фото или файл
-            <input type="file" onChange={handleFileChange} />
-            {attachmentName && <p className="meta">Прикреплено: {attachmentName}</p>}
-          </label>
-        )}
-
-        {type === "sketch" && (
-          <label className="stacked">
-            Подпиши рисунок или идею
-            <textarea
-              rows={3}
-              value={sketchNote}
-              onChange={(e) => setSketchNote(e.target.value)}
-              placeholder="Коротко: что изображено, какая мысль?"
-            />
-          </label>
-        )}
-
-        <div className="two-cols">
-          <label className="stacked">
-            Теги
-            <input
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="мышление, проект, ошибки"
-            />
-            <p className="meta">Разделяй теги запятой, чтобы находить записи быстрее.</p>
-          </label>
-          <div className="stacked">
-            <div className="field-label">Материалы платформы</div>
-            <div className="material-select">
-              {materialOptions.map((item) => (
-                <label key={item.id} className="material-option">
-                  <input
-                    type="checkbox"
-                    checked={selectedMaterials.includes(item.id)}
-                    onChange={() => toggleMaterial(item.id)}
-                  />
-                  <span>{item.label}</span>
-                </label>
-              ))}
+          <div className="memory-form-column">
+            <label className="stacked">
+              Теги
+              <input
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="мышление, проект, ошибки"
+              />
+              <p className="meta">Разделяй теги запятой, чтобы находить записи быстрее.</p>
+            </label>
+            <div className="stacked">
+              <div className="field-label">Материалы платформы</div>
+              <div className="material-select">
+                {materialOptions.map((item) => (
+                  <label key={item.id} className="material-option">
+                    <input
+                      type="checkbox"
+                      checked={selectedMaterials.includes(item.id)}
+                      onChange={() => toggleMaterial(item.id)}
+                    />
+                    <span>{item.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         </div>
