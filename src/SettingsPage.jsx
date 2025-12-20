@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "./routerShim";
+import { Link, useLocation } from "./routerShim";
 import { MASCOTS } from "./mascots/mascots";
 import MascotDisplay from "./mascots/MascotDisplay";
 import { defaultMascotId, useMascot } from "./mascots/MascotContext";
@@ -79,6 +79,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
     [user]
   );
 
+  const location = useLocation();
   const { mascotId, setMascotId } = useMascot();
   const [activeTab, setActiveTab] = useState("account");
   const [appearance, setAppearance] = useState(() =>
@@ -99,6 +100,14 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   const [avatarPreview, setAvatarPreview] = useState(() => localStorage.getItem(STORAGE_KEYS.avatar) || "");
   const [feedback, setFeedback] = useState({ appearance: "", account: "", notifications: "", security: "", mascot: "" });
   const [draftMascotId, setDraftMascotId] = useState(mascotId);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search || "");
+    const tab = searchParams.get("tab");
+    if (tab && tabList.some((item) => item.id === tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     setDraftMascotId(mascotId);

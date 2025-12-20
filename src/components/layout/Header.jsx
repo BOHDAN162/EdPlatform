@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, NavLink } from "../../routerShim";
 import { navLinks } from "../../utils/navigation";
 
@@ -6,33 +6,22 @@ const AVATAR_KEY = "noesis_user_avatar";
 
 const Header = ({ user }) => {
   const [open, setOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
   const [avatarUrl, setAvatarUrl] = useState("");
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpen(false);
-      }
-    };
-
     const handleEsc = (event) => {
       if (event.key === "Escape") {
-        setMenuOpen(false);
         setOpen(false);
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEsc);
     const handleStorage = () => {
       if (typeof localStorage === "undefined") return;
       setAvatarUrl(localStorage.getItem(AVATAR_KEY) || "");
     };
+    document.addEventListener("keydown", handleEsc);
     window.addEventListener("storage", handleStorage);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEsc);
       window.removeEventListener("storage", handleStorage);
     };
@@ -52,7 +41,6 @@ const Header = ({ user }) => {
 
   const closeMenus = () => {
     setOpen(false);
-    setMenuOpen(false);
   };
 
   return (
@@ -76,7 +64,7 @@ const Header = ({ user }) => {
           </NavLink>
         ))}
       </nav>
-      <div className="header-actions" ref={menuRef}>
+      <div className="header-actions">
         {!user && (
           <Link to="/auth" className="primary">
             Войти
@@ -84,11 +72,12 @@ const Header = ({ user }) => {
         )}
         {user && (
           <>
-            <button
-              className="avatar ghost-button overflow-hidden"
-              onClick={() => setMenuOpen((prev) => !prev)}
-              aria-haspopup="true"
-              aria-expanded={menuOpen}
+            <Link
+              to="/settings?tab=profile"
+              className="avatar ghost-button overflow-hidden transition hover:border-[var(--accent)] hover:bg-white/5"
+              onClick={closeMenus}
+              aria-label="Перейти в профиль настроек"
+              title="Настройки профиля"
             >
               {avatarUrl ? (
                 <img
@@ -100,35 +89,7 @@ const Header = ({ user }) => {
               ) : (
                 user.name?.[0] || "Я"
               )}
-            </button>
-            {menuOpen && (
-              <div className="profile-menu" role="menu">
-                <div className="profile-menu__header">
-                  <div className="avatar small overflow-hidden">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Аватар пользователя"
-                        className="h-full w-full object-cover"
-                        onError={handleImageError}
-                      />
-                    ) : (
-                      user.name?.[0] || "Я"
-                    )}
-                  </div>
-                  <div>
-                    <div className="profile-menu__name">{user.name}</div>
-                    <div className="profile-menu__meta">{user.email || "Аккаунт"}</div>
-                  </div>
-                </div>
-                <Link to="/profile" className="profile-menu__item" onClick={closeMenus} role="menuitem">
-                  Профиль
-                </Link>
-                <Link to="/settings" className="profile-menu__item" onClick={closeMenus} role="menuitem">
-                  Настройки
-                </Link>
-              </div>
-            )}
+            </Link>
           </>
         )}
       </div>
