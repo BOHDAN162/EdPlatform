@@ -48,30 +48,34 @@ const DevelopmentTrackCard = React.forwardRef(
         onClick={() => onSelect?.()}
       >
         <div className="development-track-card__head">
-          <span className="pill subtle">Шаг {index + 1}</span>
+          <span className="pill subtle development-track-card__step">{index + 1}</span>
           <span className={`status-dot ${status === "Готово" ? "success" : status === "В процессе" ? "active" : "muted"}`}>
             {status}
           </span>
         </div>
-        <div className="development-track-card__body">
+        <div className="development-track-card__content">
           <div className="development-track-card__title" style={{ color: theme.color }}>
             <span className="development-track-card__emoji" aria-hidden>
               {theme.icon}
             </span>
-            <div>
-              <p className="mini-label">{theme.label}</p>
-              <h4 title={step.shortTitle || step.title}>{step.shortTitle || step.title}</h4>
+            <div className="development-track-card__text">
+              <p className="mini-label development-track-card__category" title={theme.label}>
+                {theme.label}
+              </p>
+              <h4 className="development-track-card__heading" title={step.shortTitle || step.title}>
+                {step.shortTitle || step.title}
+              </h4>
             </div>
           </div>
-          <p className="meta subtle" title={step.description}>
-            {step.themeLabel || step.theme || "Рост"}
+          <p className="meta subtle development-track-card__meta" title={step.themeLabel || step.description}>
+            {step.themeLabel || theme.label || "Рост"}
           </p>
         </div>
         <div className="development-track-card__progress" aria-hidden>
           <span className="development-track-card__progress-bar">
             <span style={{ width: `${progressValue}%` }} />
           </span>
-          <span className="development-track-card__reward">
+          <span className="development-track-card__reward" title={step.xpReward ? `+${step.xpReward} XP` : "Микронаграда"}>
             {rewardIcon} {step.xpReward ? `+${step.xpReward} XP` : "Микронаграда"}
           </span>
         </div>
