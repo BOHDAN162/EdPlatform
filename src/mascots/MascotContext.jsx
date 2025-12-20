@@ -1,8 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { getMascotById } from "./mascots";
+import { defaultMascotId, getMascotById } from "./mascots";
 
-const STORAGE_KEY = "noesis_mascot_id";
-const defaultMascotId = "violet";
+const STORAGE_KEY = "noesis:selectedMascot";
 
 const MascotContext = createContext({ mascotId: defaultMascotId, setMascotId: () => {} });
 

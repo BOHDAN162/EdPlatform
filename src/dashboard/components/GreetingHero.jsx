@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "../../routerShim";
-import MascotDisplay from "../../mascots/MascotDisplay";
+import MascotRenderer from "../../mascots/MascotRenderer";
 
 const tipsList = [
   "Сделай 1 микро-шаг в проекте: напиши проблему, которую решаешь, в 1 предложении.",
@@ -139,7 +139,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
             </div>
           </div>
           <div className="flex flex-col items-center gap-4 lg:items-stretch">
-            <MascotDisplay variant="hero" />
+            <MascotRenderer size={260} className="w-full max-w-[320px]" />
             <div
               className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg sm:p-5"
               onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}

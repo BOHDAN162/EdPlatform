@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "./routerShim";
 import { MASCOTS } from "./mascots/mascots";
 import MascotDisplay from "./mascots/MascotDisplay";
-import { useMascot } from "./mascots/MascotContext";
+import { defaultMascotId, useMascot } from "./mascots/MascotContext";
 
 const STORAGE_KEYS = {
   appearance: "ep_appearance",
@@ -61,8 +61,8 @@ const fontOptions = [
 ];
 
 const tabList = [
+  { id: "account", label: "Профиль" },
   { id: "appearance", label: "Оформление" },
-  { id: "account", label: "Данные" },
   { id: "notifications", label: "Уведомления" },
   { id: "security", label: "Безопасность" },
   { id: "about", label: "О сервисе" },
@@ -80,7 +80,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   );
 
   const { mascotId, setMascotId } = useMascot();
-  const [activeTab, setActiveTab] = useState("appearance");
+  const [activeTab, setActiveTab] = useState("account");
   const [appearance, setAppearance] = useState(() =>
     loadLocalJSON(STORAGE_KEYS.appearance, { accent: "purple", reduceMotion: false, fontSize: "normal" })
   );
@@ -142,14 +142,16 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
     setFeedback((prev) => ({ ...prev, mascot: "Персонаж сохранён" }));
   };
 
-  const handleMascotCancel = () => {
-    setDraftMascotId(mascotId);
-    setFeedback((prev) => ({ ...prev, mascot: "Выбор отменён" }));
+  const handleMascotReset = () => {
+    setDraftMascotId(defaultMascotId);
+    setMascotId(defaultMascotId);
+    setFeedback((prev) => ({ ...prev, mascot: "Вернули персонажа по умолчанию" }));
   };
 
   const mascotHints = {
-    violet: "спокойный фокус",
-    cube: "умный и мягкий напарник",
+    blueSquare: "спокойный и собранный",
+    greenTriangle: "динамичный стратег",
+    redCircle: "решительный и тёплый",
   };
 
   const handleAvatarUpload = (file) => {
@@ -343,8 +345,8 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="meta subtle">{feedback.mascot}</div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="ghost" onClick={handleMascotCancel}>
-                Отмена
+              <button type="button" className="ghost" onClick={handleMascotReset}>
+                Сбросить
               </button>
               <button type="button" className="primary" onClick={handleMascotSave}>
                 Сохранить
@@ -353,7 +355,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
           </div>
         }
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {MASCOTS.map((mascot) => {
             const selected = draftMascotId === mascot.id;
             return (

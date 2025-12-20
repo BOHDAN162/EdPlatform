@@ -7,7 +7,7 @@ import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewar
 import MeaningWall from "./components/MeaningWall";
 import ProgressRing from "./components/ProgressRing";
 import InviteFriendsModal from "./components/InviteFriendsModal";
-import MascotDisplay from "../mascots/MascotDisplay";
+import MascotRenderer from "../mascots/MascotRenderer";
 
 const leaderboardTabs = [
   { id: "active", label: "Активные", description: "Активность за 7 дней", metric: "activityScore", metricLabel: "активности" },
@@ -227,17 +227,17 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
       </div>
 
       <div className="community-top-grid">
-        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm flex items-center gap-4">
-          <div className="relative h-16 w-16">
-            <MascotDisplay variant="avatar" />
-          </div>
-          <div className="flex-1 space-y-1">
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm">
+          <div className="space-y-1 text-left">
             <p className="text-sm text-[var(--muted)]">Профиль в сообществе</p>
             <p className="text-lg font-semibold text-[var(--fg)]">{communityUser?.name || user?.name || "Ты"}</p>
-            <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(gamification.totalPoints)} • Уровень {levelInfo.level}</p>
+            <p className="text-sm text-[var(--muted)]">Статус: {getStatusByPoints(gamification.totalPoints)} · Уровень {levelInfo.level}</p>
             <Link to="/settings" className="text-xs font-semibold text-[var(--accent)] underline">
               Сменить персонажа
             </Link>
+          </div>
+          <div className="mt-4 flex w-full justify-center">
+            <MascotRenderer size={230} variant="card" className="w-full max-w-[260px]" />
           </div>
         </div>
 
