@@ -5365,6 +5365,7 @@ body {
 .quiz-options { display: grid; gap: 10px; }
 .quiz-option { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: border 0.2s, box-shadow 0.2s; }
 .quiz-option.selected { border-color: #7c3aed; box-shadow: 0 10px 24px rgba(124, 58, 237, 0.18); }
+.quiz-option.disabled { opacity: 0.6; pointer-events: none; }
 .quiz-option input { margin-top: 4px; }
 .quiz-actions { display: flex; gap: 10px; align-items: center; }
 .quiz-actions .spacer { flex: 1; }
