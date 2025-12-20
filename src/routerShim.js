@@ -8,9 +8,11 @@ const normalizePath = (value) => {
   return value.startsWith("/") ? value : `/${value}`;
 };
 
+const stripQuery = (value) => value.split("?")[0];
+
 const matchPath = (pattern, path) => {
-  const patternParts = pattern.split("/").filter(Boolean);
-  const pathParts = path.split("/").filter(Boolean);
+  const patternParts = stripQuery(pattern).split("/").filter(Boolean);
+  const pathParts = stripQuery(path).split("/").filter(Boolean);
   if (patternParts.length !== pathParts.length) return null;
   const params = {};
   for (let i = 0; i < patternParts.length; i++) {
@@ -132,7 +134,8 @@ export function useNavigate() {
 
 export function useLocation() {
   const { path } = useContext(RouterContext);
-  return { pathname: path };
+  const [pathname, search = ""] = path.split("?");
+  return { pathname: normalizePath(pathname || "/"), search: search ? `?${search}` : "" };
 }
 
 export function useParams() {

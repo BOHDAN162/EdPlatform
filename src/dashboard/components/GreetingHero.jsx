@@ -2,17 +2,37 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "../../routerShim";
 import MascotRenderer from "../../mascots/MascotRenderer";
 
-const tipsList = [
-  "Сделай 1 микро-шаг в проекте: напиши проблему, которую решаешь, в 1 предложении.",
-  "Проведи мини-CustDev: задай одному человеку вопрос “что бесит в … ?” и запиши ответ в Память.",
-  "Выбери 1 навык недели (переговоры/финансы/продажи) и сделай 10 минут практики сегодня.",
-  "Отключи отвлечения на 25 минут и сделай самое неприятное дело первым.",
-  "Сделай “финансовую минуту”: посчитай доход/расход за день и придумай, как +100₽ завтра.",
-  "Открой лонгрид и выпиши 3 тезиса — затем преврати 1 тезис в действие на сегодня.",
-  "Потренируй мышление: пройди 1 MindGame, затем запиши, что мешало (внимание/скорость/логика).",
-  "Питч за 30 секунд: проговори идею проекта вслух и сократи до 2 фраз.",
-  "Собери мини-план: 3 задачи на день → выбери одну “must-do” и поставь на неё 20 минут.",
-  "Сделай пост-рефлексию: что сегодня было сильным? что улучшить завтра? 2 строки в Память.",
+const platformTips = [
+  {
+    id: "library",
+    title: "Прокачай навык за 10 минут",
+    text: "Открой лонгрид или саммари и выпиши 3 тезиса в Память — это даст быстрый рост.",
+    route: "/library",
+  },
+  {
+    id: "missions",
+    title: "Сделай шаг сегодня",
+    text: "Выбери миссию на 10–20 минут и забери XP. Серия держится на маленьких победах.",
+    route: "/missions",
+  },
+  {
+    id: "memory",
+    title: "Зафиксируй мысль",
+    text: "Запиши одну идею проекта или вывод из дня. Память — твой личный банк инсайтов.",
+    route: "/memory",
+  },
+  {
+    id: "community",
+    title: "Займи место в топе",
+    text: "Зайди в сообщество: сравни прогресс, найди сильных ребят и заряжайся конкуренцией.",
+    route: "/community",
+  },
+  {
+    id: "profile",
+    title: "Настрой платформу под себя",
+    text: "Выбери персонажа и оформление — так учиться приятнее, а прогресс ощущается сильнее.",
+    route: "/settings?tab=profile",
+  },
 ];
 
 const icons = {
@@ -33,7 +53,8 @@ const ProgressCard = ({ goal }) => {
   return (
     <Link
       to={goal.to || "#"}
-      className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/5 p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#8A3FFC]/60 hover:shadow-lg"
+      className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/5 p-4 text-left shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+      role="button"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -72,7 +93,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
   const quoteText = quote?.text || "Движение важнее идеальной траектории. Сделай шаг — поймешь дорогу.";
   const quoteAuthor = quote?.author || "NOESIS";
 
-  const tips = useMemo(() => tipsList.map((text, index) => ({ id: `tip-${index + 1}`, text, to: "/missions" })), []);
+  const tips = useMemo(() => platformTips, []);
 
   const [tipIndex, setTipIndex] = useState(0);
   const [startX, setStartX] = useState(null);
@@ -84,7 +105,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
     return () => clearTimeout(timeout);
   }, [tipIndex]);
 
-  const visibleAdvice = tips[tipIndex] || insight;
+  const visibleAdvice = tips[tipIndex] || tips[0] || insight;
 
   const handlePrev = () => setTipIndex((i) => (i - 1 + tips.length) % tips.length);
   const handleNext = () => setTipIndex((i) => (i + 1) % tips.length);
@@ -141,7 +162,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
           <div className="flex flex-col items-center gap-4 lg:items-stretch">
             <MascotRenderer size={260} className="w-full max-w-[320px]" />
             <div
-              className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-lg sm:p-5"
+              className="relative w-full rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 pb-16 pr-4 shadow-lg sm:p-5 sm:pb-14"
               onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
               onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
               onPointerDown={(e) => handleSwipeStart(e.clientX)}
@@ -149,50 +170,57 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="text-[10px] uppercase tracking-[0.12em] text-[var(--muted)]">Совет от платформы</p>
-                <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
+                <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
                   <button
                     type="button"
-                    className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     onClick={handlePrev}
                     aria-label="Предыдущий совет"
                   >
-                    ←
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
                   </button>
                   <span className="text-xs font-semibold text-[var(--muted)]">{`${tipIndex + 1}/${tips.length}`}</span>
                   <button
                     type="button"
-                    className="rounded-full border border-white/10 px-2 py-1 transition hover:border-[#8A3FFC]/60"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     onClick={handleNext}
                     aria-label="Следующий совет"
                   >
-                    →
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
+                      <path d="M9 6l6 6-6 6" />
+                    </svg>
                   </button>
                 </div>
               </div>
-              <div className="mt-2 space-y-1 overflow-hidden">
+              <div className="mt-3 space-y-2 overflow-hidden pr-2">
                 <p
                   className={`text-base font-semibold text-[var(--fg)] transition-all duration-300 ease-out ${
                     isAnimating ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
                   }`}
-                  key={visibleAdvice?.id}
+                  key={visibleAdvice?.id || "tip-title"}
                 >
-                  {visibleAdvice?.text || insight?.title || "Продолжи главный шаг на сегодня"}
+                  {visibleAdvice?.title || insight?.title || "Продолжи главный шаг на сегодня"}
                 </p>
                 <p
                   className={`text-sm text-[var(--muted)] transition-all duration-300 ease-out ${
                     isAnimating ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
                   }`}
-                  key={`${visibleAdvice?.id}-desc`}
+                  key={`${visibleAdvice?.id || "tip"}-desc`}
                 >
-                  {insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
+                  {visibleAdvice?.text || insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
                 </p>
               </div>
               <Link
-                to="/missions"
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(138,63,252,0.28)] transition hover:-translate-y-0.5"
+                to={visibleAdvice?.route || insight?.to || "/missions"}
+                className="absolute bottom-3 right-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-[0_10px_30px_rgba(138,63,252,0.32)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(138,63,252,0.42)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
+                aria-label="Перейти по совету"
               >
-                Вперёд
-                <span className="text-xs">→</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+                  <path d="M5 12h14" />
+                  <path d="M13 6l6 6-6 6" />
+                </svg>
               </Link>
             </div>
           </div>
