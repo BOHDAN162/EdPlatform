@@ -11,8 +11,8 @@ import {
   typeFilters,
 } from "./data/missions";
 import { getLevelFromXP, getRoleFromLevel } from "./gamification";
-import ActivityCalendar from "./components/activity/ActivityCalendar";
 import GroupChallengeCard from "./components/activity/GroupChallengeCard";
+import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./community/rewardsData";
 
 const ProgressBar = ({ value }) => (
   <div className="mission-progress-line">
@@ -288,6 +288,13 @@ const AchievementLegend = () => (
   </div>
 );
 
+const rewardTabs = [
+  { id: "avatars", label: "Аватары", data: avatarRewards },
+  { id: "skins", label: "Оформление", data: skinRewards },
+  { id: "statuses", label: "Статусы", data: statusRewards },
+  { id: "medals", label: "Медали", data: medalRewards },
+];
+
 const MissionsPage = ({
   gamification,
   missions = missionList,
@@ -306,6 +313,7 @@ const MissionsPage = ({
   const [duration, setDuration] = useState("all");
   const [difficulty, setDifficulty] = useState("all");
   const [category, setCategory] = useState("all");
+  const [rewardTab, setRewardTab] = useState("avatars");
   const [selectedId, setSelectedId] = useState(missions[0]?.id);
 
   const selectedMission = missions.find((m) => m.id === selectedId) || missions[0];
@@ -405,6 +413,8 @@ const MissionsPage = ({
     []
   );
 
+  const renderRewards = rewardTabs.find((tab) => tab.id === rewardTab)?.data || [];
+
   return (
     <div className="page missions-page-v3">
       <div className="missions-hero-v3">
@@ -424,21 +434,6 @@ const MissionsPage = ({
         streakCount={streakInfo?.current || gamification.streakCount || 0}
         completedWeek={completedThisWeek}
       />
-
-      <section className="mission-section">
-        <div className="section-head">
-          <div>
-            <h2>Календарь активности</h2>
-            <p className="meta">Следи за днями с действиями, чтобы удерживать серию и задания месяца.</p>
-          </div>
-          <div className="chip-row">
-            <span className="chip">Активные дни: {activeDays}</span>
-            <span className="chip">Серия: {streakInfo?.current || 0}</span>
-            <span className="chip ghost">Лучший стрик: {streakInfo?.best || 0}</span>
-          </div>
-        </div>
-        <ActivityCalendar activityByDate={monthActivity} streakInfo={streakInfo} compact />
-      </section>
 
       <section className="mission-section">
         <div className="section-head">
@@ -550,6 +545,40 @@ const MissionsPage = ({
         <div className="mission-grid quest-grid">
           {groupChallenges.map((challenge) => (
             <GroupChallengeCard key={challenge.id} {...challenge} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mission-section">
+        <div className="section-head">
+          <div>
+            <h2>Награды</h2>
+            <p className="meta">Зарабатывай аватары, статусы и медали за активность.</p>
+          </div>
+          <div className="chip-row">
+            {rewardTabs.map((tab) => (
+              <button
+                key={tab.id}
+                className={`pill ${rewardTab === tab.id ? "active" : "outline"}`}
+                onClick={() => setRewardTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="rewards-grid">
+          {renderRewards.map((reward) => (
+            <div key={reward.id} className={`reward-card ${reward.unlocked ? "" : "locked"}`} title={reward.requirement}>
+              <div className="reward-icon">{reward.icon}</div>
+              <div className="reward-title">{reward.title}</div>
+              <p className="meta">{reward.description}</p>
+              <div className="reward-footer">
+                <span className="pill subtle">{reward.requirement}</span>
+                {!reward.unlocked && <span className="lock">🔒</span>}
+                {reward.unlocked && <button className="ghost small">Активировать</button>}
+              </div>
+            </div>
           ))}
         </div>
       </section>

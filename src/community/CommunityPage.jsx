@@ -3,7 +3,6 @@ import { Link } from "../routerShim";
 import useCommunity from "../useCommunity";
 import { getLevelFromPoints, getStatusByPoints, progressToNextStatus } from "../gamification";
 import RankingRow from "./components/RankingRow";
-import { avatarRewards, medalRewards, skinRewards, statusRewards } from "./rewardsData";
 import MeaningWall from "./components/MeaningWall";
 import InviteFriendsModal from "./components/InviteFriendsModal";
 import MascotRenderer from "../mascots/MascotRenderer";
@@ -12,13 +11,6 @@ const leaderboardTabs = [
   { id: "active", label: "Активные", description: "Активность за 7 дней", metric: "activityScore", metricLabel: "активности" },
   { id: "top", label: "Топы", description: "Самые результативные", metric: "points", metricLabel: "XP" },
   { id: "mentors", label: "Менторы", description: "Опытные наставники", metric: "contributionScore", metricLabel: "поддержки" },
-];
-
-const rewardTabs = [
-  { id: "avatars", label: "Аватары", data: avatarRewards },
-  { id: "skins", label: "Оформление", data: skinRewards },
-  { id: "statuses", label: "Статусы", data: statusRewards },
-  { id: "medals", label: "Медали", data: medalRewards },
 ];
 
 const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
@@ -43,7 +35,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     [user, totalPoints, levelInfo.level]
   );
   const [leaderboardTab, setLeaderboardTab] = useState("top");
-  const [rewardTab, setRewardTab] = useState("avatars");
   const [showIntro, setShowIntro] = useState(false);
   const [messageModal, setMessageModal] = useState({ open: false, target: null, text: "" });
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -111,8 +102,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
     localStorage.setItem("communityIntroSeen", "true");
     setShowIntro(false);
   };
-
-  const renderRewards = rewardTabs.find((tab) => tab.id === rewardTab)?.data || [];
 
   const openMessageModal = (userTarget) => {
     setMessageModal({ open: true, target: userTarget, text: "" });
@@ -307,40 +296,6 @@ const CommunityPage = ({ user, gamification, onCommunityAction, onToast }) => {
           <div className="chip-row">
             <button className="ghost" onClick={() => onToast?.("Полная таблица скоро")}>Смотреть полностью</button>
           </div>
-        </div>
-      </div>
-
-      <div className="community-section">
-        <div className="section-header">
-          <div>
-            <h2>Награды</h2>
-            <p className="meta">Зарабатывай аватары, статусы и медали за активность.</p>
-          </div>
-          <div className="chip-row">
-            {rewardTabs.map((tab) => (
-              <button
-                key={tab.id}
-                className={`pill ${rewardTab === tab.id ? "active" : "outline"}`}
-                onClick={() => setRewardTab(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="rewards-grid">
-          {renderRewards.map((reward) => (
-            <div key={reward.id} className={`reward-card ${reward.unlocked ? "" : "locked"}`} title={reward.requirement}>
-              <div className="reward-icon">{reward.icon}</div>
-              <div className="reward-title">{reward.title}</div>
-              <p className="meta">{reward.description}</p>
-              <div className="reward-footer">
-                <span className="pill subtle">{reward.requirement}</span>
-                {!reward.unlocked && <span className="lock">🔒</span>}
-                {reward.unlocked && <button className="ghost small">Активировать</button>}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
