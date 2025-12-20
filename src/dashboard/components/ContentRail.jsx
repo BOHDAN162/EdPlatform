@@ -19,26 +19,36 @@ const Card = ({ item }) => (
   </Link>
 );
 
-const ContentRail = ({ content = [], title = "Рекомендации" }) => (
-  <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
-    <div className="mb-3 flex items-center justify-between">
-      <div>
-        <p className="text-xs uppercase tracking-[0.08em] text-white/60">Рекомендации</p>
-        <h3 className="text-xl font-semibold text-white">{title}</h3>
+const ContentRail = ({ content = [], title = "Рекомендации" }) => {
+  const handleWheel = (event) => {
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    if (typeof window !== "undefined") {
+      window.scrollBy({ top: event.deltaY, behavior: "auto" });
+    }
+    event.preventDefault();
+  };
+
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.08em] text-white/60">Рекомендации</p>
+          <h3 className="text-xl font-semibold text-white">{title}</h3>
+        </div>
+        <Link
+          to="/library"
+          className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 transition hover:border-[#8A3FFC]/70 hover:text-white"
+        >
+          В библиотеку
+        </Link>
       </div>
-      <Link
-        to="/library"
-        className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 transition hover:border-[#8A3FFC]/70 hover:text-white"
-      >
-        В библиотеку
-      </Link>
+      <div className="flex gap-3 overflow-x-auto pb-2" onWheel={handleWheel}>
+        {content.map((item) => (
+          <Card key={item.id} item={item} />
+        ))}
+      </div>
     </div>
-    <div className="flex gap-3 overflow-x-auto pb-2">
-      {content.map((item) => (
-        <Card key={item.id} item={item} />
-      ))}
-    </div>
-  </div>
-);
+  );
+};
 
 export default ContentRail;

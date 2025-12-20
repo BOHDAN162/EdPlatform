@@ -9,7 +9,7 @@ const CommunityPulse = ({ members = [] }) => {
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
+    <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.08em] text-white/60">Что делают другие</p>

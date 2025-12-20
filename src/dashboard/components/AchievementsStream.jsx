@@ -1,7 +1,7 @@
 import React from "react";
 
 const AchievementsStream = ({ items = [] }) => (
-  <div className="rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
+  <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-white/5 p-5 shadow-lg">
     <div>
       <p className="text-xs uppercase tracking-[0.08em] text-white/60">Мини-достижения</p>
       <h3 className="text-xl font-semibold text-white">Последние награды</h3>
