@@ -8,6 +8,7 @@ const MemoryQuickAddFab = () => {
     <button
       className="memory-fab"
       aria-label="Быстро добавить заметку в память"
+      type="button"
       onClick={() => navigate("/memory", { state: { quickAdd: true } })}
     >
       ✍️
