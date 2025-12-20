@@ -2,7 +2,11 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "../routerShim";
 
-const mascotUrl = "https://sdmntpritalynorth.oaiusercontent.com/files/00000000-7270-7246-82d0-94f1c00b9da5/raw";
+const heroPoints = [
+  "Пройди короткую регистрацию",
+  "Активируй подписку — 8 игр, трек, привычки",
+  "Учись, тренируй память и прокачивай мышление",
+];
 
 const steps = [
   {
@@ -74,30 +78,65 @@ const stats = [
 export default function Landing() {
   return (
     <div className="bg-[#0d0d1f] text-white font-sans overflow-x-hidden">
-      <section className="w-full bg-gradient-to-br from-purple-950 to-black px-6 py-16 md:flex md:items-center md:justify-between gap-10">
-        <div className="max-w-xl space-y-4">
-          <p className="text-sm uppercase tracking-[0.2em] text-purple-300 font-semibold">NOESIS • платформа развития</p>
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight">Твой трек роста без хаоса</h1>
-          <p className="text-lg text-gray-300">
-            Ответь на 10 вопросов — получи личный маршрут и двигайся по заданиям, играм и материалам.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <Link
-              to="/track-quiz"
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl transition text-center font-semibold"
-            >
-              Начать
-            </Link>
-            <Link
-              to="/auth"
-              className="bg-white text-black px-6 py-3 rounded-xl transition hover:bg-gray-100 text-center font-semibold"
-            >
-              Войти
-            </Link>
+      <section className="w-full px-4 sm:px-6 md:px-10 lg:px-16 py-14 sm:py-16 md:py-20 flex justify-center">
+        <div className="w-full max-w-5xl">
+          <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#2a1f63] via-[#1a153e] to-[#0c0a28] shadow-[0_30px_90px_rgba(0,0,0,0.35)] border border-white/10 px-6 sm:px-10 md:px-14 py-12 sm:py-14 md:py-16 flex flex-col items-center text-center">
+            <div className="absolute inset-0 opacity-70" style={{
+              background:
+                "radial-gradient(circle at 20% 20%, rgba(153, 108, 255, 0.25), transparent 40%), radial-gradient(circle at 80% 0%, rgba(69, 122, 255, 0.25), transparent 30%), radial-gradient(circle at 50% 80%, rgba(95, 189, 255, 0.18), transparent 35%)",
+            }}
+            />
+            <div className="relative z-10 flex flex-col items-center gap-6 sm:gap-7 md:gap-8 w-full">
+              <p className="hero-kicker">NOESIS • Платформа развития</p>
+              <h1 className="hero-title text-white text-[34px] leading-[1.05] sm:text-[42px] md:text-[56px] lg:text-[64px]">
+                <span className="block">БУДЬ ЛУЧШЕ ВЧЕРАШНЕГО</span>
+                <span className="block">СЕБЯ</span>
+              </h1>
+
+              <div className="w-full">
+                <div className="mx-auto w-full max-w-3xl bg-white text-black rounded-2xl sm:rounded-[20px] shadow-[0_18px_50px_rgba(0,0,0,0.18)] px-6 sm:px-8 py-6 sm:py-7">
+                  <p className="quote-label text-center">Цитата</p>
+                  <p className="text-lg sm:text-xl font-semibold text-gray-900 leading-relaxed">
+                    «Единственный способ делать великое — любить то, что ты делаешь.»
+                  </p>
+                  <p className="quote-author text-sm sm:text-base mt-3 font-medium text-gray-700">— Стив Джобс</p>
+                </div>
+              </div>
+
+              <div className="flex justify-center w-full">
+                <Link
+                  to="/track-quiz"
+                  className="relative inline-flex items-center justify-center px-7 sm:px-9 py-3.5 sm:py-4 bg-gradient-to-r from-[#6b4bff] to-[#8f5bff] text-white font-semibold rounded-xl sm:rounded-2xl shadow-[0_14px_34px_rgba(111,87,255,0.4)] transition duration-200 ease-out hover:translate-y-[-1px] hover:shadow-[0_18px_42px_rgba(111,87,255,0.5)] focus:outline-none focus:ring-2 focus:ring-[#9f8bff]/60"
+                >
+                  Продолжить
+                </Link>
+              </div>
+
+              <div className="grid gap-3 sm:gap-3.5 w-full max-w-3xl">
+                {heroPoints.map((point) => (
+                  <div
+                    key={point}
+                    className="flex items-center gap-3 bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm sm:text-base text-gray-100 backdrop-blur-[2px]"
+                  >
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#59d189]/15 text-[#59d189]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth="2.2"
+                        stroke="currentColor"
+                        className="h-4 w-4"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    </span>
+                    <span className="text-left font-medium leading-tight">{point}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-gray-400">10 вопросов → тип личности → твой трек и XP.</p>
         </div>
-        <img src={mascotUrl} alt="Маскот NOESIS" className="w-48 md:w-56 mt-10 md:mt-0 md:ml-12 drop-shadow-2xl" />
       </section>
 
       <motion.section
