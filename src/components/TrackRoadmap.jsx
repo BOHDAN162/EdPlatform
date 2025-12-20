@@ -61,6 +61,12 @@ const TrackStepDetail = ({ step, onClose, onNavigate, material }) => (
   </div>
 );
 
+const StepArrow = () => (
+  <div className="step-arrow" aria-hidden>
+    <span className="step-arrow-icon">→</span>
+  </div>
+);
+
 const variantByProfile = {
   founder: "start",
   strategist: "library",
@@ -131,27 +137,33 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
       {hasTrack ? (
         <div className="track-grid-wrapper">
           <div className="track-grid-row">
-            {topRow.map((step, idx) => (
-              <TrackStepCard
-                key={step.id}
-                step={step}
-                index={idx}
-                completedSet={completedSet}
-                activeId={activeStepId}
-                onClick={() => openStep(step)}
-              />
+            {topRow.flatMap((step, idx) => (
+              [
+                <TrackStepCard
+                  key={step.id}
+                  step={step}
+                  index={idx}
+                  completedSet={completedSet}
+                  activeId={activeStepId}
+                  onClick={() => openStep(step)}
+                />,
+                idx < topRow.length - 1 ? <StepArrow key={`arrow-top-${step.id}`} /> : null,
+              ].filter(Boolean)
             ))}
           </div>
           <div className="track-grid-row">
-            {bottomRow.map((step, idx) => (
-              <TrackStepCard
-                key={step.id}
-                step={step}
-                index={idx + 5}
-                completedSet={completedSet}
-                activeId={activeStepId}
-                onClick={() => openStep(step)}
-              />
+            {bottomRow.flatMap((step, idx) => (
+              [
+                <TrackStepCard
+                  key={step.id}
+                  step={step}
+                  index={idx + 5}
+                  completedSet={completedSet}
+                  activeId={activeStepId}
+                  onClick={() => openStep(step)}
+                />,
+                idx < bottomRow.length - 1 ? <StepArrow key={`arrow-bottom-${step.id}`} /> : null,
+              ].filter(Boolean)
             ))}
           </div>
         </div>

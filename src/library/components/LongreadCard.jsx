@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "../../routerShim";
-import InlineCta from "./InlineCta";
+import CardActionLink from "./CardActionLink";
 
 const levelPalette = {
   Начальный: { color: "#22c55e", label: "Начальный" },
@@ -39,7 +39,7 @@ const LongreadCard = ({ item, theme }) => {
           <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: level.color }} />
           {level.label}
         </span>
-        <InlineCta />
+        <CardActionLink />
       </div>
     </Link>
   );

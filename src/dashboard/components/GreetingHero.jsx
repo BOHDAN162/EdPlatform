@@ -6,31 +6,31 @@ const platformTips = [
   {
     id: "library",
     title: "Прокачай навык за 10 минут",
-    text: "Открой лонгрид или саммари и выпиши 3 тезиса в Память — это даст быстрый рост.",
+    text: "Открой лонгрид/саммари и выпиши 3 тезиса в Память — короткая сессия даст буст.",
     route: "/library",
   },
   {
     id: "missions",
-    title: "Сделай шаг сегодня",
-    text: "Выбери миссию на 10–20 минут и забери XP. Серия держится на маленьких победах.",
+    title: "Закрой миссию сегодня",
+    text: "Закрой 1 миссию, чтобы удержать серию и получить XP — выбери короткую цель.",
     route: "/missions",
   },
   {
     id: "memory",
-    title: "Зафиксируй мысль",
-    text: "Запиши одну идею проекта или вывод из дня. Память — твой личный банк инсайтов.",
+    title: "Запиши инсайт в Память",
+    text: "Запиши идею или вывод в Память — хотя бы 2 строки, чтобы сохранить фокус.",
     route: "/memory",
   },
   {
     id: "community",
-    title: "Займи место в топе",
-    text: "Зайди в сообщество: сравни прогресс, найди сильных ребят и заряжайся конкуренцией.",
+    title: "Зайди в активное сообщество",
+    text: "Посмотри топ активных, вдохновись прогрессом и отметься в одном обсуждении.",
     route: "/community",
   },
   {
     id: "profile",
-    title: "Настрой платформу под себя",
-    text: "Выбери персонажа и оформление — так учиться приятнее, а прогресс ощущается сильнее.",
+    title: "Настрой профиль и оформление",
+    text: "Зайди в настройки профиля: выбери персонажа, акцент и обнови данные.",
     route: "/settings?tab=profile",
   },
 ];
@@ -173,7 +173,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                 <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
                   <button
                     type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-black/40 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     onClick={handlePrev}
                     aria-label="Предыдущий совет"
                   >
@@ -184,7 +184,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                   <span className="text-xs font-semibold text-[var(--muted)]">{`${tipIndex + 1}/${tips.length}`}</span>
                   <button
                     type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-white/35 bg-black/40 text-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     onClick={handleNext}
                     aria-label="Следующий совет"
                   >

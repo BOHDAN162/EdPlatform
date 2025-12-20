@@ -61,7 +61,7 @@ const fontOptions = [
 ];
 
 const tabList = [
-  { id: "account", label: "Профиль" },
+  { id: "profile", label: "Профиль" },
   { id: "appearance", label: "Оформление" },
   { id: "notifications", label: "Уведомления" },
   { id: "security", label: "Безопасность" },
@@ -81,7 +81,7 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
 
   const location = useLocation();
   const { mascotId, setMascotId } = useMascot();
-  const [activeTab, setActiveTab] = useState("account");
+  const [activeTab, setActiveTab] = useState("profile");
   const [appearance, setAppearance] = useState(() =>
     loadLocalJSON(STORAGE_KEYS.appearance, { accent: "purple", reduceMotion: false, fontSize: "normal" })
   );
@@ -104,6 +104,10 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search || "");
     const tab = searchParams.get("tab");
+    if (tab === "account") {
+      setActiveTab("profile");
+      return;
+    }
     if (tab && tabList.some((item) => item.id === tab)) {
       setActiveTab(tab);
     }
@@ -277,16 +281,16 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
     </>
   );
 
-  const accountTab = (
+  const profileTab = (
     <>
       <SectionCard
-        title="Данные аккаунта"
+        title="Профиль"
         subtitle="Имя, контактный email и короткий ник для карточек."
         footer={
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="meta subtle">{feedback.account}</div>
             <button className="primary" type="button" onClick={handleAccountSave}>
-              Сохранить данные
+              Сохранить профиль
             </button>
           </div>
         }
@@ -552,8 +556,8 @@ const SettingsPage = ({ theme, setTheme, user, onUserUpdate, onLogout }) => {
     switch (activeTab) {
       case "appearance":
         return appearanceTab;
-      case "account":
-        return accountTab;
+      case "profile":
+        return profileTab;
       case "notifications":
         return notificationsTab;
       case "security":
