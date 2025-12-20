@@ -4,6 +4,62 @@
 @tailwind utilities;
 
 :root {
+  --bg: #0b0b0b;
+  --surface: #121212;
+  --surface-2: #121212;
+  --surface-3: #0b0b0b;
+  --text: #e7e7e7;
+  --text-muted: #b3b3b3;
+  --accent: #8b5cf6;
+  --accent-weak: rgba(139, 92, 246, 0.18);
+  --border: #1f1f1f;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-strong: 0 30px 80px rgba(0, 0, 0, 0.35);
+  --success: #22c55e;
+  --warning: #facc15;
+  --danger: #f87171;
+  --focus: rgba(139, 92, 246, 0.5);
+  --chip-bg: rgba(139, 92, 246, 0.14);
+  --chip-text: #c4b5fd;
+  --input-bg: #0b0b0b;
+  --input-text: #e7e7e7;
+  --input-border: #262626;
+  --fg: var(--text);
+  --card: var(--surface);
+  --muted: var(--text-muted);
+}
+
+body[data-theme="dark"],
+.app.dark {
+  --bg: #0b0b0b;
+  --surface: #121212;
+  --surface-2: #121212;
+  --surface-3: #0b0b0b;
+  --text: #e7e7e7;
+  --text-muted: #b3b3b3;
+  --accent: #8b5cf6;
+  --accent-weak: rgba(139, 92, 246, 0.18);
+  --border: #1f1f1f;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-strong: 0 30px 80px rgba(0, 0, 0, 0.35);
+  --success: #22c55e;
+  --warning: #facc15;
+  --danger: #f87171;
+  --focus: rgba(139, 92, 246, 0.5);
+  --chip-bg: rgba(139, 92, 246, 0.14);
+  --chip-text: #c4b5fd;
+  --input-bg: #0b0b0b;
+  --input-text: #e7e7e7;
+  --input-border: #262626;
+  --fg: var(--text);
+  --card: var(--surface);
+  --muted: var(--text-muted);
+}
+
+body[data-theme="light"],
+.app.light {
   --bg: #f5f7fb;
   --surface: #ffffff;
   --surface-2: #f0f3f9;
@@ -25,34 +81,6 @@
   --input-bg: #ffffff;
   --input-text: #0f172a;
   --input-border: #d7dce5;
-  --fg: var(--text);
-  --card: var(--surface);
-  --muted: var(--text-muted);
-}
-
-body[data-theme="dark"],
-.app.dark {
-  --bg: #0b0f1a;
-  --surface: #10172a;
-  --surface-2: #121c31;
-  --surface-3: #0f1628;
-  --text: #e7e7e7;
-  --text-muted: #b3b3b3;
-  --accent: #8a3ffc;
-  --accent-weak: rgba(138, 63, 252, 0.18);
-  --border: #1f2737;
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.18);
-  --shadow-strong: 0 30px 80px rgba(0, 0, 0, 0.35);
-  --success: #22c55e;
-  --warning: #facc15;
-  --danger: #f87171;
-  --focus: rgba(138, 63, 252, 0.5);
-  --chip-bg: rgba(138, 63, 252, 0.14);
-  --chip-text: #c4b5fd;
-  --input-bg: #0f1524;
-  --input-text: #e7e7e7;
-  --input-border: #1f2737;
   --fg: var(--text);
   --card: var(--surface);
   --muted: var(--text-muted);
