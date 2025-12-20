@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "../../routerShim";
+import { Link, useNavigate } from "../../routerShim";
 import MascotRenderer from "../../mascots/MascotRenderer";
 
 const platformTips = [
@@ -47,14 +47,14 @@ const formatDays = (value) => {
   return `${value} дней`;
 };
 
-const ProgressCard = ({ goal }) => {
+const ProgressCard = ({ goal, onNavigate }) => {
   const percent = Math.min(100, Math.max(0, goal.percent || 0));
 
   return (
-    <Link
-      to={goal.to || "#"}
+    <button
+      type="button"
+      onClick={() => onNavigate(goal.to || "/")}
       className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/5 p-4 text-left shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
-      role="button"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -79,11 +79,12 @@ const ProgressCard = ({ goal }) => {
         <span>Награда за завершение</span>
         <span className="font-semibold text-white">{goal.reward}</span>
       </div>
-    </Link>
+    </button>
   );
 };
 
 const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Исследователь", goals = [], quote, insight, mood }) => {
+  const navigate = useNavigate();
   const topLineItems = [
     { icon: "🧩", label: `Статус: ${role}` },
     { icon: "🔥", label: `Серия: ${formatDays(streak)}` },
@@ -109,6 +110,11 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
 
   const handlePrev = () => setTipIndex((i) => (i - 1 + tips.length) % tips.length);
   const handleNext = () => setTipIndex((i) => (i + 1) % tips.length);
+
+  const handleNavigate = (to) => {
+    const target = to || "/";
+    navigate(target);
+  };
 
   const handleSwipeStart = (clientX) => setStartX(clientX);
   const handleSwipeEnd = (clientX) => {
@@ -155,7 +161,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
             </div>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             {goals.map((goal) => (
-              <ProgressCard key={goal.id} goal={goal} />
+              <ProgressCard key={goal.id} goal={goal} onNavigate={handleNavigate} />
             ))}
             </div>
           </div>
@@ -212,8 +218,9 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                   {visibleAdvice?.text || insight?.context || "Переходи к заданию или игре — короткое действие даст +XP и держит серию."}
                 </p>
               </div>
-              <Link
-                to={visibleAdvice?.route || insight?.to || "/missions"}
+              <button
+                type="button"
+                onClick={() => handleNavigate(visibleAdvice?.route || insight?.to || "/missions")}
                 className="absolute bottom-3 right-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-[0_10px_30px_rgba(138,63,252,0.32)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(138,63,252,0.42)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 aria-label="Перейти по совету"
               >
@@ -221,7 +228,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
                   <path d="M5 12h14" />
                   <path d="M13 6l6 6-6 6" />
                 </svg>
-              </Link>
+              </button>
             </div>
           </div>
         </div>
