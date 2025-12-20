@@ -12,6 +12,16 @@ import MoodReflection from "./components/MoodReflection";
 import ContentRail from "./components/ContentRail";
 import CommunityPulse from "./components/CommunityPulse";
 import AchievementsStream from "./components/AchievementsStream";
+import ActivityCalendar from "../components/activity/ActivityCalendar";
+
+const hasDayActivity = (day = {}) =>
+  (day.completedMaterialsCount || 0) +
+    (day.missionsCompletedCount || 0) +
+    (day.memoryEntriesCount || 0) +
+    (day.communityActionsCount || 0) +
+    (day.sessionsCount || 0) +
+    (day.totalXP || 0) >
+  0;
 
 const DashboardPage = ({
   user,
@@ -190,17 +200,23 @@ const DashboardPage = ({
     [progress?.completedMaterialIds]
   );
 
-  const recentActivityGrid = useMemo(() => {
+  const currentMonthActivity = useMemo(() => {
     const now = new Date();
-    return Array.from({ length: 35 }).map((_, idx) => {
-      const date = new Date();
-      date.setDate(now.getDate() - (34 - idx));
-      const key = date.toISOString().slice(0, 10);
-      const dayActivity = activityByDate?.[key];
-      const count = Array.isArray(dayActivity) ? dayActivity.length : dayActivity?.events?.length || 0;
-      return { key, label: date.getDate(), active: count > 0 };
-    });
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    return Object.entries(activityByDate || {}).reduce((acc, [key, value]) => {
+      const date = new Date(key);
+      if (date.getFullYear() === year && date.getMonth() === month) {
+        acc[key] = value;
+      }
+      return acc;
+    }, {});
   }, [activityByDate]);
+
+  const activeDays = useMemo(
+    () => Object.values(currentMonthActivity || {}).filter((day) => hasDayActivity(day)).length,
+    [currentMonthActivity]
+  );
 
   const quickStats = [
     { label: "Уровень", value: levelInfo.level, hint: `${levelInfo.toNext} XP до следующего`, icon: "🏆" },
@@ -364,43 +380,19 @@ const DashboardPage = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="card md:col-span-2">
-            <div className="card-header">Активные дни</div>
-            <p className="meta">Подсветка последних 5 недель и серии.</p>
-            <div className="grid grid-cols-7 gap-1 rounded-2xl border border-white/5 bg-white/5 p-3">
-              {recentActivityGrid.map((day, index) => {
-                const inStreak = recentActivityGrid.length - index <= streakCount;
-                return (
-                  <button
-                    type="button"
-                    key={day.key}
-                    className={`h-8 rounded-md transition ${day.active ? "bg-[#8A3FFC]" : "bg-white/10"} ${inStreak ? "ring-2 ring-[#8A3FFC]/60" : ""}`}
-                    title={`${day.key} · ${day.active ? "Активный" : "Без действий"}`}
-                  />
-                );
-              })}
+        <div className="card">
+          <div className="section-head">
+            <div>
+              <h2>Календарь активности</h2>
+              <p className="meta">Следи за днями с действиями, чтобы удерживать серию и задания месяца.</p>
             </div>
-            <div className="chip-row mt-3">
-              <span className="chip">Серия: {streakCount} дн.</span>
-              <span className="chip ghost">Лучший стрик: {streakInfo?.best || streakCount}</span>
+            <div className="chip-row">
+              <span className="chip">Активные дни: {activeDays}</span>
+              <span className="chip">Серия: {streakCount}</span>
+              <span className="chip ghost">Лучший стрик: {streakInfo?.best || 0}</span>
             </div>
           </div>
-          <div className="card">
-            <div className="card-header">Задания и материалы</div>
-            <div className="grid gap-3">
-              <div className="rounded-xl border border-white/5 bg-white/5 p-3">
-                <div className="meta subtle">Задания</div>
-                <div className="text-2xl font-semibold">{missionCompletedCount}</div>
-                <div className="meta subtle">Выполнено за всё время</div>
-              </div>
-              <div className="rounded-xl border border-white/5 bg-white/5 p-3">
-                <div className="meta subtle">Материалы</div>
-                <div className="text-2xl font-semibold">{completedMaterials}</div>
-                <div className="meta subtle">Закрытые уроки</div>
-              </div>
-            </div>
-          </div>
+          <ActivityCalendar activityByDate={activityByDate} streakInfo={streakInfo} compact />
         </div>
 
         <div className="card">

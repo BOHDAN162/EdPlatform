@@ -10,13 +10,6 @@ const formatDateLabel = (isoDate) => {
   return date.toLocaleDateString("ru-RU", { day: "numeric", month: "long" });
 };
 
-const sumActions = (day = {}) =>
-  (day.completedMaterialsCount || 0) +
-  (day.missionsCompletedCount || 0) +
-  (day.memoryEntriesCount || 0) +
-  (day.communityActionsCount || 0) +
-  (day.sessionsCount || 0);
-
 const intensityLabel = (level) => {
   if (level >= 3) return "Мощная активность";
   if (level === 2) return "Средняя активность";
@@ -169,10 +162,6 @@ const ActivityCalendar = ({
         </div>
         {detail ? (
           <div className="tooltip-grid">
-            <div>
-              <div className="tooltip-label">Действия</div>
-              <div className="tooltip-value">{sumActions(detail)}</div>
-            </div>
             <div>
               <div className="tooltip-label">Материалы</div>
               <div className="tooltip-value">{detail.completedMaterialsCount || 0}</div>
