@@ -20,63 +20,39 @@ const statusLabel = (step, completedSet, activeId) => {
   return "Не начато";
 };
 
-const DevelopmentTrackArrow = () => (
-  <div className="development-track-arrow" aria-hidden>
-    <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2">
-      <path d="M4 10h10" />
-      <path d="M11 6l4 4-4 4" />
-    </svg>
-  </div>
-);
-
 const DevelopmentTrackCard = React.forwardRef(
   ({ step, index, completedSet, activeId, onSelect }, ref) => {
     const status = statusLabel(step, completedSet, activeId);
     const theme = themeMeta[step.theme] || themeMeta[step.tag] || themeMeta.growth;
     const rewardIcon = rewardMeta[step.rewardType] || rewardMeta.xp;
-    const progressValue = completedSet.has(step.id)
-      ? 100
-      : status === "В процессе"
-      ? 55
-      : 12;
+    const statusTone = status === "Готово" ? "done" : status === "В процессе" ? "active" : "idle";
+    const rewardLabel = step.xpReward ? `+${step.xpReward} XP` : "Микронаграда";
 
     return (
       <button
         type="button"
         ref={ref}
-        className={`development-track-card ${status === "Готово" ? "done" : status === "В процессе" ? "active" : "idle"}`}
+        className={`development-track-card ${statusTone}`}
         onClick={() => onSelect?.()}
       >
-        <div className="development-track-card__head">
-          <span className="pill subtle development-track-card__step">{index + 1}</span>
-          <span className={`status-dot ${status === "Готово" ? "success" : status === "В процессе" ? "active" : "muted"}`}>
-            {status}
-          </span>
+        <div className="development-track-card__header">
+          <span className="development-track-card__index">{index + 1}</span>
+          <span className={`development-track-card__status ${statusTone}`}>{status}</span>
         </div>
-        <div className="development-track-card__content">
-          <div className="development-track-card__title" style={{ color: theme.color }}>
-            <span className="development-track-card__emoji" aria-hidden>
-              {theme.icon}
-            </span>
-            <div className="development-track-card__text">
-              <p className="mini-label development-track-card__category" title={theme.label}>
-                {theme.label}
-              </p>
-              <h4 className="development-track-card__heading" title={step.shortTitle || step.title}>
-                {step.shortTitle || step.title}
-              </h4>
-            </div>
-          </div>
-          <p className="meta subtle development-track-card__meta" title={step.themeLabel || step.description}>
+        <div className="development-track-card__body">
+          <h4 className="development-track-card__heading" title={step.shortTitle || step.title}>
+            {step.shortTitle || step.title}
+          </h4>
+          <p className="development-track-card__category" title={step.themeLabel || theme.label}>
             {step.themeLabel || theme.label || "Рост"}
           </p>
+          <p className="development-track-card__description" title={step.description}>
+            {step.description || "Короткий шаг из трека"}
+          </p>
         </div>
-        <div className="development-track-card__progress" aria-hidden>
-          <span className="development-track-card__progress-bar">
-            <span style={{ width: `${progressValue}%` }} />
-          </span>
-          <span className="development-track-card__reward" title={step.xpReward ? `+${step.xpReward} XP` : "Микронаграда"}>
-            {rewardIcon} {step.xpReward ? `+${step.xpReward} XP` : "Микронаграда"}
+        <div className="development-track-card__footer">
+          <span className="development-track-card__reward" title={rewardLabel}>
+            {rewardIcon} {rewardLabel}
           </span>
         </div>
       </button>
@@ -193,13 +169,7 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
     }
   };
 
-  const chunkedRows = useMemo(() => {
-    const slices = [];
-    for (let i = 0; i < steps.length; i += 5) {
-      slices.push(steps.slice(i, i + 5));
-    }
-    return slices.slice(0, 2);
-  }, [steps]);
+  const visibleSteps = useMemo(() => steps.slice(0, 10), [steps]);
 
   const personaVariant = variantByProfile[track?.profileKey] || "start";
 
@@ -211,7 +181,7 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
           <h2>{hasTrack ? track?.trackTitle || "10 шагов роста" : "Сначала собери свой маршрут"}</h2>
           <p className="meta">
             {hasTrack
-              ? "Два уровня по пять шагов. Начни с первого блока, кликай по карточке, чтобы открыть детали и перейти к материалу."
+              ? "Два уровня по пять шагов. Нажми на карточку, чтобы открыть детали и перейти к материалу."
               : "Ответь на 10 вопросов, чтобы получить персональный путь. Его всегда можно пересобрать."}
           </p>
           {hasTrack ? (
@@ -233,28 +203,21 @@ const TrackRoadmap = ({ track, onStart, onEdit }) => {
       </div>
 
       {hasTrack ? (
-        <div className="development-track">
-          {chunkedRows.map((row, rowIndex) => (
-            <div className="development-track-row" key={`row-${rowIndex}`}>
-              {row.map((step, stepIndex) => {
-                const cardRef = React.createRef();
-                const absoluteIndex = rowIndex * 5 + stepIndex;
-                return (
-                  <React.Fragment key={step.id}>
-                    <DevelopmentTrackCard
-                      ref={cardRef}
-                      step={step}
-                      index={absoluteIndex}
-                      completedSet={completedSet}
-                      activeId={activeStepId}
-                      onSelect={() => handleOpenStep(step, cardRef.current)}
-                    />
-                    {stepIndex < row.length - 1 && <DevelopmentTrackArrow />}
-                  </React.Fragment>
-                );
-              })}
-            </div>
-          ))}
+        <div className="development-track-grid">
+          {visibleSteps.map((step, absoluteIndex) => {
+            const cardRef = React.createRef();
+            return (
+              <DevelopmentTrackCard
+                key={step.id}
+                ref={cardRef}
+                step={step}
+                index={absoluteIndex}
+                completedSet={completedSet}
+                activeId={activeStepId}
+                onSelect={() => handleOpenStep(step, cardRef.current)}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="empty-track">Тут появится твой персональный маршрут после опроса.</div>

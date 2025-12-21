@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "../../routerShim";
+import { useNavigate } from "../../routerShim";
 import MascotRenderer from "../../mascots/MascotRenderer";
 
 const platformTips = [
@@ -51,13 +51,10 @@ const ProgressCard = ({ goal, onNavigate }) => {
   const percent = Math.min(100, Math.max(0, goal.percent || 0));
 
   return (
-    <Link
-      to={goal.to || "/"}
-      onClick={(e) => {
-        e.preventDefault();
-        onNavigate(goal.to || "/");
-      }}
-      className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/5 p-4 text-left shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
+    <button
+      type="button"
+      onClick={() => onNavigate(goal.to || "/")}
+      className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-left shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -82,7 +79,7 @@ const ProgressCard = ({ goal, onNavigate }) => {
         <span>Награда за завершение</span>
         <span className="font-semibold text-white">{goal.reward}</span>
       </div>
-    </Link>
+    </button>
   );
 };
 
