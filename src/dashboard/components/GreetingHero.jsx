@@ -7,31 +7,31 @@ const platformTips = [
     id: "library",
     title: "Прокачай навык за 10 минут",
     text: "Открой лонгрид/саммари и выпиши 3 тезиса в Память — короткая сессия даст буст.",
-    route: "/library",
+    targetRoute: "/library",
   },
   {
     id: "missions",
     title: "Закрой миссию сегодня",
     text: "Закрой 1 миссию, чтобы удержать серию и получить XP — выбери короткую цель.",
-    route: "/missions",
+    targetRoute: "/missions",
   },
   {
     id: "memory",
     title: "Запиши инсайт в Память",
     text: "Запиши идею или вывод в Память — хотя бы 2 строки, чтобы сохранить фокус.",
-    route: "/memory",
+    targetRoute: "/memory",
   },
   {
     id: "community",
     title: "Зайди в активное сообщество",
     text: "Посмотри топ активных, вдохновись прогрессом и отметься в одном обсуждении.",
-    route: "/community",
+    targetRoute: "/community",
   },
   {
-    id: "profile",
-    title: "Настрой профиль и оформление",
-    text: "Зайди в настройки профиля: выбери персонажа, акцент и обнови данные.",
-    route: "/settings?tab=profile",
+    id: "memory-note",
+    title: "Заметка недели",
+    text: "Осознанно подведи итог за неделю: зайди в Память и оставь короткую заметку.",
+    targetRoute: "/memory",
   },
 ];
 
@@ -51,9 +51,12 @@ const ProgressCard = ({ goal, onNavigate }) => {
   const percent = Math.min(100, Math.max(0, goal.percent || 0));
 
   return (
-    <button
-      type="button"
-      onClick={() => onNavigate(goal.to || "/")}
+    <Link
+      to={goal.to || "/"}
+      onClick={(e) => {
+        e.preventDefault();
+        onNavigate(goal.to || "/");
+      }}
       className="group flex flex-col gap-2 rounded-2xl border border-[var(--border)] bg-white/5 p-4 text-left shadow-sm transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-[#8A3FFC]/60 hover:shadow-xl"
     >
       <div className="flex items-start justify-between gap-2">
@@ -79,7 +82,7 @@ const ProgressCard = ({ goal, onNavigate }) => {
         <span>Награда за завершение</span>
         <span className="font-semibold text-white">{goal.reward}</span>
       </div>
-    </button>
+    </Link>
   );
 };
 
@@ -220,7 +223,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
               </div>
               <button
                 type="button"
-                onClick={() => handleNavigate(visibleAdvice?.route || insight?.to || "/missions")}
+                onClick={() => handleNavigate(visibleAdvice?.targetRoute || visibleAdvice?.route || insight?.to || "/missions")}
                 className="absolute bottom-3 right-3 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[var(--accent)] text-white shadow-[0_10px_30px_rgba(138,63,252,0.32)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_34px_rgba(138,63,252,0.42)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                 aria-label="Перейти по совету"
               >
