@@ -26,10 +26,10 @@ const MemoryPage = ({ user, onEntryAdded }) => {
   const [tagFilter, setTagFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [editingEntry, setEditingEntry] = useState(null);
-  const [showForm, setShowForm] = useState(false);
   const [prefillType, setPrefillType] = useState("text");
   const [prefillText, setPrefillText] = useState("");
-  const [pavilionModalOpen, setPavilionModalOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState("none");
+  const [entryFormOrigin, setEntryFormOrigin] = useState("page");
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ const MemoryPage = ({ user, onEntryAdded }) => {
     if (location.state?.quickAdd) {
       setPrefillText("Быстрая заметка о том, что хочу запомнить...");
       setPrefillType("text");
-      setShowForm(true);
+      setActiveModal("entry");
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location, navigate]);
@@ -89,11 +89,12 @@ const MemoryPage = ({ user, onEntryAdded }) => {
     }
   }, [selectLandmark]);
 
-  const openForm = (type = "text", text = "") => {
+  const openForm = (type = "text", text = "", origin = "page") => {
     setPrefillType(type);
     setPrefillText(text);
     setEditingEntry(null);
-    setShowForm(true);
+    setEntryFormOrigin(origin);
+    setActiveModal("entry");
   };
 
   const handleSave = (payload) => {
@@ -104,19 +105,20 @@ const MemoryPage = ({ user, onEntryAdded }) => {
       const entry = addEntry(selectedLandmark?.id, { ...payload, category: selectedLandmark?.category });
       if (onEntryAdded) onEntryAdded(entry);
     }
-    setShowForm(false);
+    setActiveModal(entryFormOrigin === "pavilion" ? "pavilion" : "none");
     setEditingEntry(null);
     setPrefillText("");
   };
 
-  const handleEdit = (entry) => {
+  const handleEdit = (entry, origin = "page") => {
     setEditingEntry(entry);
-    setShowForm(true);
+    setEntryFormOrigin(origin);
+    setActiveModal("entry");
   };
 
   const handleDelete = (entryId) => {
     deleteEntry(entryId);
-    setShowForm(false);
+    setActiveModal("none");
     setEditingEntry(null);
   };
 
@@ -195,7 +197,7 @@ const MemoryPage = ({ user, onEntryAdded }) => {
           landmarks={filteredLandmarks}
           onSelect={(id) => {
             selectLandmark(id);
-            setPavilionModalOpen(true);
+            setActiveModal("pavilion");
           }}
         />
 
@@ -222,7 +224,9 @@ const MemoryPage = ({ user, onEntryAdded }) => {
                 {entriesForSelected.slice(0, 3).map((entry) => (
                   <MemoryEntryCard key={entry.id} entry={entry} onClick={() => handleEdit(entry)} />
                 ))}
-                <button className="ghost" onClick={() => setPavilionModalOpen(true)}>Смотреть все записи павильона</button>
+                <button className="ghost" onClick={() => setActiveModal("pavilion")}>
+                  Смотреть все записи павильона
+                </button>
               </div>
             )}
           </div>
@@ -232,22 +236,22 @@ const MemoryPage = ({ user, onEntryAdded }) => {
       </div>
 
       <MemoryPavilionModal
-        open={pavilionModalOpen}
+        open={activeModal === "pavilion"}
         pavilion={selectedLandmark}
         entries={entriesForSelected}
-        onClose={() => setPavilionModalOpen(false)}
-        onCreate={(type) => openForm(type)}
-        onQuickAction={(type, text) => openForm(type, text)}
-        onSelectEntry={(entry) => handleEdit(entry)}
+        onClose={() => setActiveModal("none")}
+        onCreate={(type) => openForm(type, "", "pavilion")}
+        onQuickAction={(type, text) => openForm(type, text, "pavilion")}
+        onSelectEntry={(entry) => handleEdit(entry, "pavilion")}
       />
 
-      {showForm && (
+      {activeModal === "entry" && (
         <MemoryEntryForm
           entry={editingEntry}
           landmark={selectedLandmark}
           defaultType={prefillType}
           prefillText={prefillText}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => setActiveModal(entryFormOrigin === "pavilion" ? "pavilion" : "none")}
           onSave={handleSave}
           onDelete={handleDelete}
         />
