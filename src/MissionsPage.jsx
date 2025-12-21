@@ -434,13 +434,6 @@ const MissionsPage = ({
 
   return (
     <div className="page missions-page-v3">
-      <div className="missions-hero-v3">
-        <div>
-          <p className="meta subtle">Задания</p>
-          <h1>Задания</h1>
-        </div>
-      </div>
-
       {showTutorial && (
         <div className="missions-onboarding">
           <div className="onboarding-popover">

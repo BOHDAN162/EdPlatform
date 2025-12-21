@@ -11,59 +11,46 @@ const CongratsScreen = ({ profileResult, onBuild, onRestart }) => {
   if (!profileResult) return null;
   const avatar = moodEmoji[profileResult.avatarMood] || "✨";
   const tagline = profileResult.strengths?.[0] || profileResult.summary;
+  const strengths = (profileResult.strengths || []).slice(0, 3);
 
   return (
-    <div className="congrats-card">
+    <div className="congrats-card compact">
       <div className="congrats-glow" aria-hidden />
-      <p className="pill outline">Диагностика завершена</p>
-      <h1>Поздравляем!</h1>
-      <p className="meta">Ты — {profileResult.profileType}. Маршрут уже ждёт тебя.</p>
+      <div className="congrats-head">
+        <p className="pill outline">Диагностика завершена</p>
+        <h1>Твой тип: {profileResult.profileType}</h1>
+        <p className="meta description">{tagline}</p>
+      </div>
 
-      <div className="congrats-body">
-        <div className="congrats-avatar">
-          <span role="img" aria-label="avatar mood">{avatar}</span>
+      <div className="congrats-brief">
+        <div className="congrats-brief__item">
+          <p className="meta subtle">Коротко</p>
+          <p className="congrats-brief__text">{profileResult.summary}</p>
         </div>
-        <div className="congrats-info">
-          <p className="meta subtle">Твой тип</p>
-          <h2>Твой тип: {profileResult.profileType}</h2>
-          <p className="meta description">{tagline}</p>
-          <p className="meta">{profileResult.summary}</p>
-          <div className="congrats-columns">
-            <div>
-              <p className="card-header">Сильные стороны</p>
-              <ul className="bullet-list tight">
-                {(profileResult.strengths || []).map((item) => (
-                  <li key={item} className="bullet-row">
-                    <span className="check-dot">•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="card-header">Сравнение с группой</p>
-              <ul className="bullet-list tight">
-                {(profileResult.comparison || []).map((item) => (
-                  <li key={item} className="bullet-row">
-                    <span className="check-dot">•</span>
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="congrats-brief__item">
+          <p className="meta subtle">Сильные стороны</p>
+          <div className="congrats-tags">
+            {strengths.map((item) => (
+              <span key={item} className="pill subtle">{item}</span>
+            ))}
+            {!strengths.length && <span className="pill subtle">Твой фокус — {profileResult.profileType}</span>}
+          </div>
+        </div>
+        <div className="congrats-brief__item">
+          <p className="meta subtle">Настроение трека</p>
+          <div className="congrats-avatar compact">
+            <span role="img" aria-label="avatar mood">{avatar}</span>
           </div>
         </div>
       </div>
 
       <div className="quiz-actions congrats-actions">
-        <button className="primary large" onClick={onBuild}>
+        <button className="primary" onClick={onBuild}>
           Построить мой путь развития
         </button>
-        <div className="link-row">
-          <button className="ghost" onClick={onRestart}>
-            Пройти опрос заново
-          </button>
-        </div>
+        <button className="ghost" onClick={onRestart}>
+          Пройти опрос заново
+        </button>
       </div>
     </div>
   );

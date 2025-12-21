@@ -90,16 +90,21 @@ export function Route() {
   return null;
 }
 
-export function Link({ to, children, ...rest }) {
+export function Link({ to, children, onClick, ...rest }) {
   const { navigate } = useContext(RouterContext);
+  const normalized = normalizePath(to);
+  const userOnClick = onClick;
+  const handleClick = (e) => {
+    userOnClick?.(e);
+    if (e.defaultPrevented) return;
+    e.preventDefault();
+    navigate(normalized);
+  };
   return React.createElement(
     "a",
     {
-      href: `#${normalizePath(to)}`,
-      onClick: (e) => {
-        e.preventDefault();
-        navigate(normalizePath(to));
-      },
+      href: `#${normalized}`,
+      onClick: handleClick,
       ...rest,
     },
     children
