@@ -9023,6 +9023,7 @@ body {
   font-size: 22px;
   box-shadow: 0 12px 40px rgba(0,0,0,0.3);
   z-index: 50;
+  pointer-events: auto;
 }
 
 .related-materials-card .related-grid {

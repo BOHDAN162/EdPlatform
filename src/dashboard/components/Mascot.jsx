@@ -27,9 +27,9 @@ const formatDays = (value) => {
 
 const MascotFace = ({ tone, pupilX, pupilY, blink }) => (
   <div className={`relative h-40 w-40 overflow-hidden rounded-[26px] border border-white/10 ${tone.tone} shadow-[0_20px_60px_rgba(0,0,0,0.35)]`}>
-    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10" />
-    <div className="absolute -left-6 -top-8 h-20 w-24 rounded-full bg-white/10 blur-3xl" />
-    <div className="absolute -bottom-6 -right-4 h-20 w-24 rounded-full bg-[#8A3FFC]/30 blur-3xl" />
+    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/10" />
+    <div className="pointer-events-none absolute -left-6 -top-8 h-20 w-24 rounded-full bg-white/10 blur-3xl" />
+    <div className="pointer-events-none absolute -bottom-6 -right-4 h-20 w-24 rounded-full bg-[#8A3FFC]/30 blur-3xl" />
     <div className="relative flex h-full flex-col items-center justify-center gap-4 p-5">
       <div className="relative flex h-16 w-24 items-center justify-between rounded-full bg-black/30 px-4 py-3 shadow-inner shadow-black/40">
         {Array.from({ length: 2 }).map((_, idx) => (
@@ -83,7 +83,7 @@ const Mascot = ({ mood = "happy", streak = 0, level = 1, showMeta = true }) => {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-lg shadow-black/10">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#8A3FFC]/12 via-transparent to-[#8A3FFC]/10" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#8A3FFC]/12 via-transparent to-[#8A3FFC]/10" />
       <div className={`relative flex gap-4 ${showMeta ? "items-center" : "justify-center"}`}>
         <MascotFace tone={tone} pupilX={pupilX} pupilY={pupilY} blink={blink} />
         {showMeta && (

@@ -134,7 +134,7 @@ const GreetingHero = ({ user, streak = 0, level = 1, xp = 0, role = "Иссле�
         <div className="absolute right-4 top-0 h-24 w-24 rounded-full bg-[#22d3ee]/25 blur-3xl" />
         <div className="absolute bottom-6 left-1/3 h-24 w-36 rounded-full bg-black/5 blur-3xl" />
       </div>
-      <div className="relative flex flex-1 items-center">
+      <div className="relative z-10 flex flex-1 items-center">
         <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-[1.2fr_0.95fr] lg:items-start">
           <div className="flex flex-col gap-6">
             <div className="space-y-2">
